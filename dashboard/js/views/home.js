@@ -160,7 +160,7 @@ function showSlide(root) {
       interval: 15000,
       onShow(photo) {
         const cap = photoBtn.querySelector('.h-photo-cap');
-        if (cap) cap.innerHTML = `<span>${esc(photo.caption || 'Home')}</span>`;
+        if (cap) { cap.innerHTML = photo.caption ? `<span>${esc(photo.caption)}</span>` : ''; cap.style.display = photo.caption ? '' : 'none'; }
       },
     });
     homeSlides.start();

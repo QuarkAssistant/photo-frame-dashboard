@@ -1,3 +1,5 @@
 import { start } from './app.js';
+import { startAlbumSync } from './album.js';
 
-start();
+await start();
+startAlbumSync();

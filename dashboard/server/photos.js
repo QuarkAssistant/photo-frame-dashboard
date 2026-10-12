@@ -47,10 +47,10 @@ export function listPhotos() {
     photos.push({
       id,
       url: `/api/photos/${id}`,
-      caption: path.basename(name, ext).replace(/[_-]+/g, ' '),
+      caption: name.startsWith('icloud-') ? '' : path.basename(name, ext).replace(/[_-]+/g, ' '),
     });
   }
-  photos.sort((a, b) => a.caption.localeCompare(b.caption));
+  photos.sort((a, b) => (a.caption + a.id).localeCompare(b.caption + b.id));
   if (!photos.length) return EMBLEM;
   return { source: 'folder', photos };
 }
