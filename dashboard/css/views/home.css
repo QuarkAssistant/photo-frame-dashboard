@@ -207,3 +207,16 @@
 .hw-hours { padding-top: 3px; }
 .hw-hr { gap: 1px; }
 .hw-hr-i .i { width: 18px; height: 18px; }
+/* v6c: one continuous header rule across the full width */
+.h-clock, .h-family { border-bottom: 0; }
+.home::before {
+  content: '';
+  grid-column: 1 / -1;
+  grid-row: 1;
+  align-self: end;
+  height: 3px;
+  background: var(--ink);
+  pointer-events: none;
+}
+.h-clock, .h-weather, .h-family { grid-row: 1; }
+.h-main, .h-side, .home > :not(.h-clock):not(.h-weather):not(.h-family) { grid-row: 2; }
