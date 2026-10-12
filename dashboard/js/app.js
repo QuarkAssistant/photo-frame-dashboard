@@ -1,5 +1,9 @@
 import { BRAND, FAMILY } from '../family.js';
 import { routineForHour } from '../mock.js';
+import {
+  DEFAULT_NIGHT_END, DEFAULT_NIGHT_START, inNightWindow, NIGHT_DRIFT_MINUTES, NIGHT_WAKE_MS,
+  nightAnchor, parseClockMinutes,
+} from '../night.js';
 import { parts, ymd } from '../time.js';
 import { refreshAll, refreshLists, state, subscribe } from './data.js';
 import { icon } from './icons.js';
@@ -13,6 +17,11 @@ let memberId = null;
 let lastMin = -1;
 let idle = 0;
 let saverOpen = false;
+let nightOpen = false;
+let nightSlot = null;
+let wakeUntil = 0;
+let nightStartMin = parseClockMinutes(DEFAULT_NIGHT_START, 23 * 60);
+let nightEndMin = parseClockMinutes(DEFAULT_NIGHT_END, 6 * 60);
 
 export function register(name, view) { views[name] = view; }
 export function now() { return new Date(); }
@@ -122,8 +131,71 @@ function closeSaver() {
   document.getElementById('saver').classList.remove('is-open');
 }
 
+function inNight(date) {
+  const p = parts(date);
+  return inNightWindow(p.hour, p.minute, nightStartMin, nightEndMin);
+}
+
+function nightClockHtml(date) {
+  const label = formatTime(date);
+  const space = label.lastIndexOf(' ');
+  return `${esc(label.slice(0, space))}<span>${esc(label.slice(space + 1))}</span>`;
+}
+
+function paintNight(date, animate) {
+  const clock = document.querySelector('[data-nightclock]');
+  if (!clock) return;
+  clock.innerHTML = nightClockHtml(date);
+  const slot = Math.floor(date.getTime() / 60000 / NIGHT_DRIFT_MINUTES);
+  if (slot === nightSlot) return;
+  const first = nightSlot == null;
+  nightSlot = slot;
+  const spot = nightAnchor(slot);
+  clock.style.transition = first || !animate ? 'none' : '';
+  clock.style.left = `${spot.x}%`;
+  clock.style.top = `${spot.y}%`;
+  if (first || !animate) {
+    clock.getBoundingClientRect();
+    clock.style.transition = '';
+  }
+}
+
+function syncNight(date) {
+  const show = inNight(date) && Date.now() >= wakeUntil;
+  const el = document.getElementById('night');
+  if (!el) return;
+  if (show) {
+    if (saverOpen) closeSaver();
+    if (!nightOpen) {
+      nightOpen = true;
+      el.classList.add('is-open');
+      el.setAttribute('aria-hidden', 'false');
+      document.documentElement.classList.add('is-night');
+      paintNight(date, false);
+    } else paintNight(date, true);
+    return;
+  }
+  if (!nightOpen && !document.documentElement.classList.contains('is-night')) return;
+  nightOpen = false;
+  nightSlot = null;
+  el.classList.remove('is-open');
+  el.setAttribute('aria-hidden', 'true');
+  document.documentElement.classList.remove('is-night');
+}
+
+async function loadNightConfig() {
+  try {
+    const res = await fetch('/api/config');
+    if (!res.ok) return;
+    const cfg = await res.json();
+    nightStartMin = parseClockMinutes(cfg.nightStart, nightStartMin);
+    nightEndMin = parseClockMinutes(cfg.nightEnd, nightEndMin);
+  } catch { /* defaults already match the usual window */ }
+}
+
 function tick() {
   const n = now();
+  syncNight(n);
   const c = clockBits(n);
   document.querySelectorAll('[data-railclock]').forEach((el) => {
     el.innerHTML = `<b>${c.h}:${c.m}</b><span>${c.ap}</span>`;
@@ -141,7 +213,7 @@ function tick() {
     if (saverOpen) paintSaver();
   }
   idle += 1;
-  if (!saverOpen && idle >= 180) openSaver();
+  if (!nightOpen && !inNight(n) && !saverOpen && idle >= 180) openSaver();
 }
 
 function bind() {
@@ -176,7 +248,16 @@ function bind() {
     idle = 0;
     closeSaver();
   });
-  document.addEventListener('pointerdown', () => { idle = 0; }, true);
+  document.addEventListener('pointerdown', (e) => {
+    idle = 0;
+    const sleeping = nightOpen || document.documentElement.classList.contains('is-night');
+    if (inNight(now())) wakeUntil = Date.now() + NIGHT_WAKE_MS;
+    if (sleeping) {
+      e.preventDefault();
+      e.stopPropagation();
+      syncNight(now());
+    }
+  }, true);
   window.addEventListener('hashchange', () => go(location.hash.slice(1) || 'home'));
 }
 
@@ -197,6 +278,9 @@ export { clockHtml, formatTime, owner };
 export async function start() {
   rail();
   bind();
+  syncNight(now());
+  await loadNightConfig();
+  syncNight(now());
   subscribe(() => {
     const active = document.activeElement;
     if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) return;

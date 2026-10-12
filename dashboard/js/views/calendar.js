@@ -52,7 +52,7 @@ function week() {
     const list = state.events.filter((e) => onDay(e, day));
     const chips = list.map((e) => {
       const p = owner(e);
-      const time = e.allDay ? 'All day' : formatTime(new Date(e.start), false);
+      const time = e.allDay ? 'All day' : formatTime(e.start);
       return `<button class="wk-ev" type="button" data-ev="${esc(e.id)}" style="${pstyle(p)}">` +
         `<span>${esc(time)}</span><b>${esc(e.displayTitle || e.title)}</b></button>`;
     }).join('') || '<div class="wk-free serif"><i>Clear</i></div>';

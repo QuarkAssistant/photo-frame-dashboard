@@ -45,7 +45,7 @@
   border-left: 8px solid var(--c);
   text-align: left;
 }
-.ag-time { width: calc(var(--u) * 7); flex: none; font-weight: 800; font-stretch: 75%; font-variant-numeric: tabular-nums; color: var(--ink-2); }
+.ag-time { width: calc(var(--u) * 7.2); flex: none; white-space: nowrap; font-weight: 800; font-stretch: 75%; font-variant-numeric: tabular-nums; color: var(--ink-2); }
 .ag-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .ag-main b { font-size: var(--fs-m); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ag-main small { color: var(--mute); font-size: var(--fs-min); }
@@ -66,6 +66,6 @@
   color: var(--c-ink);
   min-height: 44px;
 }
-.wk-ev span { display: block; font-size: 10px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; opacity: 0.85; }
+.wk-ev span { display: block; font-size: 11px; font-weight: 800; letter-spacing: 0.02em; text-transform: uppercase; opacity: 0.85; white-space: nowrap; }
 .wk-ev b { display: block; font-size: clamp(11px, calc(var(--u) * 0.85), 14px); font-weight: 700; line-height: 1.15; }
 .wk-free { color: var(--mute); padding: 8px 4px; }

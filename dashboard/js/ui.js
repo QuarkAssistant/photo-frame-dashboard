@@ -1,3 +1,4 @@
+import { isMidnightPlaceholder } from '../events.js';
 import { EVERYONE, memberById } from '../family.js';
 import { addDaysYmd, parts, TIMEZONE, ymd } from '../time.js';
 
@@ -21,17 +22,14 @@ export function clockBits(date) {
   return { h, m: String(p.minute).padStart(2, '0'), ap: p.hour >= 12 ? 'PM' : 'AM', hour24: p.hour };
 }
 
-export function formatTime(date, withAp = true) {
-  const c = clockBits(date);
-  const s = `${c.h}:${c.m}`;
-  return withAp ? `${s} ${c.ap}` : s;
+// The only event-time formatter. Always includes a space and AM/PM.
+export function formatTime(date) {
+  const c = clockBits(date instanceof Date ? date : new Date(date));
+  return `${c.h}:${c.m} ${c.ap}`;
 }
 
 export function formatRange(aIso, bIso) {
-  const a = clockBits(new Date(aIso));
-  const b = clockBits(new Date(bIso));
-  if (a.ap === b.ap) return `${a.h}:${a.m} – ${b.h}:${b.m} ${b.ap}`;
-  return `${a.h}:${a.m} ${a.ap} – ${b.h}:${b.m} ${b.ap}`;
+  return `${formatTime(aIso)} – ${formatTime(bIso)}`;
 }
 
 export function dayParts(iso) {
@@ -65,7 +63,7 @@ export function owner(ev) {
 }
 
 export function nextUp(events, now) {
-  const timed = events.filter((e) => !e.allDay);
+  const timed = events.filter((e) => !e.allDay && !isMidnightPlaceholder(e));
   const live = timed
     .filter((e) => new Date(e.start) <= now && new Date(e.end) > now)
     .sort((a, b) => new Date(a.start) - new Date(b.start));

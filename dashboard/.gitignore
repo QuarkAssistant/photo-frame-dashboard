@@ -4,3 +4,4 @@ dist
 kiosk/build
 .env
 data/
+server/bin/

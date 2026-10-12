@@ -93,62 +93,103 @@ export function mockCalendar(now = new Date()) {
   return events;
 }
 
+export function fToC(f) {
+  return Math.round((Number(f) - 32) * 5 / 9);
+}
+
 function hourLabel(hour, first) {
   if (first) return 'Now';
   const h = hour % 12 || 12;
-  return `${h}${hour >= 12 ? 'p' : 'a'}`;
+  return `${h} ${hour >= 12 ? 'PM' : 'AM'}`;
 }
 
-export function describeWeather({ temp, code, hi, lo, hours, source }) {
-  const labels = { sun: 'Sunny', moon: 'Clear', partly: 'Partly cloudy', cloud: 'Overcast', rain: 'Rain' };
-  let summary = 'Dry the rest of the day';
-  let advice = temp < 50 ? 'Jacket weather' : 'Light layers';
-  const wetAt = hours.findIndex((h, i) => i > 0 && h.pop >= 50);
-  if ((hours[0] && hours[0].pop >= 50) || code === 'rain') {
-    summary = 'Rain right now';
-    advice = 'Grab a rain jacket';
+const WX_LABELS = {
+  sun: 'Sunny',
+  moon: 'Clear',
+  partly: 'Partly cloudy',
+  night: 'Mostly clear',
+  cloud: 'Overcast',
+  rain: 'Rain',
+  snow: 'Snow',
+  storm: 'Storm',
+  fog: 'Fog',
+};
+
+export function describeWeather({ temp, code, hi, lo, hours, days, source, place }) {
+  const list = hours || [];
+  let summary = '';
+  const wetAt = list.findIndex((h, i) => i > 0 && h.pop >= 50);
+  if ((list[0] && list[0].pop >= 50) || code === 'rain' || code === 'snow' || code === 'storm') {
+    summary = code === 'snow' ? 'Snow in the forecast' : code === 'storm' ? 'Storms nearby' : 'Rain right now';
   } else if (wetAt > 0) {
-    summary = `Rain from ${hours[wetAt].label}`;
-    advice = 'Pack a rain jacket';
-  } else if (code === 'cloud') {
-    summary = 'Cloudy';
-  } else if (temp >= 80) {
-    summary = 'Warm and dry';
-    advice = 'Light clothes';
+    summary = `Rain from ${list[wetAt].label}`;
   }
+  const tempF = Math.round(temp);
+  const hiF = Math.round(hi);
+  const loF = Math.round(lo);
   return {
     source,
-    temp: Math.round(temp),
+    place: place || 'Naperville',
+    temp: tempF,
+    tempC: fToC(tempF),
     code,
-    label: labels[code] || 'Forecast',
-    hi: Math.round(hi),
-    lo: Math.round(lo),
+    label: WX_LABELS[code] || 'Forecast',
+    hi: hiF,
+    hiC: fToC(hiF),
+    lo: loF,
+    loC: fToC(loF),
     summary,
-    advice,
-    hours,
+    hours: list.map((h) => {
+      const f = Math.round(h.temp);
+      return { ...h, temp: f, tempC: fToC(f) };
+    }),
+    days: (days || []).map((d) => {
+      const dayHi = Math.round(d.hi);
+      const dayLo = Math.round(d.lo);
+      return { ...d, hi: dayHi, hiC: fToC(dayHi), lo: dayLo, loC: fToC(dayLo) };
+    }),
   };
 }
 
 export function mockWeather(now = new Date()) {
   const hours = [];
-  for (let i = 0; i < 7; i++) {
+  for (let i = 0; i < 8; i++) {
     const t = new Date(now.getTime() + i * 3600000);
     const hp = parts(t);
     const temp = Math.round(54 + 12 * Math.sin(((hp.hour - 4) / 24) * Math.PI * 2));
-    const pop = hp.hour >= 16 && hp.hour <= 19 ? 72 : hp.hour === 15 ? 40 : 8;
+    const pop = hp.hour >= 16 && hp.hour <= 19 ? 70 : hp.hour === 15 || hp.hour === 20 ? 30 : 0;
     let code = 'partly';
     if (pop >= 50) code = 'rain';
-    else if (hp.hour >= 20 || hp.hour < 6) code = 'moon';
+    else if (hp.hour >= 20 || hp.hour < 6) code = i === 0 ? 'moon' : 'night';
     else if (hp.hour >= 11 && hp.hour <= 15) code = 'sun';
     hours.push({ label: hourLabel(hp.hour, i === 0), temp, code, pop });
   }
+  const today = ymd(now);
+  const days = [];
+  for (let i = 0; i < 5; i++) {
+    const day = addDaysYmd(today, i);
+    const [y, m, d] = day.split('-').map(Number);
+    const hi = 68 - i + (i === 2 ? -4 : 0);
+    const lo = 49 - i;
+    let code = 'partly';
+    if (i === 2) code = 'rain';
+    else if (i === 4) code = 'sun';
+    days.push({
+      label: i === 0 ? 'Today' : parts(zonedToUtc(y, m, d, 12, 0, 0)).weekday,
+      hi,
+      lo,
+      code,
+    });
+  }
   return describeWeather({
     source: 'mock',
+    place: 'Naperville',
     temp: hours[0].temp,
     code: hours[0].code,
-    hi: 68,
-    lo: 49,
+    hi: days[0].hi,
+    lo: days[0].lo,
     hours,
+    days,
   });
 }
 

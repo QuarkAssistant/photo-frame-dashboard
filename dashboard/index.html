@@ -15,8 +15,26 @@
   <link rel="stylesheet" href="/css/views/calendar.css">
   <link rel="stylesheet" href="/css/views/lists.css">
   <link rel="stylesheet" href="/css/views/photos.css">
+  <link rel="stylesheet" href="/css/views/weather.css">
 </head>
 <body>
+  <script>
+    (function () {
+      try {
+        var fmt = new Intl.DateTimeFormat('en-US', {
+          timeZone: 'America/Chicago', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+        });
+        var hour = 0, minute = 0;
+        fmt.formatToParts(new Date()).forEach(function (p) {
+          if (p.type === 'hour') hour = Number(p.value);
+          if (p.type === 'minute') minute = Number(p.value);
+        });
+        if (hour === 24) hour = 0;
+        var mins = hour * 60 + minute;
+        if (mins >= 23 * 60 || mins < 6 * 60) document.documentElement.classList.add('is-night');
+      } catch (e) {}
+    })();
+  </script>
   <div class="stage" id="stage">
     <nav class="rail" id="rail" aria-label="Sections"></nav>
     <main class="views">
@@ -26,9 +44,13 @@
       <section class="view" id="view-grocery" data-view="grocery"></section>
       <section class="view" id="view-member" data-view="member"></section>
       <section class="view view--bleed" id="view-photos" data-view="photos"></section>
+      <section class="view" id="view-weather" data-view="weather"></section>
     </main>
     <div class="sheet-layer" id="sheetLayer"></div>
     <div class="saver" id="saver" role="button" aria-label="Coelho de Oliveira"></div>
+  </div>
+  <div class="night" id="night" aria-hidden="true">
+    <div class="night-clock num" data-nightclock></div>
   </div>
   <script>
     setTimeout(function () { if (!document.documentElement.dataset.ready) location.reload(); }, 12000);

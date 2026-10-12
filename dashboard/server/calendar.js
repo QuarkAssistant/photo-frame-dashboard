@@ -1,3 +1,4 @@
+import { dedupeEvents } from '../events.js';
 import { TIMEZONE } from '../family.js';
 import { mockCalendar } from '../mock.js';
 import { chicagoRange, formatCalUtc } from '../time.js';
@@ -120,14 +121,14 @@ export async function calendarPayload(now = new Date()) {
       source: 'mock',
       timezone: TIMEZONE,
       updated: now.toISOString(),
-      events: mockCalendar(now),
+      events: dedupeEvents(mockCalendar(now)),
     };
   }
   if (cache && now.getTime() - cache.at < TTL) return { ...cache.data, cached: true };
   try {
     const url = cache?.url || await findCalendar(user, pass, name);
     const ics = await report(url, user, pass, range.start, range.end);
-    const events = eventsFromIcs(ics, range.start, range.end).slice(0, 400);
+    const events = dedupeEvents(eventsFromIcs(ics, range.start, range.end)).slice(0, 400);
     const data = { source: 'icloud', timezone: TIMEZONE, updated: now.toISOString(), calendar: name, events };
     cache = { at: now.getTime(), url, data };
     return data;

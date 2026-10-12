@@ -9,14 +9,21 @@ export const ICONS = {
   plus: '<path d="M12 5v14M5 12h14"/>',
   left: '<path d="M15 5l-7 7 7 7"/>',
   right: '<path d="M9 5l7 7-7 7"/>',
-  sun: '<circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/>',
-  cloud: '<path d="M7 18.5h10.2a4.3 4.3 0 0 0 .4-8.6A6.2 6.2 0 0 0 5.8 11.6 3.5 3.5 0 0 0 7 18.5z"/>',
-  rain: '<path d="M7 15h10.2a4.3 4.3 0 0 0 .4-8.6A6.2 6.2 0 0 0 5.8 8.1 3.5 3.5 0 0 0 7 15z"/><path d="M8.5 18l-1 3M12.5 18l-1 3M16.5 18l-1 3"/>',
-  partly: '<path d="M8.5 2.5v1.3M3.4 4.6l.9.9M1.8 9.6h1.3M13.6 4.6l-.9.9"/><path d="M5.3 12.3a4 4 0 0 1 6.9-4.4"/><path d="M9.5 20h8.3a3.6 3.6 0 0 0 .3-7.2 5.2 5.2 0 0 0-9.9 1.4A2.9 2.9 0 0 0 9.5 20z"/>',
-  moon: '<path d="M20 14.5A8.2 8.2 0 0 1 9.5 4 8.2 8.2 0 1 0 20 14.5z"/>',
+  up: '<path d="M12 19V5M7 10l5-5 5 5"/>',
+  down: '<path d="M12 5v14M7 14l5 5 5-5"/>',
+  sun: '<circle cx="12" cy="12" r="3.6"/><path d="M12 2.6v2.2M12 19.2v2.2M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2.6 12h2.2M19.2 12h2.2M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6"/>',
+  moon: '<path d="M15.8 3.2a7.1 7.1 0 1 0 5 12.6A5.7 5.7 0 0 1 15.8 3.2z"/>',
+  cloud: '<path d="M7.2 17.6h9.4a3.5 3.5 0 0 0 .4-7 5.2 5.2 0 0 0-10 1.5 3 3 0 0 0 .2 5.5z"/>',
+  partly: '<circle cx="7.2" cy="7" r="2.1"/><path d="M7.2 2.5v1.3M7.2 10.2v1.3M2.6 7h1.3M10.4 7h1.3M4 3.8l.9.9M10.4 3.8l-.9.9M4 10.2l.9-.9"/><path d="M9.4 19.2h8.2a3 3 0 0 0 .3-6 4.5 4.5 0 0 0-8.6 1.3 2.5 2.5 0 0 0 .1 4.7z"/>',
+  night: '<path d="M8.4 2.8a3.5 3.5 0 1 0 2.3 6.1A2.7 2.7 0 0 1 8.4 2.8z"/><path d="M8.8 19.2h8.4a3.1 3.1 0 0 0 .3-6.2 4.6 4.6 0 0 0-8.8 1.4 2.6 2.6 0 0 0 .1 4.8z"/>',
+  rain: '<path d="M7.2 14.2h9.4a3.5 3.5 0 0 0 .4-7 5.2 5.2 0 0 0-10 1.5 3 3 0 0 0 .2 5.5z"/><path d="M8.6 16.6v2.6M12 16.6v2.6M15.4 16.6v2.6"/>',
+  snow: '<path d="M7.2 13.6h9.4a3.5 3.5 0 0 0 .4-7 5.2 5.2 0 0 0-10 1.5 3 3 0 0 0 .2 5.5z"/><path d="M8.6 16.2v2.2M7.5 17.3h2.2M12 16.2v2.2M10.9 17.3h2.2M15.4 16.2v2.2M14.3 17.3h2.2"/>',
+  storm: '<path d="M7.2 13.4h9.4a3.5 3.5 0 0 0 .4-7 5.2 5.2 0 0 0-10 1.5 3 3 0 0 0 .2 5.5z"/><path d="M12.4 13.2l-2.1 3.5h2.2L10.4 20"/>',
+  fog: '<path d="M4 8h16M4 12h16M6 16h12M8 20h8"/>',
 };
 
-export function icon(name, size) {
+export function icon(name, size, stroke) {
   const s = size || 24;
-  return `<svg class="i" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name] || ''}</svg>`;
+  const w = stroke || 2.25;
+  return `<svg class="i" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name] || ''}</svg>`;
 }

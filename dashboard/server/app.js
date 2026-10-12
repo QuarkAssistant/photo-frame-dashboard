@@ -2,10 +2,14 @@ import fs from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { BRAND } from '../family.js';
+import { BRAND, TIMEZONE } from '../family.js';
+import {
+  clockLabel, DEFAULT_NIGHT_END, DEFAULT_NIGHT_START, parseClockMinutes,
+} from '../night.js';
 import { calendarPayload } from './calendar.js';
 import { loadEnv } from './env.js';
 import { listPhotos, mimeFor, photoPath } from './photos.js';
+import { loadGroceries, saveGrocery } from './reminders.js';
 import { openStore } from './store.js';
 import { weatherPayload } from './weather.js';
 
@@ -83,6 +87,16 @@ function sendFile(res, file) {
   fs.createReadStream(file).pipe(res);
 }
 
+function nightConfig() {
+  const fallbackStart = parseClockMinutes(DEFAULT_NIGHT_START, 23 * 60);
+  const fallbackEnd = parseClockMinutes(DEFAULT_NIGHT_END, 6 * 60);
+  return {
+    nightStart: clockLabel(parseClockMinutes(process.env.NIGHT_START, fallbackStart)),
+    nightEnd: clockLabel(parseClockMinutes(process.env.NIGHT_END, fallbackEnd)),
+    timezone: TIMEZONE,
+  };
+}
+
 export function createApi({ root }) {
   loadEnv(path.join(root, '.env'));
   const store = openStore(root);
@@ -93,6 +107,7 @@ export function createApi({ root }) {
     const pathname = url.pathname;
     try {
       if (pathname === '/api/health') return sendJson(res, 200, { ok: true, brand: BRAND });
+      if (pathname === '/api/config' && req.method === 'GET') return sendJson(res, 200, nightConfig());
       if (pathname === '/api/calendar' && req.method === 'GET') return sendJson(res, 200, await calendarPayload());
       if (pathname === '/api/weather' && req.method === 'GET') return sendJson(res, 200, await weatherPayload());
       if (pathname === '/api/photos' && req.method === 'GET') return sendJson(res, 200, listPhotos());
@@ -110,9 +125,9 @@ export function createApi({ root }) {
           return sendJson(res, 200, await store.setChore(String(body.id || ''), body.done));
         }
       }
-      if (pathname === '/api/groceries') {
-        if (req.method === 'GET') return sendJson(res, 200, store.groceries());
-        if (req.method === 'POST') return sendJson(res, 200, await store.grocery(await readBody(req)));
+      if (pathname === '/api/groceries' || pathname === '/api/grocery') {
+        if (req.method === 'GET') return sendJson(res, 200, await loadGroceries(store));
+        if (req.method === 'POST') return sendJson(res, 200, await saveGrocery(store, await readBody(req)));
       }
       if (pathname === '/api/homework') {
         if (req.method === 'GET') return sendJson(res, 200, store.homework());

@@ -1,11 +1,12 @@
+import { isMidnightPlaceholder } from '../../events.js';
 import { BRAND, FAMILY } from '../../family.js';
 import { addDaysYmd, ymd } from '../../time.js';
 import { state } from '../data.js';
-import { icon } from '../icons.js';
 import { clockHtml, now, register, routineNow } from '../app.js';
 import {
   avatar, dayParts, esc, formatRange, formatTime, nextUp, owner, pstyle, relDay, ring,
 } from '../ui.js';
+import { hourStrip, nowBlock } from '../weatherui.js';
 
 let slideTimer = 0;
 let slideIndex = 0;
@@ -13,32 +14,43 @@ let slideIndex = 0;
 function weatherHtml() {
   const w = state.weather;
   if (!w) return '';
-  const hours = w.hours || [];
-  const temps = hours.map((h) => h.temp);
-  const tmin = Math.min.apply(null, temps);
-  const tmax = Math.max.apply(null, temps);
-  return `<div class="h-wx-top"><span class="h-wx-icon">${icon(w.code, 48)}</span>` +
-    `<span class="h-wx-temp num">${w.temp}°</span>` +
-    `<span class="h-wx-meta"><b>${esc(w.label)}</b><span>H ${w.hi}°  L ${w.lo}°</span></span></div>` +
-    `<div class="h-wx-say"><b>${esc(w.summary)}.</b> ${esc(w.advice)}.</div>` +
-    `<div class="h-wx-hours">${hours.map((h) => {
-      const lift = tmax === tmin ? 0 : Math.round(((h.temp - tmin) / (tmax - tmin)) * 8);
-      return `<div class="h-hr${h.pop >= 50 ? ' is-wet' : ''}"><span class="h-hr-l">${esc(h.label)}</span>` +
-        `<span class="h-hr-i" style="transform:translateY(-${lift}px)">${icon(h.code, 20)}</span><b>${h.temp}°</b></div>`;
-    }).join('')}</div>`;
+  const hours = (w.hours || []).slice(0, 8);
+  return nowBlock(w, 34) + hourStrip(hours, 20);
+}
+
+function personWhen(p) {
+  const n = now();
+  const today = ymd(n);
+  const list = state.events
+    .filter((e) => e.people.includes(p.id) && !isMidnightPlaceholder(e))
+    .filter((e) => (e.allDay ? e.end > today : new Date(e.end) > n))
+    .sort((a, b) => {
+      const ad = a.allDay ? String(a.start).slice(0, 10) : ymd(new Date(a.start));
+      const bd = b.allDay ? String(b.start).slice(0, 10) : ymd(new Date(b.start));
+      if (ad !== bd) return ad < bd ? -1 : 1;
+      if (a.allDay !== b.allDay) return a.allDay ? -1 : 1;
+      return String(a.start).localeCompare(String(b.start));
+    });
+  const next = list[0];
+  if (!next) return '';
+  if (next.allDay) {
+    const day = String(next.start).slice(0, 10);
+    if (day === today) return 'All day';
+    return `${(dayParts(day).weekday || '').slice(0, 3)} All day`;
+  }
+  if (new Date(next.start) <= n) return 'Now';
+  const day = ymd(new Date(next.start));
+  const t = formatTime(new Date(next.start));
+  if (day === today) return t;
+  return `${(dayParts(day).weekday || '').slice(0, 3)} ${t}`;
 }
 
 function familyHtml() {
-  const n = now();
   return FAMILY.map((p) => {
-    const next = state.events
-      .filter((e) => !e.allDay && e.people.includes(p.id) && new Date(e.end) > n)
-      .sort((a, b) => new Date(a.start) - new Date(b.start))[0];
-    let sub = 'Free';
-    if (next && new Date(next.start) <= n) sub = 'Now';
-    else if (next) sub = formatTime(new Date(next.start));
+    const sub = personWhen(p);
+    const when = sub ? `<small>${esc(sub)}</small>` : '';
     return `<button class="h-who" type="button" data-go="${p.id}" style="${pstyle(p)}">${avatar(p)}` +
-      `<span class="h-who-meta"><b>${esc(p.name)}</b><small>${esc(sub)}</small></span></button>`;
+      `<span class="h-who-meta"><b>${esc(p.name)}</b>${when}</span></button>`;
   }).join('');
 }
 
@@ -57,7 +69,7 @@ function heroHtml() {
     const mins = Math.max(0, Math.round((new Date(e.start) - now()) / 60000));
     big = mins < 100
       ? `<div class="h-hero-count num">${mins}<small>min</small></div>`
-      : `<div class="h-hero-count num">${formatTime(new Date(e.start), false)}<small>${clockAp(e.start)}</small></div>`;
+      : `<div class="h-hero-count num">${heroClock(e.start)}</div>`;
   }
   const meta = e.allDay
     ? relDay(e.start)
@@ -68,9 +80,10 @@ function heroHtml() {
     `<div class="h-hero-meta">${meta}</div></div>${big}</button>`;
 }
 
-function clockAp(iso) {
-  const d = new Date(iso);
-  return d && formatTime(d).slice(-2);
+function heroClock(iso) {
+  const label = formatTime(iso);
+  const space = label.lastIndexOf(' ');
+  return `${esc(label.slice(0, space))}<small>${esc(label.slice(space + 1))}</small>`;
 }
 
 function formatRangeSafe(e) {
@@ -83,7 +96,7 @@ function laneWhen(e, today, n) {
     return label === 'Today' ? 'All day' : label;
   }
   const day = ymd(new Date(e.start));
-  const t = formatTime(new Date(e.start), false);
+  const t = formatTime(e.start);
   if (day === today) return new Date(e.start) <= n ? 'Now' : t;
   return `${dayParts(day).weekday.slice(0, 3)} ${t}`;
 }
@@ -173,7 +186,7 @@ register('home', {
       el.dataset.built = '1';
       el.innerHTML = `<div class="home">` +
         `<div class="h-clock" data-clock></div>` +
-        `<div class="h-weather"></div>` +
+        `<button class="h-weather card" type="button" data-go="weather"></button>` +
         `<div class="h-family"></div>` +
         `<div class="h-main"><div class="h-hero-slot"></div><div class="h-lanes"></div></div>` +
         `<div class="h-side">` +

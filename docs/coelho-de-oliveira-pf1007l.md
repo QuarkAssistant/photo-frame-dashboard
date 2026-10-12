@@ -142,12 +142,39 @@ shows `WebViewFactory: Loading com.android.webview version 106.0.5249.126`, and 
 rendered. Notes: dex2oat couldn't precompile the new APK (`Permission denied`), so it runs uncompiled.
 There are also harmless `EGL_BAD_ATTRIBUTE` and `DnsConfig` warnings.
 
+## Kiosk on the wall
+
+The dashboard kiosk (`com.wesbos.homehq`) is the Home app. This frame is **Android 6.0.1 (API 23)**, so there is no `cmd` binary and no `cmd package set-home-activity`. The home app was chosen in the system HOME picker, with **Always**.
+
+The activity declares `android.intent.category.HOME`. Its default URL is `http://10.0.0.28:4173`. Overnight (23:00–06:00 Chicago time, unless `NIGHT_START` / `NIGHT_END` say otherwise) the page itself goes nearly black and shows a small clock, so the frame can stay on without lighting the room. A tap brings the board back for two minutes. If the main page fails to load (Wi-Fi still coming up, or the MacBook briefly away), the WebView retries every 10 seconds. A two-finger hold leaves for the other launcher (Rootless). A plain HOME intent would only reopen this app once it is the default, so the exit looks up the first other home activity and starts that.
+
+The screen stays on while the frame is plugged in:
+
+```sh
+adb shell settings put global stay_on_while_plugged_in 7
+adb shell svc power stayon true
+```
+
+Wi-Fi had been disabled. It was turned back on with `adb shell svc wifi enable`.
+
+Built on the Mac with Homebrew `openjdk@17` and `android-commandlinetools`, build-tools 34, platform `android-34`, then [`dashboard/kiosk/build.sh`](../dashboard/kiosk/build.sh).
+
+To take the kiosk off the wall: disable it or uninstall it, then send Home so the picker (or Rootless) comes back.
+
+```sh
+adb shell pm disable com.wesbos.homehq
+adb shell input keyevent KEYCODE_HOME
+```
+
+or `adb uninstall com.wesbos.homehq`, then the same `KEYCODE_HOME`.
+
 ## Undo paths (kept on the host)
 
 - Boot patch: `diagnostics/a33-boot-patch/restore-boot.scr` (FEL card needed again), then
   `emmc-macos.py verify-original`.
 - WebView: the guide's section 6 undo, which restores `/system/homehq-stock-webview`.
 - Packages: `pm enable` the three packages.
+- Kiosk: `pm disable com.wesbos.homehq` (or uninstall it), then `KEYCODE_HOME`.
 - Full verified eMMC image plus gzip, kept privately (not in this repo).
 - The FEL card's original 4 MiB prefix was restored with `fel-card-macos.py restore`, so the card went
   back to its normal use.

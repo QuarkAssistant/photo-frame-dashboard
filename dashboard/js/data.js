@@ -1,3 +1,4 @@
+import { dedupeEvents } from '../events.js';
 import { mockCalendar, mockWeather, ROUTINES, seedStore } from '../mock.js';
 
 export const state = {
@@ -18,7 +19,7 @@ function emit() { listeners.forEach((fn) => fn()); }
 
 function applySeed() {
   const seed = seedStore();
-  state.events = mockCalendar();
+  state.events = dedupeEvents(mockCalendar());
   state.weather = mockWeather();
   state.chores = seed.chores;
   state.groceries = seed.groceries;
@@ -66,10 +67,10 @@ export async function refreshAll() {
   }
   const [cal, wx, ch, gr, hw, ph] = results;
   if (cal.status === 'fulfilled') {
-    state.events = cal.value.events || [];
+    state.events = dedupeEvents(cal.value.events || []);
     state.calendarSource = cal.value.source || 'icloud';
   } else if (!state.events.length) {
-    state.events = mockCalendar();
+    state.events = dedupeEvents(mockCalendar());
     state.calendarSource = 'mock';
   }
   if (wx.status === 'fulfilled') state.weather = wx.value;

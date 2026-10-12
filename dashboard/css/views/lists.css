@@ -117,8 +117,8 @@
   background: rgba(var(--c-rgb), 0.12);
   text-align: left;
 }
-.m-ev-t { width: calc(var(--u) * 8); flex: none; font-size: var(--fs-min); font-weight: 800; color: var(--ink-2); }
-.m-ev b { font-size: var(--fs-m); }
+.m-ev-t { flex: none; white-space: nowrap; font-size: var(--fs-min); font-weight: 800; font-variant-numeric: tabular-nums; color: var(--ink-2); }
+.m-ev b { flex: 1; min-width: 0; font-size: var(--fs-m); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .m-side { min-height: 0; display: grid; grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); gap: var(--gap); }
 .m-block { min-height: 0; overflow: auto; padding: calc(var(--u) * 0.8); display: flex; flex-direction: column; gap: 6px; }
 .ph-note { font-size: var(--fs-l); color: var(--mute); line-height: 1.15; padding: 8px 0; }

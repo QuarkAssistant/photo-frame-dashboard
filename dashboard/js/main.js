@@ -5,5 +5,6 @@ import './views/chores.js';
 import './views/grocery.js';
 import './views/member.js';
 import './views/photos.js';
+import './views/weather.js';
 
 start();

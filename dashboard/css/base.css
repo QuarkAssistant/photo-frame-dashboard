@@ -1,5 +1,7 @@
 *, *::before, *::after { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; background: var(--paper); }
+html.is-night, html.is-night body { background: #070908; }
+html.is-night .stage { visibility: hidden; }
 body {
   font-family: var(--sans);
   font-size: var(--fs-body);
@@ -247,3 +249,28 @@ button.card:active, .h-hero:active, .h-photo:active { transform: scale(0.985); }
 .saver-time span { font-size: 0.28em; letter-spacing: 0.08em; margin-left: 0.15em; }
 .saver-date { font-size: var(--fs-m); letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.8; }
 .saver-next { margin-top: calc(var(--u) * 1); font-family: var(--serif); font-size: clamp(22px, calc(var(--u) * 2), 36px); font-style: italic; }
+
+.night {
+  position: fixed;
+  top: 0; right: 0; bottom: 0; left: 0;
+  z-index: 40;
+  display: none;
+  background: #070908;
+}
+.night.is-open, html.is-night .night { display: block; }
+.night-clock {
+  position: absolute;
+  left: 18%;
+  top: 22%;
+  color: rgba(232, 220, 196, 0.42);
+  font-size: clamp(28px, calc(var(--u) * 3.4), 48px);
+  line-height: 1;
+  letter-spacing: 0.02em;
+  transition: left 150s linear, top 150s linear;
+}
+.night-clock span {
+  font-size: 0.42em;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  margin-left: 0.45em;
+}

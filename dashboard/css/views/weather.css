@@ -1,0 +1,112 @@
+/* Weather card on Home, and the forecast page. One stroke weight on every icon. */
+.wx-now {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 8px;
+  min-width: 0;
+}
+.wx-icon { display: grid; place-items: center; color: var(--ink); }
+.wx-icon .i { width: 34px; height: 34px; }
+.wx-temps { display: flex; flex-direction: column; line-height: 0.9; min-width: 0; }
+.wx-temp { font-size: clamp(30px, calc(var(--u) * 2.7), 46px); letter-spacing: -0.04em; }
+.wx-tempc { font-size: clamp(13px, calc(var(--u) * 1.05), 18px); color: var(--mute); font-weight: 700; margin-top: 1px; }
+.wx-meta { display: flex; flex-direction: column; min-width: 0; }
+.wx-meta b {
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: var(--fs-label);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.wx-meta span { font-size: var(--fs-min); color: var(--ink-2); font-weight: 700; white-space: nowrap; }
+.wx-hl { display: flex; flex-direction: column; gap: 2px; justify-self: end; }
+.wx-line {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--fs-min);
+  font-weight: 700;
+  white-space: nowrap;
+}
+.wx-line .i { width: 14px; height: 14px; color: var(--olive); }
+.wx-note {
+  margin: 0;
+  font-size: var(--fs-min);
+  font-weight: 650;
+  color: var(--mute);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.wx-hours, .wx-days {
+  display: grid;
+  min-width: 0;
+  border-top: 1px solid var(--line);
+  padding-top: 4px;
+}
+.wx-hr, .wx-day {
+  display: grid;
+  justify-items: center;
+  align-items: center;
+  min-width: 0;
+}
+.wx-hr { grid-template-rows: 14px 22px 15px 12px; }
+.wx-hr.has-pop { grid-template-rows: 14px 22px 15px 12px 12px; }
+.wx-day { grid-template-rows: 14px 20px 15px 12px; }
+.wx-hr-l, .wx-day-l {
+  font-size: clamp(10px, calc(var(--u) * 0.72), 12px);
+  font-weight: 700;
+  color: var(--mute);
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+}
+.wx-day-l { text-transform: uppercase; letter-spacing: 0.04em; }
+.wx-hr-i, .wx-day-i { display: grid; place-items: center; color: var(--ink); }
+.wx-hr-i .i { width: 20px; height: 20px; }
+.wx-day-i .i { width: 18px; height: 18px; }
+.wx-hr b, .wx-day b { font-size: clamp(11px, calc(var(--u) * 0.85), 14px); line-height: 1; }
+.wx-hr small, .wx-day small { font-size: clamp(9px, calc(var(--u) * 0.68), 11px); color: var(--mute); font-weight: 700; line-height: 1; }
+.wx-hr-pop { height: 12px; font-size: clamp(9px, calc(var(--u) * 0.66), 11px); font-weight: 700; color: var(--olive); line-height: 12px; }
+.wx-day-lo { font-size: clamp(10px, calc(var(--u) * 0.72), 12px); color: var(--mute); font-weight: 700; white-space: nowrap; }
+
+.wx { height: 100%; min-height: 0; display: flex; flex-direction: column; gap: calc(var(--u) * 0.8); }
+.wx-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex: none; }
+.wx-head h1 { font-size: clamp(36px, calc(var(--u) * 3.4), 60px); line-height: 0.95; }
+.wx-back {
+  min-height: var(--tap);
+  min-width: var(--tap);
+  padding: 0 16px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--cream);
+  font-size: var(--fs-min);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.wx > .wx-now { flex: none; }
+.wx .wx-icon .i { width: 64px; height: 64px; }
+.wx .wx-temp { font-size: clamp(56px, calc(var(--u) * 5), 84px); }
+.wx .wx-tempc { font-size: clamp(18px, calc(var(--u) * 1.5), 26px); }
+.wx .wx-meta b { font-size: clamp(14px, calc(var(--u) * 1.1), 18px); }
+.wx .wx-meta span { font-size: clamp(16px, calc(var(--u) * 1.3), 22px); }
+.wx .wx-line { font-size: clamp(14px, calc(var(--u) * 1.15), 20px); }
+.wx .wx-line .i { width: 18px; height: 18px; }
+.wx-block {
+  background: var(--card);
+  border-radius: var(--r);
+  padding: calc(var(--u) * 0.7) calc(var(--u) * 0.9);
+  min-width: 0;
+}
+.wx-block .wx-hours, .wx-block .wx-days { border-top: 0; padding-top: 8px; }
+.wx-block .wx-hr { grid-template-rows: 18px 36px 22px 16px; }
+.wx-block .wx-hr.has-pop { grid-template-rows: 18px 36px 22px 16px 16px; }
+.wx-block .wx-day { grid-template-rows: 18px 36px 22px 16px auto; }
+.wx-block .wx-hr-l, .wx-block .wx-day-l { font-size: var(--fs-min); }
+.wx-block .wx-hr-i .i, .wx-block .wx-day-i .i { width: 32px; height: 32px; }
+.wx-block .wx-hr b, .wx-block .wx-day b { font-size: clamp(16px, calc(var(--u) * 1.25), 22px); }
+.wx-block .wx-hr small, .wx-block .wx-day small { font-size: var(--fs-min); }
+.wx-block .wx-day-lo { margin-top: 2px; }
