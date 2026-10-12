@@ -3,7 +3,7 @@ import { state } from '../data.js';
 import { icon } from '../icons.js';
 import { clockHtml, eventsToday, now, register, routineNow } from '../app.js';
 import {
-  avatar, esc, formatTime, nextUp, owner, pstyle, relDay, ring,
+  avatar, esc, formatRange, formatTime, nextUp, owner, pstyle, relDay, ring,
 } from '../ui.js';
 
 let slideTimer = 0;
