@@ -90,6 +90,7 @@ export async function refreshAll() {
     state.groceries = gr.value.groceries || [];
     state.grocerySource = gr.value.source || 'store';
     state.groceryReason = gr.value.reason || '';
+    if (gr.value.usuals) state.groceryUsuals = gr.value.usuals;
   } else if (!state.groceries.length) state.groceries = seedStore().groceries;
   if (hw.status === 'fulfilled') state.homework = hw.value.homework || [];
   else if (!state.homework.length) state.homework = seedStore().homework;
@@ -109,6 +110,7 @@ export async function refreshLists() {
     state.groceries = gr.value.groceries || state.groceries;
     state.grocerySource = gr.value.source || state.grocerySource;
     state.groceryReason = gr.value.reason || '';
+    if (gr.value.usuals) state.groceryUsuals = gr.value.usuals;
   }
   if (hw.status === 'fulfilled') state.homework = hw.value.homework || state.homework;
   if (tg && tg.status === 'fulfilled') state.tagger = tg.value;
@@ -147,6 +149,7 @@ export async function groceryAction(body) {
     state.groceries = data.groceries;
     state.grocerySource = data.source || state.grocerySource;
     state.groceryReason = data.reason || '';
+    if (data.usuals) state.groceryUsuals = data.usuals;
     emit();
   } catch {
     emit();

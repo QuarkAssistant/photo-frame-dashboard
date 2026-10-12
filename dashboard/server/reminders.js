@@ -44,6 +44,44 @@ export function stripStoreTags(notes) {
   return String(notes || '').split('\n').filter((l) => !/^\s*stores:/i.test(l)).join('\n').trim();
 }
 
+function normKey(s) {
+  return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+}
+
+// Quick add from real history: completed titles (last 90 days) plus current ones,
+// deduped case/accent-insensitively, ranked by frequency then recency, excluding
+// items open right now. Returns up to `limit` display names.
+export function rankQuickAdd(history, openTitles, limit = 12) {
+  const open = new Set((openTitles || []).map(normKey));
+  const seen = new Map();
+  for (const h of history || []) {
+    const key = normKey(h.title);
+    if (!key || open.has(key)) continue;
+    const at = Date.parse(h.completed || '') || 0;
+    const cur = seen.get(key);
+    if (!cur) seen.set(key, { name: String(h.title).trim(), count: 1, at });
+    else { cur.count += 1; if (at > cur.at) { cur.at = at; cur.name = String(h.title).trim(); } }
+  }
+  return [...seen.values()]
+    .sort((a, b) => b.count - a.count || b.at - a.at || a.name.localeCompare(b.name))
+    .slice(0, limit)
+    .map((x) => x.name);
+}
+
+let historyCache = { at: 0, rows: [] };
+async function readHistory() {
+  if (Date.now() - historyCache.at < 10 * 60 * 1000) return historyCache.rows;
+  try {
+    const compiled = await ensureBinary();
+    if (!compiled) return historyCache.rows;
+    const data = await runHelper('history', '365'); // 90-day window first, widened when thin (see withUsuals)
+    historyCache = { at: Date.now(), rows: data.history || [] };
+  } catch (err) {
+    historyCache.at = Date.now() - 9 * 60 * 1000; // retry in ~1 min
+  }
+  return historyCache.rows;
+}
+
 function shape(data) {
   return {
     source: 'reminders',
@@ -138,10 +176,23 @@ function withReason(payload, reason) {
   return { ...payload, reason };
 }
 
+async function withUsuals(payload) {
+  const history = await readHistory();
+  const open = payload.groceries.map((g) => g.name);
+  const cutoff = Date.now() - 90 * 86400000;
+  let usuals = rankQuickAdd(history.filter((h) => Date.parse(h.completed || '') >= cutoff), open);
+  if (usuals.length < 12) {
+    // Fill from the last 365 days when the 90-day window is thin.
+    const more = rankQuickAdd(history, open, 24).filter((n) => !usuals.includes(n));
+    usuals = usuals.concat(more).slice(0, 12);
+  }
+  return { ...payload, usuals };
+}
+
 export async function loadGroceries(store) {
   const { data, reason } = await readList();
   if (!data) return withReason(store.groceries(), reason);
-  return shape(data);
+  return withUsuals(shape(data));
 }
 
 export async function saveGrocery(store, body) {
@@ -158,7 +209,7 @@ export async function saveGrocery(store, body) {
     }
     cache = { at: 0, data: null, failed: false, reason: '', ttl: TTL };
     const { data, reason } = await readList();
-    if (data) return shape(data);
+    if (data) return withUsuals(shape(data));
     return withReason(store.groceries(), reason);
   } catch (err) {
     const reason = err.reason || err.message || 'failed';

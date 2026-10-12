@@ -11,6 +11,7 @@
 - **v0.3.2** — Slideshow robustness (random start, own timer, load timeout, watchdog).
 - **v0.4** — Grocery store tagger for the shared Reminders list.
 - **v0.4.1** — Tagger reliability: run log, status counters, stale warning + notification.
+- **v0.4.2** — Hide store tags on the dashboard; Quick add from real list history.
 
 ![Home (redacted)](img/home-redacted.png)
 ![Weather page (redacted)](img/weather-redacted.png)
@@ -226,3 +227,12 @@ Shown only for upcoming timed events with a location.
   and the Mac posts one notification (and another when it recovers).
 - The failure path is covered by a unit test with a simulated error (`node --test server/tagger.test.js`).
 - Store tags are never shown on the dashboard: `/api/grocery` strips every `stores:` line from notes server-side (other notes lines are kept). The stale warning pill is still shown.
+
+## v0.4.2 — Quick add from real history
+- The Grocery page "Quick add" tiles come from the grocery Reminders list itself (no presets):
+  items **completed** in the last 90 days (EventKit `history` command in the helper), deduped
+  case/accent-insensitively, ranked by frequency then most recent, excluding items open right now;
+  up to 12. When the 90-day window has fewer than 12, it is filled from the last 365 days.
+  Cached 10 min; returned as `usuals` by `/api/grocery` (never with store tags).
+- Tapping a tile adds a new incomplete reminder with that title (existing `add` path), which the
+  tagger then tags.
