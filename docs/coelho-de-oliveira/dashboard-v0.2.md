@@ -1,4 +1,17 @@
-# Coelho de Oliveira dashboard — v0.2 (2026-10-12)
+# Coelho de Oliveira dashboard — current docs (v0.1 → v0.3.2, 2026-10-12)
+
+
+## Changelog
+- **v0.1** — First dashboard on the frame: iCloud calendar, Open-Meteo weather, chores, grocery, night mode, kiosk APK.
+- **v0.2** — One-line °F/°C, full-width Home weather header (table layout), 7-day weather page,
+  continuous header divider, Reminders grocery, photo slideshow + idle screensaver,
+  iCloud public album sync, holidays & Flamengo strip.
+- **v0.3** — "Leave by" pill on Next up (`/api/eta`, Nominatim + OSRM).
+- **v0.3.1** — TomTom live traffic as the primary ETA source.
+- **v0.3.2** — Slideshow robustness (random start, own timer, load timeout, watchdog).
+
+![Home (redacted)](img/home-redacted.png)
+![Weather page (redacted)](img/weather-redacted.png)
 
 What changed in the home dashboard that runs on the PF1007L frame (Android 6.0.1,
 old system WebView), and how to run, configure and reload it. The server runs on a
@@ -142,3 +155,34 @@ Reload the frame: power-cycle it, or over adb:
 - Request volume: only the Next up event is looked up; cached 10 min within 3 h of the
   start and 60 min further out (≈ a few hundred requests/day max, well under the free tier).
 - Key lives only in `.env`: `TOMTOM_API_KEY=your-tomtom-key`.
+
+
+## v0.3.2 — Slideshow robustness
+The Home panel could appear stuck on one photo on the frame. `dashboard/js/slides.js` now:
+- starts at a **random photo** (a reload no longer always shows the same first image);
+- owns a **self-rescheduling timer** (15 s after each photo appears) that re-renders and the
+  20 s / 5 min data refreshes cannot reset;
+- advances even when an image load hangs or fails (**8 s load timeout**);
+- has a **watchdog** that restarts rotation if nothing changed for 3 intervals;
+- rebinds to the panel if the Home view is ever rebuilt.
+
+## Leave-by states (summary)
+| State | When |
+|---|---|
+| Leave by H:MM AM/PM | more than 60 min before leave time |
+| Leave in N min | ≤ 60 min (amber at ≤ 15) |
+| LEAVE NOW (pulsing) | leave time passed, still within the 5-min buffer |
+| Running late · N min | arriving after the start even if leaving now |
+
+Leave time = event start − drive time (TomTom live traffic, OSRM fallback) − 5 min.
+Shown only for upcoming timed events with a location.
+
+## Sharing publicly
+- Screenshots for public posts are taken from the real dashboard and then **redacted**:
+  family names and avatars, event titles and addresses, grocery items, the place name and
+  all personal photos are blurred. Only generic UI, weather numbers, holidays and public
+  match fixtures stay legible.
+- Check every image before posting; never publish raw screenshots, `.env` values, the
+  album link, home address/coordinates or network details.
+- Public posts credit the upstream project:
+  [wesbos/photo-frame-dashboard](https://github.com/wesbos/photo-frame-dashboard).

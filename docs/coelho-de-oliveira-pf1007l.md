@@ -179,6 +179,6 @@ or `adb uninstall com.wesbos.homehq`, then the same `KEYCODE_HOME`.
 - The FEL card's original 4 MiB prefix was restored with `fel-card-macos.py restore`, so the card went
   back to its normal use.
 
-## Dashboard v0.2
+## Dashboard docs (v0.1 → v0.3.2)
 
-See [coelho-de-oliveira/dashboard-v0.2.md](coelho-de-oliveira/dashboard-v0.2.md).
+See [coelho-de-oliveira/dashboard-v0.2.md](coelho-de-oliveira/dashboard-v0.2.md) (changelog, features, API, env reference, sharing publicly).

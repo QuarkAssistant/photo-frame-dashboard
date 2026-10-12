@@ -17,7 +17,7 @@ have different boards. Check Settings → About before you follow any guide:
   Allwinner **PF1007L**. Many viewers of the video got this one. Start with
   [pf1007l-start-here.md](docs/pf1007l-start-here.md). Try ADB over USB first, then over the
   network. The SD card boot patch is the last resort.
-  One family's notes for firmware 20260410 (slow eMMC): [coelho-de-oliveira-pf1007l.md](docs/coelho-de-oliveira-pf1007l.md).
+  One family's notes for firmware 20260410 (slow eMMC): [coelho-de-oliveira-pf1007l.md](docs/coelho-de-oliveira-pf1007l.md); dashboard docs and changelog: [docs/coelho-de-oliveira/dashboard-v0.2.md](docs/coelho-de-oliveira/dashboard-v0.2.md).
 - Rockchip board, USB name `Synergy 10X1`, ADB prompt on screen: you have the frame from the video.
   Start with [biuframe-setup-guide.md](docs/biuframe-setup-guide.md).
 - Anything else: see [For agents: start here](#for-agents-start-here), and please

@@ -89,6 +89,6 @@ The activity is a HOME handler. This frame is Android 6.0.1 (API 23), so the hom
 
 Home shows the clock, a weather card (current reading and eight hours; tap it for five days), a next-up countdown in the owner’s color, each person’s next event with a weekday and `AM`/`PM`, the family emblem when `PHOTOS_DIR` is empty, chore progress, and the grocery summary. Overnight it rests on the dim clock. Calendar is an agenda or a week, color-coded, and shows every event. Thiago, Gilmara, JP, and Lucas each have a page with upcoming events plus chores and a homework placeholder. On a Mac, grocery checks and adds go to the Reminders list. Otherwise they are stored in `data/store.json`.
 
-## v0.2 changes
+## Current docs (v0.1 → v0.3.2)
 
-See [docs/coelho-de-oliveira/dashboard-v0.2.md](../docs/coelho-de-oliveira/dashboard-v0.2.md) for the 2026-10-12 changes (weather layout, photos and screensaver, iCloud album sync, holidays and Flamengo strip, API, env reference, old-WebView CSS rules).
+See [docs/coelho-de-oliveira/dashboard-v0.2.md](../docs/coelho-de-oliveira/dashboard-v0.2.md) for the changelog (v0.1 → v0.3.2), weather layout, photos and screensaver, iCloud album sync, holidays and Flamengo strip, Leave by with TomTom live traffic, API, env reference, old-WebView CSS rules and how to share screenshots publicly.
