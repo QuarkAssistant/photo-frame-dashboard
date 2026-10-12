@@ -99,7 +99,38 @@ function heroHtml() {
   return `<button class="h-hero" type="button" style="${pstyle(p)}" data-ev="${esc(e.id)}">` +
     `<div class="h-hero-main"><div class="label label--on">Next up · ${esc(who)}</div>` +
     `<div class="h-hero-title serif">${esc(eventTitle(e))}</div>` +
-    `<div class="h-hero-meta">${meta}</div></div>${big}</button>`;
+    `<div class="h-hero-meta">${meta}</div>${leaveHtml(e, up.phase)}</div>${big}</button>`;
+}
+
+const etas = {};
+function etaFor(loc, el) {
+  const c = etas[loc];
+  if (c && (c.pending || Date.now() - c.at < 10 * 60000)) return c.data;
+  etas[loc] = { pending: true, at: Date.now(), data: c ? c.data : null };
+  fetch(`/api/eta?to=${encodeURIComponent(loc)}`).then((r) => r.json()).then((d) => {
+    etas[loc] = { at: Date.now(), data: d };
+    const slot = document.querySelector('.h-hero-slot');
+    if (slot) slot.innerHTML = heroHtml();
+  }).catch(() => { etas[loc] = { at: Date.now(), data: c ? c.data : null }; });
+  return etas[loc].data;
+}
+
+function leaveHtml(e, phase) {
+  if (phase !== 'soon' || !e.location || e.allDay) return '';
+  const eta = etaFor(e.location);
+  if (!eta || !eta.ok) return '';
+  const start = new Date(e.start).getTime();
+  const leaveAt = start - (eta.minutes + 5) * 60000;
+  const left = (leaveAt - now().getTime()) / 60000;
+  const drive = `<span class="lv-drive">${eta.minutes} min drive${eta.source === 'osrm' ? '' : ' · live traffic'}</span>`;
+  const by = formatTime(new Date(leaveAt).toISOString());
+  let cls = 'lv';
+  let txt;
+  if (left > 60) txt = `Leave by ${esc(by)}`;
+  else if (left > 0) { txt = `Leave in ${Math.ceil(left)} min`; if (left <= 15) cls += ' lv--soon'; }
+  else if (now().getTime() <= start - eta.minutes * 60000) { cls += ' lv--now'; txt = 'Leave now'; }
+  else { cls += ' lv--late'; txt = `Running late · ${Math.ceil((now().getTime() + eta.minutes * 60000 - start) / 60000)} min`; }
+  return `<div class="lv-row"><span class="${cls}"><i class="lv-dot"></i>${txt}</span>${drive}</div>`;
 }
 
 function heroClock(iso) {

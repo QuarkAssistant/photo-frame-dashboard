@@ -260,3 +260,14 @@
 .hd-c { width: 18%; padding: 6px 8px 7px; }
 .hd-c.hd-game { width: 23%; }
 .hd-name { font-size: 12px; }
+/* v9: Leave-by pill on Next up (old-WebView safe) */
+.lv-row { margin-top: 10px; white-space: nowrap; }
+.lv { display: inline-block; vertical-align: middle; padding: 6px 14px 6px 12px; border-radius: 999px; background: #F4EDDC; color: #1F3A3A; font-weight: 800; font-size: 15px; letter-spacing: 0.02em; }
+.lv-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #7A8A3C; margin-right: 8px; vertical-align: 1px; }
+.lv--soon { background: #E9C46A; }
+.lv--soon .lv-dot { background: #1F3A3A; }
+.lv--now, .lv--late { background: #B8432F; color: #FBF5E8; text-transform: uppercase; letter-spacing: 0.08em; }
+.lv--now .lv-dot, .lv--late .lv-dot { background: #FBF5E8; -webkit-animation: lvpulse 1.2s ease-in-out infinite; animation: lvpulse 1.2s ease-in-out infinite; }
+.lv-drive { display: inline-block; vertical-align: middle; margin-left: 10px; font-size: 13px; font-weight: 700; opacity: 0.85; }
+@-webkit-keyframes lvpulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+@keyframes lvpulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
