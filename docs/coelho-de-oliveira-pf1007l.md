@@ -178,3 +178,7 @@ or `adb uninstall com.wesbos.homehq`, then the same `KEYCODE_HOME`.
 - Full verified eMMC image plus gzip, kept privately (not in this repo).
 - The FEL card's original 4 MiB prefix was restored with `fel-card-macos.py restore`, so the card went
   back to its normal use.
+
+## Dashboard v0.2
+
+See [coelho-de-oliveira/dashboard-v0.2.md](coelho-de-oliveira/dashboard-v0.2.md).
