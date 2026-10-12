@@ -6,10 +6,9 @@ import {
   avatar, compactTitle, dayParts, esc, eventTitle, formatRange, formatTime, nextPersonWhen, nextUp, owner, pstyle, relDay, ring,
 } from '../ui.js';
 import { celsius } from '../weatherui.js';
+import { createSlides } from '../slides.js';
 import { icon } from '../icons.js';
 
-let slideTimer = 0;
-let slideIndex = 0;
 
 function wxPair(f, c, cls = '') {
   return `<span class="hw-pair num ${cls}">${Math.round(f)} °F <i>/</i> ${c} °C</span>`;
@@ -145,21 +144,28 @@ function realPhotos() {
   return state.photoSource === 'folder' && state.photos.length > 0;
 }
 
+let homeSlides = null;
+
 function showSlide(root) {
   const photoBtn = root.querySelector('.h-photo');
   if (!photoBtn) return;
   if (!realPhotos()) {
     photoBtn.classList.add('is-mark');
+    if (homeSlides) homeSlides.stop();
     return;
   }
   photoBtn.classList.remove('is-mark');
-  const photos = state.photos;
-  slideIndex = slideIndex % photos.length;
-  const photo = photos[slideIndex];
-  const stage = photoBtn.querySelector('.h-photo-stage');
-  if (stage) stage.innerHTML = `<img src="${esc(photo.url)}" alt="">`;
-  const cap = photoBtn.querySelector('.h-photo-cap');
-  if (cap) cap.innerHTML = `<b>This year</b><span>${esc(photo.caption || 'Home')}</span>`;
+  if (!homeSlides) {
+    homeSlides = createSlides(photoBtn.querySelector('.h-photo-stage'), {
+      interval: 15000,
+      onShow(photo) {
+        const cap = photoBtn.querySelector('.h-photo-cap');
+        if (cap) cap.innerHTML = `<span>${esc(photo.caption || 'Home')}</span>`;
+      },
+    });
+    homeSlides.start();
+  }
+  homeSlides.setPhotos(state.photos);
 }
 
 function paint(el) {
@@ -190,12 +196,6 @@ register('home', {
         `<button class="h-chores card" type="button" data-go="chores"></button>` +
         `<button class="h-shop card" type="button" data-go="grocery"></button>` +
         `</div></div>`;
-      clearInterval(slideTimer);
-      slideTimer = setInterval(() => {
-        if (!realPhotos()) return;
-        slideIndex += 1;
-        showSlide(el);
-      }, 12000);
     }
     paint(el);
   },
