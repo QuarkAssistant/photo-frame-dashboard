@@ -114,7 +114,7 @@ export function createApi({ root }) {
       if (pathname === '/api/config' && req.method === 'GET') return sendJson(res, 200, nightConfig());
       if (pathname === '/api/calendar' && req.method === 'GET') return sendJson(res, 200, await calendarPayload());
       if (pathname === '/api/weather' && req.method === 'GET') return sendJson(res, 200, await weatherPayload());
-      if (pathname === '/api/eta' && req.method === 'GET') return sendJson(res, 200, await etaPayload(url.searchParams.get('to')));
+      if (pathname === '/api/eta' && req.method === 'GET') return sendJson(res, 200, await etaPayload(url.searchParams.get('to'), url.searchParams.get('start')));
       if (pathname === '/api/extras' && req.method === 'GET') return sendJson(res, 200, await extrasPayload());
       if (pathname === '/api/photos/sync') return sendJson(res, 200, req.method === 'POST' ? await syncAlbum() : albumStatus);
       if (pathname === '/api/photos' && req.method === 'GET') return sendJson(res, 200, listPhotos());
