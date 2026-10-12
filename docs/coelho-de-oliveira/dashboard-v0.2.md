@@ -102,6 +102,7 @@ ALBUM_URL=https://photos.icloud.com/shared/album/<album-key>
 HOME_ADDRESS=123 Main St, Your Town, ST 00000
 HOME_LAT=00.0000
 HOME_LON=-00.0000
+TOMTOM_API_KEY=your-tomtom-key
 ```
 `ALBUM_URL` gives read access to the album to anyone who has it — keep it only in `.env`.
 The kiosk APK reads its URL from the git-ignored `dashboard/kiosk/local.properties`
@@ -124,10 +125,20 @@ Reload the frame: power-cycle it, or over adb:
 - `GET /api/eta?to=<event location>` → `{ ok, minutes, km, source }`, cached 10 min per destination.
 - Geocoding: OpenStreetMap Nominatim (≤ 1 req/s, cached). Multi-line locations
   ("Place\nStreet, City") are retried line by line.
-- Routing: Waze live-map (`/live-map/api/user-drive`) is tried first for live traffic, but it
+- Routing (v0.3, superseded by TomTom below): Waze live-map (`/live-map/api/user-drive`) is tried first for live traffic, but it
   currently answers 403 to server requests (the old `RoutingManager/routingRequest` returns 410),
   so in practice the OSRM demo server is used (free, **no live traffic**). The UI only adds
   "live traffic" when the Waze source answered.
 - Home location comes from `HOME_LAT` / `HOME_LON` (or `HOME_ADDRESS`) in `.env` — never committed.
   Upstream (wesbos) uses a static `travel` minutes field on mock events (`App.leaveBy` in
   `dashboard/js/app.js`, pill in `dashboard/js/views/home.js`); there is no routing API there.
+
+### v0.3.1 — TomTom live traffic
+- `/api/eta` now uses the **TomTom Routing API** first
+  (`routing/1/calculateRoute/<from>:<to>/json?traffic=true&departAt=now&travelMode=car`),
+  falling back to OSRM. The pill adds "· live traffic" only when TomTom answered;
+  the response also carries `delayMin` (traffic delay).
+- Geocoding stays on Nominatim (cached); TomTom Search geocode is a fallback.
+- Request volume: only the Next up event is looked up; cached 10 min within 3 h of the
+  start and 60 min further out (≈ a few hundred requests/day max, well under the free tier).
+- Key lives only in `.env`: `TOMTOM_API_KEY=your-tomtom-key`.

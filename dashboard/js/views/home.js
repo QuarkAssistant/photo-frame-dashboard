@@ -103,11 +103,11 @@ function heroHtml() {
 }
 
 const etas = {};
-function etaFor(loc, el) {
+function etaFor(loc, startIso) {
   const c = etas[loc];
   if (c && (c.pending || Date.now() - c.at < 10 * 60000)) return c.data;
   etas[loc] = { pending: true, at: Date.now(), data: c ? c.data : null };
-  fetch(`/api/eta?to=${encodeURIComponent(loc)}`).then((r) => r.json()).then((d) => {
+  fetch(`/api/eta?to=${encodeURIComponent(loc)}&start=${encodeURIComponent(startIso || '')}`).then((r) => r.json()).then((d) => {
     etas[loc] = { at: Date.now(), data: d };
     const slot = document.querySelector('.h-hero-slot');
     if (slot) slot.innerHTML = heroHtml();
@@ -117,12 +117,12 @@ function etaFor(loc, el) {
 
 function leaveHtml(e, phase) {
   if (phase !== 'soon' || !e.location || e.allDay) return '';
-  const eta = etaFor(e.location);
+  const eta = etaFor(e.location, e.start);
   if (!eta || !eta.ok) return '';
   const start = new Date(e.start).getTime();
   const leaveAt = start - (eta.minutes + 5) * 60000;
   const left = (leaveAt - now().getTime()) / 60000;
-  const drive = `<span class="lv-drive">${eta.minutes} min drive${eta.source === 'osrm' ? '' : ' · live traffic'}</span>`;
+  const drive = `<span class="lv-drive">${eta.minutes} min drive${eta.source === 'tomtom' ? ' · live traffic' : ''}</span>`;
   const by = formatTime(new Date(leaveAt).toISOString());
   let cls = 'lv';
   let txt;
