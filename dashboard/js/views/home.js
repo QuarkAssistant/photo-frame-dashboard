@@ -5,16 +5,34 @@ import { clockHtml, now, register, routineNow } from '../app.js';
 import {
   avatar, compactTitle, dayParts, esc, eventTitle, formatRange, formatTime, nextPersonWhen, nextUp, owner, pstyle, relDay, ring,
 } from '../ui.js';
-import { hourStrip, nowBlock } from '../weatherui.js';
+import { celsius } from '../weatherui.js';
+import { icon } from '../icons.js';
 
 let slideTimer = 0;
 let slideIndex = 0;
 
+function wxPair(f, c, cls = '') {
+  return `<span class="hw-pair num ${cls}">${Math.round(f)} °F <i>/</i> ${c} °C</span>`;
+}
+
 function weatherHtml() {
   const w = state.weather;
   if (!w) return '';
-  const hours = (w.hours || []).slice(0, 8);
-  return nowBlock(w, 34) + hourStrip(hours, 20);
+  const hours = (w.hours || []).slice(0, 6);
+  const cells = hours.map((h) =>
+    `<div class="hw-hr"><span class="hw-hr-l">${esc(h.label)}</span>` +
+    `<span class="hw-hr-i">${icon(h.code || 'partly', 20, 2)}</span>` +
+    `${wxPair(h.temp, celsius(h.temp, h.tempC))}` +
+    `${Number(h.pop) > 0 ? `<small class="hw-pop">${Math.round(h.pop)}%</small>` : ''}</div>`).join('');
+  return `<div class="hw-top">` +
+    `<div class="hw-now"><span class="hw-icon">${icon(w.code || 'partly', 40, 2)}</span>` +
+    `<div class="hw-now-txt">${wxPair(w.temp, celsius(w.temp, w.tempC), 'hw-big')}` +
+    `<span class="hw-cond"><b>${esc(w.label)}</b> · ${esc(w.place || 'Naperville')}</span></div></div>` +
+    `<div class="hw-hl">` +
+    `<span class="hw-line"><em>High</em>${icon('up', 14, 2)}${wxPair(w.hi, celsius(w.hi, w.hiC))}</span>` +
+    `<span class="hw-line"><em>Low</em>${icon('down', 14, 2)}${wxPair(w.lo, celsius(w.lo, w.loC))}</span>` +
+    `</div></div>` +
+    `<div class="hw-hours" style="grid-template-columns:repeat(${Math.max(hours.length, 1)},minmax(0,1fr))">${cells}</div>`;
 }
 
 function personWhen(p) {

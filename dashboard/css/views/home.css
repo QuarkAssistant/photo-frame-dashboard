@@ -174,3 +174,28 @@
 .h-stat small { color: var(--mute); font-size: var(--fs-min); }
 .h-recent li { display: flex; align-items: center; gap: 8px; font-size: var(--fs-min); line-height: 1.35; white-space: nowrap; overflow: hidden; }
 .h-recent i { width: 7px; height: 7px; border-radius: 50%; background: var(--olive); flex: none; }
+
+/* v6 weather header: full width, one-line °F / °C */
+.h-weather { gap: 6px; padding: 8px 12px 6px; }
+.hw-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-width: 0; }
+.hw-now { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.hw-icon { display: grid; place-items: center; color: var(--ink); }
+.hw-icon .i { width: 40px; height: 40px; }
+.hw-now-txt { display: flex; flex-direction: column; min-width: 0; line-height: 1; }
+.hw-pair { white-space: nowrap; font-weight: 800; }
+.hw-pair i { font-style: normal; color: var(--olive); font-weight: 700; padding: 0 1px; }
+.hw-big { font-size: clamp(24px, calc(var(--u) * 2.2), 38px); letter-spacing: -0.03em; }
+.hw-cond { margin-top: 4px; font-size: var(--fs-min); color: var(--ink-2); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hw-cond b { font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; font-size: var(--fs-label); color: var(--ink); }
+.hw-hl { display: flex; flex-direction: column; gap: 3px; align-items: flex-end; flex: none; }
+.hw-line { display: flex; align-items: center; gap: 5px; font-size: var(--fs-min); }
+.hw-line em { font-style: normal; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; font-size: 0.8em; color: var(--mute); }
+.hw-line .i { width: 14px; height: 14px; color: var(--olive); }
+.hw-hours { display: grid; border-top: 1px solid rgba(31, 58, 58, 0.25); padding-top: 5px; }
+.hw-hr { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0; }
+.hw-hr + .hw-hr { border-left: 1px solid rgba(31, 58, 58, 0.12); }
+.hw-hr-l { font-size: var(--fs-min); font-weight: 800; color: var(--ink-2); white-space: nowrap; }
+.hw-hr-i { color: var(--ink); display: grid; place-items: center; }
+.hw-hr-i .i { width: 20px; height: 20px; }
+.hw-hr .hw-pair { font-size: clamp(11px, calc(var(--u) * 0.85), 14px); }
+.hw-pop { font-size: clamp(9px, calc(var(--u) * 0.66), 11px); font-weight: 700; color: var(--olive); line-height: 1; }
