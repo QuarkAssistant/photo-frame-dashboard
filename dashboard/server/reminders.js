@@ -71,9 +71,10 @@ async function ensureBinary() {
   return binPromise;
 }
 
-async function runHelper(command, arg) {
+async function runHelper(command, arg, arg2) {
   const args = [command, prefix()];
   if (arg) args.push(arg);
+  if (arg2 != null) args.push(arg2);
   const compiled = await ensureBinary();
   const attempts = compiled
     ? [{ cmd: compiled, args }]
@@ -160,4 +161,19 @@ export async function saveGrocery(store, body) {
     return withReason(store.groceries(), reason);
   }
   return store.grocery(body);
+}
+
+// Used by the grocery tagger. Requires the compiled EventKit helper (no JXA fallback
+// for writes of notes), and invalidates the read cache afterwards.
+export async function listReminderItems() {
+  const data = await runHelper('list');
+  return data.items || [];
+}
+
+export async function setReminderNotes(id, notes) {
+  const compiled = await ensureBinary();
+  if (!compiled) throw new Error('helper not compiled');
+  const data = await runHelper('setnotes', String(id), Buffer.from(String(notes), 'utf8').toString('base64'));
+  cache = { at: 0, data: null, failed: false, reason: '', ttl: TTL };
+  return data.items || [];
 }
