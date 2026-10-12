@@ -1,18 +1,13 @@
 import { mockCalendar, mockWeather, ROUTINES, seedStore } from '../mock.js';
 
-const seedPhotos = [
-  { id: 'garden', url: '/placeholders/garden.svg', caption: 'Garden' },
-  { id: 'evening', url: '/placeholders/evening.svg', caption: 'Evening' },
-  { id: 'home', url: '/placeholders/table.svg', caption: 'Home' },
-];
-
 export const state = {
   events: [],
   weather: null,
   chores: [],
   groceries: [],
   homework: [],
-  photos: seedPhotos.slice(),
+  photos: [],
+  photoSource: 'emblem',
   routines: ROUTINES,
   calendarSource: 'mock',
 };
@@ -28,7 +23,8 @@ function applySeed() {
   state.chores = seed.chores;
   state.groceries = seed.groceries;
   state.homework = seed.homework;
-  state.photos = seedPhotos.slice();
+  state.photos = [];
+  state.photoSource = 'emblem';
   state.calendarSource = 'mock';
 }
 
@@ -86,7 +82,10 @@ export async function refreshAll() {
   else if (!state.groceries.length) state.groceries = seedStore().groceries;
   if (hw.status === 'fulfilled') state.homework = hw.value.homework || [];
   else if (!state.homework.length) state.homework = seedStore().homework;
-  if (ph.status === 'fulfilled' && ph.value.photos) state.photos = ph.value.photos;
+  if (ph.status === 'fulfilled') {
+    state.photos = ph.value.photos || [];
+    state.photoSource = ph.value.source || 'emblem';
+  }
   emit();
 }
 

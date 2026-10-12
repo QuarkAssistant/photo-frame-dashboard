@@ -4,12 +4,7 @@ import path from 'node:path';
 
 const EXT = new Set(['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg']);
 const files = new Map();
-
-const PLACEHOLDERS = [
-  { id: 'garden', url: '/placeholders/garden.svg', caption: 'Garden' },
-  { id: 'evening', url: '/placeholders/evening.svg', caption: 'Evening' },
-  { id: 'home', url: '/placeholders/table.svg', caption: 'Home' },
-];
+const EMBLEM = { source: 'emblem', photos: [] };
 
 function safeDir() {
   const dir = process.env.PHOTOS_DIR;
@@ -26,10 +21,10 @@ function safeDir() {
 export function listPhotos() {
   files.clear();
   const dir = safeDir();
-  if (!dir) return { source: 'placeholder', photos: PLACEHOLDERS };
+  if (!dir) return EMBLEM;
   const photos = [];
   let names = [];
-  try { names = fs.readdirSync(dir); } catch { return { source: 'placeholder', photos: PLACEHOLDERS }; }
+  try { names = fs.readdirSync(dir); } catch { return EMBLEM; }
   for (const name of names) {
     const ext = path.extname(name).toLowerCase();
     if (!EXT.has(ext)) continue;
@@ -44,7 +39,7 @@ export function listPhotos() {
     });
   }
   photos.sort((a, b) => a.caption.localeCompare(b.caption));
-  if (!photos.length) return { source: 'placeholder', photos: PLACEHOLDERS };
+  if (!photos.length) return EMBLEM;
   return { source: 'folder', photos };
 }
 

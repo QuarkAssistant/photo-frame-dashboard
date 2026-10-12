@@ -62,4 +62,4 @@ Replace `MAC_MINI_IP` with the mini’s LAN address before installing the kiosk.
 
 ## On the frame
 
-Home shows the clock, weather and hourly strip, a next-up countdown in the owner’s color, today’s events in a column per person, a photo tile, chore progress, and the grocery summary. Calendar is an agenda or a week, color-coded, and shows every event. Thiago, Gilmara, JP, and Lucas each have a page with upcoming events plus chores and a homework placeholder. Grocery and chores are stored in `data/store.json` and check off with a tap.
+Home shows the clock, weather and hourly strip, a next-up countdown in the owner’s color, each person’s coming events, the family emblem when `PHOTOS_DIR` is empty, chore progress, and the grocery summary. Calendar is an agenda or a week, color-coded, and shows every event. Thiago, Gilmara, JP, and Lucas each have a page with upcoming events plus chores and a homework placeholder. Grocery and chores are stored in `data/store.json` and check off with a tap.

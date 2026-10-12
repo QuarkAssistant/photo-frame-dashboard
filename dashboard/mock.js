@@ -47,25 +47,23 @@ export function mockCalendar(now = new Date()) {
     if (isColumbusDay(day)) {
       events.push(make('KJHS — No School (Columbus Day)', day, addDaysYmd(day, 1), { allDay: true }));
     }
-    if (dow >= 1 && dow <= 5) {
-      events.push(make('🚗 Thiago — School drop-off', at(day, 7, 15), at(day, 7, 40), { location: 'School' }));
-      events.push(make('Gilmara — Pickup', at(day, 15, 20), at(day, 15, 45), { location: 'School' }));
+    if (dow >= 1 && dow <= 5 && !isColumbusDay(day)) {
+      events.push(make('KJHS — School', day, addDaysYmd(day, 1), { allDay: true }));
+      events.push(make('🚗 Thiago — School drop-off', at(day, 7, 15), at(day, 7, 40), { location: 'KJHS' }));
+      events.push(make('Gilmara — Pickup', at(day, 15, 20), at(day, 15, 45), { location: 'KJHS' }));
     }
     if (dow === 1 || dow === 3) {
-      events.push(make('🎹 Lucas — Piano lesson', at(day, 15, 45), at(day, 16, 30), { location: "Ms. Park's Studio" }));
+      events.push(make('⚽️ Lucas — U13 Boys Academy - Team Training', at(day, 17, 0), at(day, 18, 30), { location: 'Academy fields' }));
     }
     if (dow === 2 || dow === 4) {
       events.push(make('⚽️ JP — U14 Boys Academy - Team Training', at(day, 16, 30), at(day, 18, 0), { location: 'Academy fields' }));
-    }
-    if (dow === 5) {
-      events.push(make('⚽️ JP — U14 Boys Academy - Match', at(day, 16, 0), at(day, 17, 30), { location: 'Academy fields' }));
     }
     if (dow === 4) {
       events.push(make('Gilmara — Book club', at(day, 19, 0), at(day, 20, 30)));
     }
     if (dow === 6) {
       events.push(make('⚽️ JP — U14 Boys Academy - Game', at(day, 9, 0), at(day, 10, 30), { location: 'Academy fields' }));
-      events.push(make('Lucas — Swim lesson', at(day, 11, 0), at(day, 12, 0)));
+      events.push(make('⚽️ Lucas — U13 Boys Academy - Game', at(day, 11, 0), at(day, 12, 30), { location: 'Academy fields' }));
     }
     if (dow === 0) {
       events.push(make('Brunch — Family brunch', at(day, 10, 30), at(day, 12, 0), { location: 'Home' }));
@@ -82,10 +80,9 @@ export function mockCalendar(now = new Date()) {
     const end = new Date(start.getTime() + 45 * 60000);
     const hour = parts(now).hour;
     const title = hour < 11 ? '🚗 Thiago — School drop-off'
-      : hour < 15 ? 'Gilmara — Appointment'
-        : hour < 18 ? '⚽️ JP — U14 Boys Academy - Team Training'
-          : hour < 21 ? '🎹 Lucas — Piano practice'
-            : '📖 Lucas — Reading time';
+      : hour < 15 ? 'Gilmara — Pickup'
+        : hour < 19 ? '⚽️ JP — U14 Boys Academy - Team Training'
+          : '⚽️ Lucas — U13 Boys Academy - Team Training';
     events.push(make(title, start.toISOString(), end.toISOString(), { location: 'Home' }));
   }
 
@@ -171,7 +168,7 @@ export function seedStore() {
       chore('c5', 'any', 'morning', 'Empty the dishwasher', '🍽️', true),
       chore('c6', 'jp', 'after', 'Unpack bag', '🎒', true),
       chore('c7', 'jp', 'after', 'Homework', '📚', false),
-      chore('c8', 'lucas', 'after', 'Practice piano', '🎹', false),
+      chore('c8', 'lucas', 'after', 'Pack soccer bag', '⚽️', false),
       chore('c9', 'lucas', 'after', 'Read for 20 min', '📖', false),
       chore('c10', 'thiago', 'after', 'Take out recycling', '♻️', false),
       chore('c11', 'gilmara', 'after', 'Fold laundry', '🧺', true),

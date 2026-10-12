@@ -1,9 +1,10 @@
-import { FAMILY } from '../../family.js';
+import { BRAND, FAMILY } from '../../family.js';
+import { addDaysYmd, ymd } from '../../time.js';
 import { state } from '../data.js';
 import { icon } from '../icons.js';
-import { clockHtml, eventsToday, now, register, routineNow } from '../app.js';
+import { clockHtml, now, register, routineNow } from '../app.js';
 import {
-  avatar, esc, formatRange, formatTime, nextUp, owner, pstyle, relDay, ring,
+  avatar, dayParts, esc, formatRange, formatTime, nextUp, owner, pstyle, relDay, ring,
 } from '../ui.js';
 
 let slideTimer = 0;
@@ -37,7 +38,7 @@ function familyHtml() {
     if (next && new Date(next.start) <= n) sub = 'Now';
     else if (next) sub = formatTime(new Date(next.start));
     return `<button class="h-who" type="button" data-go="${p.id}" style="${pstyle(p)}">${avatar(p)}` +
-      `<span><b>${esc(p.name)}</b><small>${esc(sub)}</small></span></button>`;
+      `<span class="h-who-meta"><b>${esc(p.name)}</b><small>${esc(sub)}</small></span></button>`;
   }).join('');
 }
 
@@ -76,25 +77,35 @@ function formatRangeSafe(e) {
   return esc(formatRange(e.start, e.end));
 }
 
+function laneWhen(e, today, n) {
+  if (e.allDay) {
+    const label = relDay(e.start, n);
+    return label === 'Today' ? 'All day' : label;
+  }
+  const day = ymd(new Date(e.start));
+  const t = formatTime(new Date(e.start), false);
+  if (day === today) return new Date(e.start) <= n ? 'Now' : t;
+  return `${dayParts(day).weekday.slice(0, 3)} ${t}`;
+}
+
 function lanesHtml() {
+  const n = now();
+  const today = ymd(n);
+  const until = addDaysYmd(today, 6);
   return FAMILY.map((p) => {
-    const list = eventsToday(p.id).filter((e) => !e.allDay || true);
-    const timed = list.filter((e) => !e.allDay);
-    const shown = (timed.length ? timed : list).slice(0, 3);
-    const more = (timed.length ? timed : list).length - shown.length;
-    const n = now();
-    const rows = shown.length
-      ? shown.map((e) => {
-        const cur = !e.allDay && new Date(e.start) <= n;
-        const t = e.allDay ? 'All day' : (cur ? 'Now' : formatTime(new Date(e.start), false));
+    const list = state.events
+      .filter((e) => e.people.includes(p.id))
+      .filter((e) => (e.allDay ? e.start <= until && e.end > today : ymd(new Date(e.start)) <= until && new Date(e.end) > n))
+      .sort((a, b) => String(a.start).localeCompare(String(b.start)))
+      .slice(0, 6);
+    const rows = list.length
+      ? list.map((e) => {
+        const cur = !e.allDay && new Date(e.start) <= n && new Date(e.end) > n;
         return `<button class="h-ev${cur ? ' is-now' : ''}" type="button" data-ev="${esc(e.id)}">` +
-          `<span class="h-ev-t">${esc(t)}</span><span class="h-ev-n">${esc(e.displayTitle || e.title)}</span></button>`;
+          `<span class="h-ev-t">${esc(laneWhen(e, today, n))}</span><span class="h-ev-n">${esc(e.displayTitle || e.title)}</span></button>`;
       }).join('')
-      : '<div class="h-free serif"><i>Free</i> the rest of the day</div>';
-    return `<div class="h-lane" style="${pstyle(p)}"><div class="h-lane-head">${avatar(p)}<b>${esc(p.name)}</b></div>` +
-      rows +
-      (more > 0 ? `<button class="h-more" type="button" data-go="calendar">+${more} more</button>` : '') +
-      `</div>`;
+      : '<div class="h-free serif"><i>Nothing</i> coming up</div>';
+    return `<div class="h-lane" style="${pstyle(p)}"><div class="h-lane-head">${avatar(p)}<b>${esc(p.name)}</b></div>${rows}</div>`;
   }).join('');
 }
 
@@ -108,9 +119,10 @@ function choresHtml() {
     const p = id === 'any'
       ? { id: 'any', name: 'Anyone', color: '#1F3A3A', rgb: '31, 58, 58', ink: '#E8DCC4' }
       : FAMILY.find((m) => m.id === id);
+    const label = done === list.length ? '✓' : `${done}/${list.length}`;
     return `<div class="h-ring${done === list.length ? ' is-done' : ''}" style="${pstyle(p)}">` +
-      ring(done, list.length) +
-      `<b class="num">${done === list.length ? '✓' : `${done}/${list.length}`}</b><span>${esc(p.name)}</span></div>`;
+      `<div class="h-dial">${ring(done, list.length)}<b class="num">${label}</b></div>` +
+      `<span>${esc(p.name)}</span></div>`;
   }).join('');
   return `<div class="label">Chores · ${esc(r.name)}</div><div class="h-rings">${rings}</div>`;
 }
@@ -122,6 +134,27 @@ function shopHtml() {
     `<ul class="h-recent">${recent.map((g) => `<li><i></i>${esc(g.name)}</li>`).join('')}</ul>`;
 }
 
+function realPhotos() {
+  return state.photoSource === 'folder' && state.photos.length > 0;
+}
+
+function showSlide(root) {
+  const photoBtn = root.querySelector('.h-photo');
+  if (!photoBtn) return;
+  if (!realPhotos()) {
+    photoBtn.classList.add('is-mark');
+    return;
+  }
+  photoBtn.classList.remove('is-mark');
+  const photos = state.photos;
+  slideIndex = slideIndex % photos.length;
+  const photo = photos[slideIndex];
+  const stage = photoBtn.querySelector('.h-photo-stage');
+  if (stage) stage.innerHTML = `<img src="${esc(photo.url)}" alt="">`;
+  const cap = photoBtn.querySelector('.h-photo-cap');
+  if (cap) cap.innerHTML = `<b>This year</b><span>${esc(photo.caption || 'Home')}</span>`;
+}
+
 function paint(el) {
   const clock = el.querySelector('[data-clock]');
   if (clock) clock.innerHTML = clockHtml(now());
@@ -131,18 +164,7 @@ function paint(el) {
   el.querySelector('.h-lanes').innerHTML = lanesHtml();
   el.querySelector('.h-chores').innerHTML = choresHtml();
   el.querySelector('.h-shop').innerHTML = shopHtml();
-  const cap = el.querySelector('.h-photo-cap');
-  const photo = state.photos[slideIndex % Math.max(state.photos.length, 1)];
-  if (cap && photo) cap.innerHTML = `<b>This year</b><span>${esc(photo.caption || 'Home')}</span>`;
-}
-
-function showSlide(stage) {
-  const photos = state.photos.length ? state.photos : [{ url: '/placeholders/garden.svg', caption: 'Garden' }];
-  slideIndex = slideIndex % photos.length;
-  const photo = photos[slideIndex];
-  stage.innerHTML = `<img src="${esc(photo.url)}" alt="">`;
-  const cap = stage.parentElement.querySelector('.h-photo-cap');
-  if (cap) cap.innerHTML = `<b>This year</b><span>${esc(photo.caption || 'Home')}</span>`;
+  showSlide(el);
 }
 
 register('home', {
@@ -155,16 +177,17 @@ register('home', {
         `<div class="h-family"></div>` +
         `<div class="h-main"><div class="h-hero-slot"></div><div class="h-lanes"></div></div>` +
         `<div class="h-side">` +
-        `<button class="h-photo" type="button" data-go="photos"><div class="h-photo-stage"></div><div class="h-photo-cap"></div></button>` +
+        `<button class="h-photo" type="button" data-go="photos"><div class="h-photo-stage"></div>` +
+        `<div class="h-photo-mark"><img src="/icon-512.png" alt=""><span class="serif">${esc(BRAND)}</span></div>` +
+        `<div class="h-photo-cap"></div></button>` +
         `<button class="h-chores card" type="button" data-go="chores"></button>` +
         `<button class="h-shop card" type="button" data-go="grocery"></button>` +
         `</div></div>`;
-      const stage = el.querySelector('.h-photo-stage');
-      showSlide(stage);
       clearInterval(slideTimer);
       slideTimer = setInterval(() => {
+        if (!realPhotos()) return;
         slideIndex += 1;
-        showSlide(stage);
+        showSlide(el);
       }, 12000);
     }
     paint(el);

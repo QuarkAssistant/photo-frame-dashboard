@@ -81,8 +81,11 @@ export function nextUp(events, now) {
 }
 
 export function ring(done, total) {
-  const r = 26;
+  const r = 24;
   const c = 2 * Math.PI * r;
-  const f = total ? done / total : 0;
-  return `<svg class="ring" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="${r}" class="ring-bg"/><circle cx="32" cy="32" r="${r}" class="ring-fg" stroke-dasharray="${(c * f).toFixed(2)} ${c.toFixed(2)}" transform="rotate(-90 32 32)"/></svg>`;
+  const f = total ? Math.max(0, Math.min(1, done / total)) : 0;
+  const fg = f > 0
+    ? `<circle cx="32" cy="32" r="${r}" class="ring-fg" stroke-dasharray="${(c * f).toFixed(2)} ${(c - c * f).toFixed(2)}" transform="rotate(-90 32 32)"/>`
+    : '';
+  return `<svg class="ring" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="${r}" class="ring-bg"/>${fg}</svg>`;
 }

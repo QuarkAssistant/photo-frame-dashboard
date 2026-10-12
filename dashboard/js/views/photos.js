@@ -7,7 +7,15 @@ import { esc } from '../ui.js';
 let index = 0;
 
 function paint(el) {
-  const photos = state.photos.length ? state.photos : [{ url: '/placeholders/garden.svg', caption: 'Home' }];
+  const real = state.photoSource === 'folder' && state.photos.length > 0;
+  el.querySelectorAll('.ph-nav').forEach((b) => { b.hidden = !real; });
+  if (!real) {
+    el.querySelector('.ph-stage').innerHTML =
+      `<div class="ph-mark"><img src="/icon-512.png" alt=""><span class="serif">${esc(BRAND)}</span></div>`;
+    el.querySelector('.ph-cap').innerHTML = '';
+    return;
+  }
+  const photos = state.photos;
   index = ((index % photos.length) + photos.length) % photos.length;
   const photo = photos[index];
   el.querySelector('.ph-stage').innerHTML = `<img src="${esc(photo.url)}" alt="">`;

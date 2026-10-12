@@ -1,6 +1,7 @@
 import { FAMILY } from '../../family.js';
 import { addDaysYmd, weekdayIndex, ymd } from '../../time.js';
 import { state } from '../data.js';
+import { icon } from '../icons.js';
 import { now, register } from '../app.js';
 import { dayParts, esc, formatRange, formatTime, onDay, owner, pstyle, relDay } from '../ui.js';
 
@@ -88,8 +89,8 @@ register('calendar', {
       el.dataset.built = '1';
       el.innerHTML = `<div class="cal">` +
         `<header class="cal-head"><h1 class="serif">Calendar</h1><span class="cal-range"></span>` +
-        `<div class="cal-nav"><button type="button" data-week="-1" aria-label="Previous week">‹</button>` +
-        `<button type="button" data-week="1" aria-label="Next week">›</button></div>` +
+        `<div class="cal-nav"><button type="button" data-week="-1" aria-label="Previous week">${icon('left', 26)}</button>` +
+        `<button type="button" data-week="1" aria-label="Next week">${icon('right', 26)}</button></div>` +
         `<div class="seg"><button type="button" data-cal="agenda">Agenda</button><button type="button" data-cal="week">Week</button></div>` +
         `</header><div class="cal-body"></div></div>`;
       el.addEventListener('click', (e) => {
