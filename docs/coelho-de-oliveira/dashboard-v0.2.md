@@ -9,6 +9,7 @@
 - **v0.3** — "Leave by" pill on Next up (`/api/eta`, Nominatim + OSRM).
 - **v0.3.1** — TomTom live traffic as the primary ETA source.
 - **v0.3.2** — Slideshow robustness (random start, own timer, load timeout, watchdog).
+- **v0.4** — Grocery store tagger for the shared Reminders list.
 
 ![Home (redacted)](img/home-redacted.png)
 ![Weather page (redacted)](img/weather-redacted.png)
@@ -192,3 +193,19 @@ Shown only for upcoming timed events with a location.
   reservation on the home gateway; macOS private Wi-Fi address set to Fixed. This prevents
   address changes only, not sleep/Wi-Fi outages/stopped service.
 - [ ] Verify the v0.3.2 slideshow rotation on the frame itself after a reload.
+
+## v0.4 — Grocery store tagger
+- Every **5 minutes** (inside the dashboard server, `server/tagger.js`) each **incomplete** item in the
+  grocery Reminders list gets ONE notes line `stores: #tag1 #tag2` (lowercase, space-separated).
+- It never changes the title, completion, due date or any other notes line. Writes go through the
+  EventKit helper (`server/reminders.swift`, new `setnotes` command, notes only, refuses completed items),
+  so it uses the Reminders permission already granted to `node`.
+- **Hand edits win:** the last line the tagger wrote is kept per reminder id in
+  `~/Library/Application Support/coelho-tagger/state.json`. If the current `stores:` line differs from it
+  (or exists without a record), it is treated as hand-edited and never overwritten.
+- Rules: `server/tagger-map.json` (keywords in Portuguese and English, accent-insensitive, first match
+  wins; unmatched items stay untagged). Allowed tags: `#costco #target #marianos #jewel #traderjoes
+  #intlfresh` (International Fresh Market) `#napervillefresh` (Naperville Fresh Market) `#walmart
+  #dollartree #wholefoods #dicks` (Dick's Sporting Goods) `#hmart #any` (nearly every grocery store).
+- Status: `GET /api/grocery/tagger`. Disable with `GROCERY_TAGGER=off` in `.env`.
+  Tests: `node --test server/tagger.test.js`.

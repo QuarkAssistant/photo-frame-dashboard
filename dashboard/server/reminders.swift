@@ -56,6 +56,33 @@ struct RemindersGrocery {
       } catch {
         emit(["ok": false, "error": error.localizedDescription], code: 1)
       }
+    } else if command == "setnotes" {
+      // setnotes <prefix> <id> <base64 notes>: replaces ONLY the notes of one
+      // incomplete reminder. Title, completion and dates are never touched.
+      let wanted = args.count > 2 ? args[2] : ""
+      let b64 = args.count > 3 ? args[3] : ""
+      guard !wanted.isEmpty, let raw = Data(base64Encoded: b64), let notes = String(data: raw, encoding: .utf8) else {
+        emit(["ok": false, "error": "badArgs"], code: 1)
+      }
+      var found: EKReminder?
+      let pred = store.predicateForReminders(in: [calendar])
+      let finished = wait(seconds: 7) { done in
+        store.fetchReminders(matching: pred) { items in
+          found = items?.first { item in
+            item.calendarItemExternalIdentifier == wanted || item.calendarItemIdentifier == wanted
+          }
+          done()
+        }
+      }
+      if !finished { emit(["ok": false, "error": "timeout"], code: 1) }
+      guard let reminder = found else { emit(["ok": false, "error": "notFound"], code: 1) }
+      if reminder.isCompleted { emit(["ok": false, "error": "completed"], code: 1) }
+      reminder.notes = notes
+      do {
+        try store.save(reminder, commit: true)
+      } catch {
+        emit(["ok": false, "error": error.localizedDescription], code: 1)
+      }
     } else if command != "list" {
       emit(["ok": false, "error": "unknownCommand"], code: 1)
     }
