@@ -99,6 +99,9 @@ NIGHT_START=23:00
 NIGHT_END=06:00
 PHOTOS_DIR=~/dashboard-photos
 ALBUM_URL=https://photos.icloud.com/shared/album/<album-key>
+HOME_ADDRESS=123 Main St, Your Town, ST 00000
+HOME_LAT=00.0000
+HOME_LON=-00.0000
 ```
 `ALBUM_URL` gives read access to the album to anyone who has it — keep it only in `.env`.
 The kiosk APK reads its URL from the git-ignored `dashboard/kiosk/local.properties`
@@ -112,3 +115,19 @@ launchctl kickstart -k gui/$(id -u)/com.coelho.dashboard   # server changes
 ```
 Reload the frame: power-cycle it, or over adb:
 `adb shell am force-stop com.wesbos.homehq; adb shell monkey -p com.wesbos.homehq -c android.intent.category.LAUNCHER 1`.
+
+## v0.3 — "Leave by" on Next up
+- For a timed event with a location, Next up shows a pill: **Leave by H:MM AM/PM**
+  (event start − driving time − 5 min buffer), then **Leave in N min** (amber at ≤ 15 min),
+  **LEAVE NOW** (pulsing, until there is no buffer left) and **Running late · N min**,
+  plus the drive time (`11 min drive`).
+- `GET /api/eta?to=<event location>` → `{ ok, minutes, km, source }`, cached 10 min per destination.
+- Geocoding: OpenStreetMap Nominatim (≤ 1 req/s, cached). Multi-line locations
+  ("Place\nStreet, City") are retried line by line.
+- Routing: Waze live-map (`/live-map/api/user-drive`) is tried first for live traffic, but it
+  currently answers 403 to server requests (the old `RoutingManager/routingRequest` returns 410),
+  so in practice the OSRM demo server is used (free, **no live traffic**). The UI only adds
+  "live traffic" when the Waze source answered.
+- Home location comes from `HOME_LAT` / `HOME_LON` (or `HOME_ADDRESS`) in `.env` — never committed.
+  Upstream (wesbos) uses a static `travel` minutes field on mock events (`App.leaveBy` in
+  `dashboard/js/app.js`, pill in `dashboard/js/views/home.js`); there is no routing API there.
