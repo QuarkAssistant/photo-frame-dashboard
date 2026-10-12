@@ -56,6 +56,23 @@ struct RemindersGrocery {
       } catch {
         emit(["ok": false, "error": error.localizedDescription], code: 1)
       }
+    } else if command == "history" {
+      // history <prefix> [days]: titles of reminders COMPLETED in the last N days (default 90).
+      let days = Double(args.count > 2 ? args[2] : "90") ?? 90
+      let start = Date().addingTimeInterval(-days * 86400)
+      let pred = store.predicateForCompletedReminders(withCompletionDateStarting: start, ending: Date(), calendars: [calendar])
+      var rows: [[String: String]] = []
+      let iso = ISO8601DateFormatter()
+      let ok = wait(seconds: 10) { done in
+        store.fetchReminders(matching: pred) { items in
+          rows = (items ?? []).map { item in
+            ["title": item.title ?? "", "completed": item.completionDate.map { iso.string(from: $0) } ?? ""]
+          }
+          done()
+        }
+      }
+      if !ok { emit(["ok": false, "error": "timeout"], code: 1) }
+      emit(["ok": true, "list": calendar.title, "history": rows], code: 0)
     } else if command == "setnotes" {
       // setnotes <prefix> <id> <base64 notes>: replaces ONLY the notes of one
       // incomplete reminder. Title, completion and dates are never touched.
