@@ -215,16 +215,19 @@ function showSlide(root) {
     return;
   }
   photoBtn.classList.remove('is-mark');
+  const stage = photoBtn.querySelector('.h-photo-stage');
+  if (homeSlides && homeSlides.host !== stage) { homeSlides.stop(); homeSlides = null; }
   if (!homeSlides) {
-    homeSlides = createSlides(photoBtn.querySelector('.h-photo-stage'), {
+    homeSlides = createSlides(stage, {
       interval: 15000,
       onShow(photo) {
         const cap = photoBtn.querySelector('.h-photo-cap');
         if (cap) { cap.innerHTML = photo.caption ? `<span>${esc(photo.caption)}</span>` : ''; cap.style.display = photo.caption ? '' : 'none'; }
       },
     });
-    homeSlides.start();
+    homeSlides.host = stage;
   }
+  homeSlides.start();
   homeSlides.setPhotos(state.photos);
 }
 
