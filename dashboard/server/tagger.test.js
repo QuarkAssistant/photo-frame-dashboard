@@ -7,7 +7,7 @@ const map = loadMap();
 test('classifies Portuguese grocery names', () => {
   assert.deepEqual(classify('Toddy grande', map), ['#intlfresh', '#napervillefresh']);
   assert.deepEqual(classify('Sabonete', map), ['#target', '#walmart', '#costco', '#jewel', '#marianos', '#dollartree']);
-  assert.deepEqual(classify('Pasta de dente - Oral B', map), ['#target', '#walmart', '#costco', '#jewel', '#marianos', '#dollartree']);
+  assert.deepEqual(classify('Creme dental', map), ['#target', '#walmart', '#costco', '#jewel', '#marianos', '#dollartree']);
   assert.deepEqual(classify('Cebola', map), ['#any']);
   assert.equal(classify('Something unknown', map), null);
 });
