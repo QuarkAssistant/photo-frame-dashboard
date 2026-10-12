@@ -220,3 +220,26 @@
 }
 .h-clock, .h-weather, .h-family { grid-row: 1; }
 .h-main, .h-side, .home > :not(.h-clock):not(.h-weather):not(.h-family) { grid-row: 2; }
+/* v6d: old Android WebView safe (no grid/flex gap) */
+.hw-top { display: -webkit-box; display: -webkit-flex; display: flex; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between; -webkit-align-items: center; align-items: center; }
+.hw-now { display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; }
+.hw-icon { display: block; margin-right: 10px; }
+.hw-hl { display: block; text-align: right; margin-left: 12px; }
+.hw-line { display: block; white-space: nowrap; margin: 1px 0; }
+.hw-line .i { vertical-align: middle; margin: 0 3px; }
+.hw-hours { display: -webkit-box; display: -webkit-flex; display: flex; }
+.hw-hr { display: block; -webkit-box-flex: 1; -webkit-flex: 1 1 0; flex: 1 1 0; min-width: 0; text-align: center; padding: 0 4px; overflow: hidden; }
+.hw-hr > * { display: block; margin: 1px 0; }
+.hw-hr-i .i { display: inline-block; }
+.hw-hr .hw-pair { font-size: 12px; white-space: nowrap; }
+.hw-hours { margin-top: 4px; }
+.hw-top, .hw-hours { width: 100%; -webkit-align-self: stretch; align-self: stretch; box-sizing: border-box; }
+.hw-line > * { display: inline-block; vertical-align: middle; }
+/* v6e: table layout for old WebView, full card width */
+.h-weather { display: block; box-sizing: border-box; width: 100%; }
+.hw-top { display: table; width: 100%; table-layout: auto; }
+.hw-now, .hw-hl { display: table-cell; vertical-align: middle; }
+.hw-now > * { display: inline-block; vertical-align: middle; }
+.hw-hl { text-align: right; width: 1%; white-space: nowrap; }
+.hw-hours { display: table; width: 100%; table-layout: fixed; margin-top: 4px; }
+.hw-hr { display: table-cell; width: 20%; text-align: center; vertical-align: top; padding: 0 3px; }

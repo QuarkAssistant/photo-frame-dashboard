@@ -18,7 +18,7 @@ function wxPair(f, c, cls = '') {
 function weatherHtml() {
   const w = state.weather;
   if (!w) return '';
-  const hours = (w.hours || []).slice(0, 6);
+  const hours = (w.hours || []).slice(0, 5);
   const cells = hours.map((h) =>
     `<div class="hw-hr"><span class="hw-hr-l">${esc(h.label)}</span>` +
     `<span class="hw-hr-i">${icon(h.code || 'partly', 20, 2)}</span>` +
@@ -32,7 +32,7 @@ function weatherHtml() {
     `<span class="hw-line"><em>High</em>${icon('up', 14, 2)}${wxPair(w.hi, celsius(w.hi, w.hiC))}</span>` +
     `<span class="hw-line"><em>Low</em>${icon('down', 14, 2)}${wxPair(w.lo, celsius(w.lo, w.loC))}</span>` +
     `</div></div>` +
-    `<div class="hw-hours" style="grid-template-columns:repeat(${Math.max(hours.length, 1)},minmax(0,1fr))">${cells}</div>`;
+    `<div class="hw-hours">${cells}</div>`;
 }
 
 function personWhen(p) {
