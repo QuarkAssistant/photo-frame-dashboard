@@ -1,48 +1,58 @@
-/* Design tokens. Target: Android WebView 106 — no nesting, no color-mix(), no oklch(), no dvh. */
+/* Chrome 106 / WebView 106. No oklch(), color-mix(), nesting, or :has().
+   cssTarget chrome61 keeps the minifier from emitting 4- or 8-digit hex. */
+@font-face {
+  font-family: Archivo;
+  src: url('/fonts/Archivo.ttf') format('truetype');
+  font-weight: 100 900;
+  font-stretch: 62% 125%;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Instrument Serif';
+  src: url('/fonts/InstrumentSerif-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Instrument Serif';
+  src: url('/fonts/InstrumentSerif-Italic.ttf') format('truetype');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
 :root {
-  /* paper + ink */
-  --paper: #F2EEE6;
-  --paper-2: #E8E2D5;
-  --card: #FBF9F4;
-  --ink: #111111;
-  --ink-rgb: 17 17 17;
-  --ink-2: #3B3934;
-  --mute: #7A756B;
-  --line: #D6CFC0;
-
-  /* signal colours */
-  --alert: #E5261E;
-  --alert-rgb: 229 38 30;
-  --amber: #FF9500;
-  --amber-rgb: 255 149 0;
-  --ok: #00A36C;
-  --warm: #FFC45C;
-  --warm-rgb: 255 196 92;
-  --night: #D8321F;
-
-  /* person colour defaults (overridden inline per element) */
+  --u: min(1vw, 1.6vh);
+  --paper: #E8DCC4;
+  --paper-2: #DDD0B6;
+  --card: #F7F1E6;
+  --ink: #1F3A3A;
+  --ink-rgb: 31, 58, 58;
+  --ink-2: #3E5654;
+  --mute: #6E6558;
+  --line: #D2C4AC;
+  --olive: #7A8A3C;
+  --cream: #F4EFE4;
+  --alert: #9C3B32;
   --c: var(--ink);
   --c-rgb: var(--ink-rgb);
-  --c-ink: #FFFFFF;
-
-  /* type */
-  --sans: 'Archivo', 'Roboto Condensed', 'Roboto', system-ui, sans-serif;
-  --serif: 'Instrument Serif', 'Noto Serif', Georgia, serif;
-  --fs-clock: 150px;
-  --fs-hero: 76px;
-  --fs-xl: 56px;
-  --fs-l: 34px;
-  --fs-m: 24px;
-  --fs-body: 20px;
-  --fs-label: 15px;
-  --fs-min: 14px;
-
-  /* shape + space */
-  --r: 18px;
-  --r-s: 12px;
-  --gap: 16px;
-  --pad: 24px;
-  --tap: 64px;
-  --ease: cubic-bezier(.2, .8, .2, 1);
-  --spring: cubic-bezier(.34, 1.56, .64, 1);
+  --c-ink: var(--cream);
+  --sans: Archivo, 'Roboto Condensed', Roboto, system-ui, sans-serif;
+  --serif: 'Instrument Serif', Georgia, 'Noto Serif', serif;
+  --rail: clamp(86px, calc(var(--u) * 7.5), 120px);
+  --pad: clamp(10px, calc(var(--u) * 1.25), 22px);
+  --gap: clamp(8px, calc(var(--u) * 0.95), 16px);
+  --r: clamp(12px, calc(var(--u) * 1.1), 20px);
+  --fs-clock: clamp(58px, calc(var(--u) * 8.6), 140px);
+  --fs-count: clamp(64px, calc(var(--u) * 7.6), 132px);
+  --fs-hero: clamp(28px, calc(var(--u) * 3.15), 52px);
+  --fs-temp: clamp(48px, calc(var(--u) * 5.2), 84px);
+  --fs-l: clamp(28px, calc(var(--u) * 2.6), 44px);
+  --fs-m: clamp(16px, calc(var(--u) * 1.35), 22px);
+  --fs-body: clamp(15px, calc(var(--u) * 1.15), 20px);
+  --fs-label: clamp(11px, calc(var(--u) * 0.85), 14px);
+  --fs-min: clamp(11px, calc(var(--u) * 0.78), 14px);
+  --tap: clamp(44px, calc(var(--u) * 3.6), 64px);
 }

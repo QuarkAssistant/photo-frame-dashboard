@@ -24,7 +24,11 @@ import android.webkit.WebViewClient;
  */
 public class MainActivity extends Activity {
   static final String TAG = "HomeHQ";
-  static final String DEFAULT_URL = "https://home-dashboard.wesbos.workers.dev/";
+  // The frame's trust store has no ISRG Root X1, so the kiosk must load the
+  // dashboard over plain HTTP from the Mac mini on the LAN. It must not call
+  // external HTTPS. Replace MAC_MINI_IP with that machine's address — the
+  // server from `npm run serve` binds 0.0.0.0:4173.
+  static final String DEFAULT_URL = "http://MAC_MINI_IP:4173";
   static final long EXIT_HOLD_MS = 1500;
   static final float EXIT_SLOP_PX = 60;
 

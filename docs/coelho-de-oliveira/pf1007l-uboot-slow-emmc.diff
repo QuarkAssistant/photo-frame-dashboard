@@ -1,0 +1,30 @@
+diff -ruN -x .git vbase/arch/arm/dts/sun8i-a33-pf1007l-backup.dts vsrc/arch/arm/dts/sun8i-a33-pf1007l-backup.dts
+--- vbase/arch/arm/dts/sun8i-a33-pf1007l-backup.dts	2026-10-11 11:58:51.458265117 -0500
++++ vsrc/arch/arm/dts/sun8i-a33-pf1007l-backup.dts	2026-10-11 12:29:13.831402289 -0500
+@@ -16,7 +16,8 @@
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&mmc2_8bit_pins>;
+ 	vmmc-supply = <&reg_dcdc1>;
+-	bus-width = <8>;
++	bus-width = <4>;
++	max-frequency = <26000000>;
+ 	non-removable;
+ 	cap-mmc-hw-reset;
+ 	status = "okay";
+diff -ruN -x .git vbase/drivers/usb/gadget/f_mass_storage.c vsrc/drivers/usb/gadget/f_mass_storage.c
+--- vbase/drivers/usb/gadget/f_mass_storage.c	2026-10-11 11:58:51.458265117 -0500
++++ vsrc/drivers/usb/gadget/f_mass_storage.c	2026-10-11 12:29:13.831402289 -0500
+@@ -668,9 +668,10 @@
+ 			if (common->eject)
+ 				return -EPIPE;
+ 
+-			/* Handle CTRL+C */
+-			if (ctrlc())
+-				return -EPIPE;
++			/*
++			 * PF1007L backup build: no console is attached and a floating
++			 * RX pin can decode as CTRL+C, so do not abort UMS on ctrlc().
++			 */
+ 
+ 			/* Check cable connection */
+ 			if (!g_dnl_board_usb_cable_connected())
