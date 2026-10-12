@@ -7,6 +7,7 @@ import {
 import { parts, ymd } from '../time.js';
 import { refreshAll, refreshLists, state, subscribe } from './data.js';
 import { icon } from './icons.js';
+import { createSlides } from './slides.js';
 import {
   avatar, clockBits, dayParts, esc, eventTitle, formatRange, formatTime, nextUp, onDay, owner, pstyle, relDay,
 } from './ui.js';
@@ -16,6 +17,8 @@ let current = 'home';
 let memberId = null;
 let lastMin = -1;
 let idle = 0;
+const SAVER_IDLE_S = Number(pageParams0().get('saver')) || 300;
+function pageParams0() { return new URLSearchParams(location.search); }
 let saverOpen = false;
 let nightOpen = false;
 let nightSlot = null;
@@ -110,15 +113,43 @@ function closeSheet() {
   layer.innerHTML = '';
 }
 
+let saverSlides = null;
+
+function saverHasPhotos() {
+  return state.photoSource === 'folder' && state.photos.length > 0;
+}
+
+function saverWx() {
+  const w = state.weather;
+  if (!w) return '';
+  const c = w.tempC != null ? Math.round(w.tempC) : Math.round((w.temp - 32) * 5 / 9);
+  return `<div class="saver-wx num">${Math.round(w.temp)} °F <i>/</i> ${c} °C · ${esc(w.label || '')}</div>`;
+}
+
 function paintSaver() {
   const n = now();
   const c = clockBits(n);
   const dp = dayParts(ymd(n));
+  const el = document.getElementById('saver');
+  if (saverHasPhotos()) {
+    if (!el.classList.contains('is-photos')) {
+      el.classList.add('is-photos');
+      el.innerHTML = '<div class="saver-photos"></div><div class="saver-hud"></div>';
+      saverSlides = createSlides(el.querySelector('.saver-photos'), { interval: 15000 });
+    }
+    saverSlides.setPhotos(state.photos);
+    el.querySelector('.saver-hud').innerHTML =
+      `<div class="saver-time num">${c.h}:${c.m}<span>${c.ap}</span></div>` +
+      `<div class="saver-date">${esc(dp.weekday)} ${esc(dp.month)} ${esc(dp.day)}</div>` + saverWx();
+    return;
+  }
+  if (saverSlides) { saverSlides.stop(); saverSlides = null; }
+  el.classList.remove('is-photos');
   const up = nextUp(state.events, n);
   const next = up
     ? `<div class="saver-next">${esc(eventTitle(up.event))}</div>`
     : '';
-  document.getElementById('saver').innerHTML =
+  el.innerHTML =
     `<img src="/emblem.png" alt="">` +
     `<div class="saver-name serif">${esc(BRAND)}</div>` +
     `<div class="saver-time num">${c.h}:${c.m}<span>${c.ap}</span></div>` +
@@ -129,12 +160,15 @@ function paintSaver() {
 function openSaver() {
   saverOpen = true;
   paintSaver();
+  if (saverSlides) saverSlides.start();
   document.getElementById('saver').classList.add('is-open');
 }
 
 function closeSaver() {
   saverOpen = false;
+  if (saverSlides) saverSlides.stop();
   document.getElementById('saver').classList.remove('is-open');
+  if (current !== 'home') go('home');
 }
 
 function inNight(date) {
@@ -207,6 +241,7 @@ function tick() {
     el.innerHTML = `<b>${c.h}:${c.m}</b><span>${c.ap}</span>`;
   });
   document.querySelectorAll('[data-clock]').forEach((el) => { el.innerHTML = clockHtml(n); });
+  if (saverOpen && inNight(n) && !nightOff) closeSaver();
   if (saverOpen) {
     const time = document.querySelector('.saver-time');
     if (time) time.innerHTML = `${c.h}:${c.m}<span>${c.ap}</span>`;
@@ -219,7 +254,7 @@ function tick() {
     if (saverOpen) paintSaver();
   }
   idle += 1;
-  if (!nightOpen && !inNight(n) && !saverOpen && idle >= 180) openSaver();
+  if (!nightOpen && !inNight(n) && !saverOpen && idle >= SAVER_IDLE_S) openSaver();
 }
 
 function bind() {

@@ -174,3 +174,89 @@
 .h-stat small { color: var(--mute); font-size: var(--fs-min); }
 .h-recent li { display: flex; align-items: center; gap: 8px; font-size: var(--fs-min); line-height: 1.35; white-space: nowrap; overflow: hidden; }
 .h-recent i { width: 7px; height: 7px; border-radius: 50%; background: var(--olive); flex: none; }
+
+/* v6 weather header: full width, one-line °F / °C */
+.h-weather { gap: 6px; padding: 8px 12px 6px; }
+.hw-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-width: 0; }
+.hw-now { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.hw-icon { display: grid; place-items: center; color: var(--ink); }
+.hw-icon .i { width: 40px; height: 40px; }
+.hw-now-txt { display: flex; flex-direction: column; min-width: 0; line-height: 1; }
+.hw-pair { white-space: nowrap; font-weight: 800; }
+.hw-pair i { font-style: normal; color: var(--olive); font-weight: 700; padding: 0 1px; }
+.hw-big { font-size: clamp(24px, calc(var(--u) * 2.2), 38px); letter-spacing: -0.03em; }
+.hw-cond { margin-top: 4px; font-size: var(--fs-min); color: var(--ink-2); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hw-cond b { font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; font-size: var(--fs-label); color: var(--ink); }
+.hw-hl { display: flex; flex-direction: column; gap: 3px; align-items: flex-end; flex: none; }
+.hw-line { display: flex; align-items: center; gap: 5px; font-size: var(--fs-min); }
+.hw-line em { font-style: normal; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; font-size: 0.8em; color: var(--mute); }
+.hw-line .i { width: 14px; height: 14px; color: var(--olive); }
+.hw-hours { display: grid; border-top: 1px solid rgba(31, 58, 58, 0.25); padding-top: 5px; }
+.hw-hr { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0; }
+.hw-hr + .hw-hr { border-left: 1px solid rgba(31, 58, 58, 0.12); }
+.hw-hr-l { font-size: var(--fs-min); font-weight: 800; color: var(--ink-2); white-space: nowrap; }
+.hw-hr-i { color: var(--ink); display: grid; place-items: center; }
+.hw-hr-i .i { width: 20px; height: 20px; }
+.hw-hr .hw-pair { font-size: clamp(11px, calc(var(--u) * 0.85), 14px); }
+.hw-pop { font-size: clamp(9px, calc(var(--u) * 0.66), 11px); font-weight: 700; color: var(--olive); line-height: 1; }
+/* v6b: sit above the header rule, tighter height */
+.h-weather { align-self: start; margin-bottom: 12px; padding: 6px 12px 4px; gap: 4px; }
+.hw-icon .i { width: 34px; height: 34px; }
+.hw-big { font-size: clamp(22px, calc(var(--u) * 2), 34px); }
+.hw-cond { margin-top: 2px; }
+.hw-hours { padding-top: 3px; }
+.hw-hr { gap: 1px; }
+.hw-hr-i .i { width: 18px; height: 18px; }
+/* v6c: one continuous header rule across the full width */
+.h-clock, .h-family { border-bottom: 0; }
+.home::before {
+  content: '';
+  grid-column: 1 / -1;
+  grid-row: 1;
+  align-self: end;
+  height: 3px;
+  background: var(--ink);
+  pointer-events: none;
+}
+.h-clock, .h-weather, .h-family { grid-row: 1; }
+.h-main, .h-side, .home > :not(.h-clock):not(.h-weather):not(.h-family) { grid-row: 2; }
+/* v6d: old Android WebView safe (no grid/flex gap) */
+.hw-top { display: -webkit-box; display: -webkit-flex; display: flex; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between; -webkit-align-items: center; align-items: center; }
+.hw-now { display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; }
+.hw-icon { display: block; margin-right: 10px; }
+.hw-hl { display: block; text-align: right; margin-left: 12px; }
+.hw-line { display: block; white-space: nowrap; margin: 1px 0; }
+.hw-line .i { vertical-align: middle; margin: 0 3px; }
+.hw-hours { display: -webkit-box; display: -webkit-flex; display: flex; }
+.hw-hr { display: block; -webkit-box-flex: 1; -webkit-flex: 1 1 0; flex: 1 1 0; min-width: 0; text-align: center; padding: 0 4px; overflow: hidden; }
+.hw-hr > * { display: block; margin: 1px 0; }
+.hw-hr-i .i { display: inline-block; }
+.hw-hr .hw-pair { font-size: 12px; white-space: nowrap; }
+.hw-hours { margin-top: 4px; }
+.hw-top, .hw-hours { width: 100%; -webkit-align-self: stretch; align-self: stretch; box-sizing: border-box; }
+.hw-line > * { display: inline-block; vertical-align: middle; }
+/* v6e: table layout for old WebView, full card width */
+.h-weather { display: block; box-sizing: border-box; width: 100%; }
+.hw-top { display: table; width: 100%; table-layout: auto; }
+.hw-now, .hw-hl { display: table-cell; vertical-align: middle; }
+.hw-now > * { display: inline-block; vertical-align: middle; }
+.hw-hl { text-align: right; width: 1%; white-space: nowrap; }
+.hw-hours { display: table; width: 100%; table-layout: fixed; margin-top: 4px; }
+.hw-hr { display: table-cell; width: 20%; text-align: center; vertical-align: top; padding: 0 3px; }
+.hw-now-txt > * { display: block; }
+/* v8: holidays & game days strip (table layout, old-WebView safe) */
+.h-main { grid-template-rows: minmax(0, 0.92fr) auto minmax(0, 1fr); }
+.h-days { min-width: 0; }
+.hd-row { display: table; width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 6px 0; margin: 0 -6px; width: calc(100% + 12px); }
+.hd-c { display: table-cell; vertical-align: top; background: #F4EDDC; border-radius: 10px; padding: 6px 9px 7px; border-top: 3px solid var(--olive); overflow: hidden; }
+.hd-c.hd-game { border-top-color: #C8102E; background: #F4EDDC; }
+.hd-when { display: block; font-size: 11px; font-weight: 800; color: var(--mute); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0.02em; }
+.hd-cc { display: inline-block; font-style: normal; font-size: 9px; font-weight: 900; letter-spacing: 0.06em; padding: 1px 4px; border-radius: 4px; margin-right: 5px; color: #F4EDDC; background: var(--ink); vertical-align: 1px; }
+.hd-cc.hd-br { background: #2E6B3F; }
+.hd-cc.hd-us { background: #1F3A5A; }
+.hd-cc.hd-fla { background: #111; color: #fff; border-left: 3px solid #C8102E; }
+.hd-name { display: block; margin-top: 2px; font-size: 13px; font-weight: 800; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hd-name small { font-size: 10px; font-weight: 700; color: var(--mute); margin-left: 3px; }
+.hd-c { width: 18%; padding: 6px 8px 7px; }
+.hd-c.hd-game { width: 23%; }
+.hd-name { font-size: 12px; }

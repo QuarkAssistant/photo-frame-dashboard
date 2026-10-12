@@ -276,3 +276,35 @@ button.card:active, .h-hero:active, .h-photo:active { transform: scale(0.985); }
   letter-spacing: 0.14em;
   margin-left: 0.45em;
 }
+
+/* Photo slideshow layers (home panel + saver) */
+.sl-layer {
+  position: absolute; top: 0; right: 0; bottom: 0; left: 0;
+  background-color: #1F3A3A;
+  background-position: center center;
+  background-repeat: no-repeat;
+  -webkit-background-size: cover;
+  background-size: cover;
+  opacity: 0;
+  -webkit-transition: opacity 1.2s ease;
+  transition: opacity 1.2s ease;
+}
+.sl-layer.is-on { opacity: 1; }
+
+/* Photo screensaver */
+.saver.is-photos { display: none; background: #000; }
+.saver.is-photos.is-open { display: block; }
+.saver-photos { position: absolute; top: 0; right: 0; bottom: 0; left: 0; }
+.saver-hud {
+  position: absolute; left: 24px; bottom: 20px;
+  padding: 10px 16px 10px 14px;
+  background: rgba(31, 58, 58, 0.72);
+  border-radius: 14px;
+  color: #F4EDDC;
+  text-align: left;
+}
+.saver-hud .saver-time { font-size: 48px; line-height: 1; }
+.saver-hud .saver-time span { font-size: 0.34em; }
+.saver-hud .saver-date { font-size: 13px; margin-top: 4px; opacity: 0.85; }
+.saver-hud .saver-wx { font-size: 15px; font-weight: 800; margin-top: 4px; white-space: nowrap; }
+.saver-hud .saver-wx i { font-style: normal; color: #C9D38A; padding: 0 2px; }

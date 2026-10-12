@@ -143,3 +143,10 @@
   color: var(--mute);
   white-space: nowrap;
 }
+
+/* v6: one-line °F / °C */
+.wx-pair { white-space: nowrap; }
+.wx-pair i { font-style: normal; color: var(--olive); padding: 0 1px; }
+.wx-hr, .wx-day { grid-template-rows: auto !important; row-gap: 3px; }
+.wx-block .wx-hr b, .wx-block .wx-day b { font-size: clamp(13px, calc(var(--u) * 1.0), 18px); }
+.wx-block .wx-hr + .wx-hr, .wx-block .wx-day + .wx-day { border-left: 1px solid rgba(31, 58, 58, 0.12); }

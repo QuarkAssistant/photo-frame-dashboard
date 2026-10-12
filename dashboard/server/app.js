@@ -8,7 +8,9 @@ import {
 } from '../night.js';
 import { calendarPayload } from './calendar.js';
 import { loadEnv } from './env.js';
-import { listPhotos, mimeFor, photoPath } from './photos.js';
+import { listPhotos, photoJpeg } from './photos.js';
+import { albumStatus, syncAlbum } from './album.js';
+import { extrasPayload } from './extras.js';
 import { loadGroceries, saveGrocery } from './reminders.js';
 import { openStore } from './store.js';
 import { weatherPayload } from './weather.js';
@@ -111,11 +113,14 @@ export function createApi({ root }) {
       if (pathname === '/api/config' && req.method === 'GET') return sendJson(res, 200, nightConfig());
       if (pathname === '/api/calendar' && req.method === 'GET') return sendJson(res, 200, await calendarPayload());
       if (pathname === '/api/weather' && req.method === 'GET') return sendJson(res, 200, await weatherPayload());
+      if (pathname === '/api/extras' && req.method === 'GET') return sendJson(res, 200, await extrasPayload());
+      if (pathname === '/api/photos/sync') return sendJson(res, 200, req.method === 'POST' ? await syncAlbum() : albumStatus);
       if (pathname === '/api/photos' && req.method === 'GET') return sendJson(res, 200, listPhotos());
       if (pathname.startsWith('/api/photos/') && req.method === 'GET') {
-        const file = photoPath(pathname.slice('/api/photos/'.length));
+        let file = null;
+        try { file = await photoJpeg(pathname.slice('/api/photos/'.length)); } catch { file = null; }
         if (!file) return sendJson(res, 404, { error: 'not found' });
-        res.writeHead(200, { 'Content-Type': mimeFor(file), 'Cache-Control': 'private, max-age=300' });
+        res.writeHead(200, { 'Content-Type': 'image/jpeg', 'Cache-Control': 'private, max-age=86400' });
         fs.createReadStream(file).pipe(res);
         return;
       }

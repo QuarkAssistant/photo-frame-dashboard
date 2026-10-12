@@ -10,7 +10,7 @@ function page(w) {
     `<button class="wx-back" type="button" data-go="home">Today</button></header>` +
     nowBlock(w, 64) +
     `<section class="wx-block"><div class="label">Next hours</div>${hourStrip(w.hours, 32)}</section>` +
-    `<section class="wx-block"><div class="label">Next 5 days</div>${dayStrip(w.days, 32, true)}</section>` +
+    `<section class="wx-block"><div class="label">Next 7 days</div>${dayStrip(w.days, 32, true)}</section>` +
     `<section class="wx-block wx-chart"><div class="label">Next 24 hours <span class="wx-legend">°F · rain %</span></div>${tempChart(w.chart || w.hours)}</section>` +
     `</div>`;
 }

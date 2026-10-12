@@ -40,7 +40,7 @@ export async function weatherPayload(now = new Date()) {
   url.searchParams.set('wind_speed_unit', 'mph');
   url.searchParams.set('precipitation_unit', 'inch');
   url.searchParams.set('timezone', 'America/Chicago');
-  url.searchParams.set('forecast_days', '5');
+  url.searchParams.set('forecast_days', '7');
   try {
     const res = await fetch(url);
     if (!res.ok) throw new Error(`Open-Meteo ${res.status}`);
@@ -66,7 +66,7 @@ export async function weatherPayload(now = new Date()) {
     const today = ymd(now);
     const dailyTimes = data.daily?.time || [];
     const days = [];
-    for (let i = 0; i < 5 && i < dailyTimes.length; i++) {
+    for (let i = 0; i < 7 && i < dailyTimes.length; i++) {
       days.push({
         label: dayName(dailyTimes[i], today),
         hi: data.daily.temperature_2m_max?.[i] ?? hours[0]?.temp ?? 0,

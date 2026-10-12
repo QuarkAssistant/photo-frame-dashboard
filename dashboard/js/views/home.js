@@ -5,16 +5,62 @@ import { clockHtml, now, register, routineNow } from '../app.js';
 import {
   avatar, compactTitle, dayParts, esc, eventTitle, formatRange, formatTime, nextPersonWhen, nextUp, owner, pstyle, relDay, ring,
 } from '../ui.js';
-import { hourStrip, nowBlock } from '../weatherui.js';
+import { celsius } from '../weatherui.js';
+import { createSlides } from '../slides.js';
+import { icon } from '../icons.js';
 
-let slideTimer = 0;
-let slideIndex = 0;
+
+function wxPair(f, c, cls = '') {
+  return `<span class="hw-pair num ${cls}">${Math.round(f)} °F <i>/</i> ${c} °C</span>`;
+}
 
 function weatherHtml() {
   const w = state.weather;
   if (!w) return '';
-  const hours = (w.hours || []).slice(0, 8);
-  return nowBlock(w, 34) + hourStrip(hours, 20);
+  const hours = (w.hours || []).slice(0, 5);
+  const cells = hours.map((h) =>
+    `<div class="hw-hr"><span class="hw-hr-l">${esc(h.label)}</span>` +
+    `<span class="hw-hr-i">${icon(h.code || 'partly', 20, 2)}</span>` +
+    `${wxPair(h.temp, celsius(h.temp, h.tempC))}` +
+    `${Number(h.pop) > 0 ? `<small class="hw-pop">${Math.round(h.pop)}%</small>` : ''}</div>`).join('');
+  return `<div class="hw-top">` +
+    `<div class="hw-now"><span class="hw-icon">${icon(w.code || 'partly', 40, 2)}</span>` +
+    `<div class="hw-now-txt">${wxPair(w.temp, celsius(w.temp, w.tempC), 'hw-big')}` +
+    `<span class="hw-cond"><b>${esc(w.label)}</b> · ${esc(w.place || 'Naperville')}</span></div></div>` +
+    `<div class="hw-hl">` +
+    `<span class="hw-line"><em>High</em>${icon('up', 14, 2)}${wxPair(w.hi, celsius(w.hi, w.hiC))}</span>` +
+    `<span class="hw-line"><em>Low</em>${icon('down', 14, 2)}${wxPair(w.lo, celsius(w.lo, w.loC))}</span>` +
+    `</div></div>` +
+    `<div class="hw-hours">${cells}</div>`;
+}
+
+const TZ = 'America/Chicago';
+function dayLabel(ymdStr) {
+  const today = ymd(now());
+  if (ymdStr === today) return 'Today';
+  if (ymdStr === addDaysYmd(today, 1)) return 'Tomorrow';
+  const d = new Date(`${ymdStr}T12:00:00Z`);
+  return d.toLocaleDateString('en-US', { timeZone: 'UTC', weekday: 'short', month: 'short', day: 'numeric' });
+}
+function kickoff(iso) {
+  const d = new Date(iso);
+  const day = ymd(d);
+  const t = d.toLocaleTimeString('en-US', { timeZone: TZ, hour: 'numeric', minute: '2-digit', hour12: true });
+  const today = ymd(now());
+  const wd = day === today ? 'Today' : day === addDaysYmd(today, 1) ? 'Tomorrow'
+    : d.toLocaleDateString('en-US', { timeZone: TZ, weekday: 'short' });
+  return `${wd} ${t}`;
+}
+function daysHtml() {
+  const ex = state.extras || {};
+  const hol = (ex.holidays || []).map((h) =>
+    `<div class="hd-c"><span class="hd-when"><i class="hd-cc hd-${h.country.toLowerCase()}">${esc(h.country)}</i>${esc(dayLabel(h.date))}</span>` +
+    `<b class="hd-name">${esc(h.country === 'BR' ? h.local : h.name)}</b></div>`).join('');
+  const fx = (ex.fixtures || []).map((f) =>
+    `<div class="hd-c hd-game"><span class="hd-when"><i class="hd-cc hd-fla">FLA</i>${esc(kickoff(f.start))}</span>` +
+    `<b class="hd-name">${f.home ? 'vs' : '@'} ${esc(f.opponent)} <small>${esc(f.competition)}</small></b></div>`).join('');
+  if (!hol && !fx) return '';
+  return `<div class="hd-row">${hol}${fx}</div>`;
 }
 
 function personWhen(p) {
@@ -127,21 +173,28 @@ function realPhotos() {
   return state.photoSource === 'folder' && state.photos.length > 0;
 }
 
+let homeSlides = null;
+
 function showSlide(root) {
   const photoBtn = root.querySelector('.h-photo');
   if (!photoBtn) return;
   if (!realPhotos()) {
     photoBtn.classList.add('is-mark');
+    if (homeSlides) homeSlides.stop();
     return;
   }
   photoBtn.classList.remove('is-mark');
-  const photos = state.photos;
-  slideIndex = slideIndex % photos.length;
-  const photo = photos[slideIndex];
-  const stage = photoBtn.querySelector('.h-photo-stage');
-  if (stage) stage.innerHTML = `<img src="${esc(photo.url)}" alt="">`;
-  const cap = photoBtn.querySelector('.h-photo-cap');
-  if (cap) cap.innerHTML = `<b>This year</b><span>${esc(photo.caption || 'Home')}</span>`;
+  if (!homeSlides) {
+    homeSlides = createSlides(photoBtn.querySelector('.h-photo-stage'), {
+      interval: 15000,
+      onShow(photo) {
+        const cap = photoBtn.querySelector('.h-photo-cap');
+        if (cap) { cap.innerHTML = photo.caption ? `<span>${esc(photo.caption)}</span>` : ''; cap.style.display = photo.caption ? '' : 'none'; }
+      },
+    });
+    homeSlides.start();
+  }
+  homeSlides.setPhotos(state.photos);
 }
 
 function paint(el) {
@@ -151,6 +204,7 @@ function paint(el) {
   el.querySelector('.h-family').innerHTML = familyHtml();
   el.querySelector('.h-hero-slot').innerHTML = heroHtml();
   el.querySelector('.h-lanes').innerHTML = lanesHtml();
+  el.querySelector('.h-days').innerHTML = daysHtml();
   el.querySelector('.h-chores').innerHTML = choresHtml();
   el.querySelector('.h-shop').innerHTML = shopHtml();
   showSlide(el);
@@ -164,7 +218,7 @@ register('home', {
         `<div class="h-clock" data-clock></div>` +
         `<button class="h-weather card" type="button" data-go="weather"></button>` +
         `<div class="h-family"></div>` +
-        `<div class="h-main"><div class="h-hero-slot"></div><div class="h-lanes"></div></div>` +
+        `<div class="h-main"><div class="h-hero-slot"></div><div class="h-days"></div><div class="h-lanes"></div></div>` +
         `<div class="h-side">` +
         `<button class="h-photo" type="button" data-go="photos"><div class="h-photo-stage"></div>` +
         `<div class="h-photo-mark"><img src="/emblem.png" alt=""><span class="serif">${esc(BRAND)}</span></div>` +
@@ -172,12 +226,6 @@ register('home', {
         `<button class="h-chores card" type="button" data-go="chores"></button>` +
         `<button class="h-shop card" type="button" data-go="grocery"></button>` +
         `</div></div>`;
-      clearInterval(slideTimer);
-      slideTimer = setInterval(() => {
-        if (!realPhotos()) return;
-        slideIndex += 1;
-        showSlide(el);
-      }, 12000);
     }
     paint(el);
   },
