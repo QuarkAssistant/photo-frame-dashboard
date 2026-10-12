@@ -101,8 +101,8 @@ export async function refreshAll() {
 }
 
 export async function refreshLists() {
-  const [ch, gr, hw] = await Promise.allSettled([
-    get('/api/chores'), get('/api/groceries'), get('/api/homework'),
+  const [ch, gr, hw, tg] = await Promise.allSettled([
+    get('/api/chores'), get('/api/groceries'), get('/api/homework'), get('/api/grocery/tagger'),
   ]);
   if (ch.status === 'fulfilled') state.chores = ch.value.chores || state.chores;
   if (gr.status === 'fulfilled') {
@@ -111,6 +111,7 @@ export async function refreshLists() {
     state.groceryReason = gr.value.reason || '';
   }
   if (hw.status === 'fulfilled') state.homework = hw.value.homework || state.homework;
+  if (tg && tg.status === 'fulfilled') state.tagger = tg.value;
   emit();
 }
 

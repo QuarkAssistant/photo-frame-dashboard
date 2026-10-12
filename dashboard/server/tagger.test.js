@@ -33,3 +33,25 @@ test('never overwrites a hand-edited line', () => {
 test('same line is a no-op', () => {
   assert.equal(plan('x\nstores: #any', ['#any'], null).action, 'same');
 });
+
+test('failure path: counts failures, flags stale after 3, notifies once, recovers', async () => {
+  const { taggerTick, isStale } = await import('./tagger.js');
+  const status = { consecutiveFailures: 0, lastSuccess: null, stale: false };
+  const logs = [];
+  const notes = [];
+  const bad = { list: async () => { throw new Error('simulated EventKit failure'); }, log: (l) => logs.push(l), notify: (n) => notes.push(n), dryRun: true };
+  for (let i = 0; i < 3; i++) await taggerTick(bad, status);
+  assert.equal(status.consecutiveFailures, 3);
+  assert.equal(status.lastError, 'simulated EventKit failure');
+  assert.equal(status.stale, true);
+  assert.equal(notes.length, 1);
+  assert.equal(logs.length, 3);
+  assert.match(logs[2], / error failures=3 /);
+  const good = { list: async () => [], log: (l) => logs.push(l), notify: (n) => notes.push(n), dryRun: true };
+  await taggerTick(good, status);
+  assert.equal(status.consecutiveFailures, 0);
+  assert.equal(status.stale, false);
+  assert.ok(status.lastSuccess);
+  assert.equal(notes.length, 2);
+  assert.equal(isStale({ consecutiveFailures: 0, lastSuccess: new Date(Date.now() - 31 * 60000).toISOString() }), true);
+});
