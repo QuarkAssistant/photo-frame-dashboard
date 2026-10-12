@@ -32,6 +32,11 @@ export function formatRange(aIso, bIso) {
   return `${formatTime(aIso)} – ${formatTime(bIso)}`;
 }
 
+// Home columns already name the person, so the academy prefix is noise.
+export function compactTitle(title) {
+  return String(title || '').replace(/^U1[34] Boys Academy\s*[-–—]\s*/i, '');
+}
+
 export function dayParts(iso) {
   const [y, m, d] = iso.split('-').map(Number);
   const dt = new Date(Date.UTC(y, m - 1, d, 18, 0, 0));

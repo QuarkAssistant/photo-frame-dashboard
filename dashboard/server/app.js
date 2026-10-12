@@ -79,7 +79,8 @@ function safeFile(root, urlPath) {
 
 function sendFile(res, file) {
   const ext = path.extname(file).toLowerCase();
-  const cache = ext === '.html' ? 'no-cache' : 'public, max-age=3600';
+  const icon = /\/(emblem|icon-\d+|favicon-\d+)\.png$/.test(file);
+  const cache = ext === '.html' || icon ? 'no-cache' : 'public, max-age=3600';
   res.writeHead(200, {
     'Content-Type': MIME[ext] || 'application/octet-stream',
     'Cache-Control': cache,

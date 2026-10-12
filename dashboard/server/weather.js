@@ -49,19 +49,20 @@ export async function weatherPayload(now = new Date()) {
     const nowKey = `${parts(now).year}-${String(parts(now).month).padStart(2, '0')}-${String(parts(now).day).padStart(2, '0')}T${String(parts(now).hour).padStart(2, '0')}`;
     let idx = times.findIndex((t) => t.startsWith(nowKey));
     if (idx < 0) idx = 0;
-    const hours = [];
-    for (let i = 0; i < 8 && idx + i < times.length; i++) {
+    const chart = [];
+    for (let i = 0; i < 24 && idx + i < times.length; i++) {
       const slot = times[idx + i];
       const hour = Number(slot.slice(11, 13));
       const temp = Math.round(data.hourly.temperature_2m[idx + i]);
       const pop = Math.round(data.hourly.precipitation_probability?.[idx + i] || 0);
-      hours.push({
+      chart.push({
         label: hourLabelFromHour(hour, i === 0),
         temp,
         pop,
         code: wmoIcon(data.hourly.weather_code[idx + i], hour),
       });
     }
+    const hours = chart.slice(0, 8);
     const today = ymd(now);
     const dailyTimes = data.daily?.time || [];
     const days = [];
@@ -82,6 +83,7 @@ export async function weatherPayload(now = new Date()) {
       hi: days[0]?.hi ?? data.daily?.temperature_2m_max?.[0] ?? hours[0]?.temp ?? 0,
       lo: days[0]?.lo ?? data.daily?.temperature_2m_min?.[0] ?? hours[0]?.temp ?? 0,
       hours,
+      chart,
       days,
     });
     shaped.humidity = data.current?.relative_humidity_2m ?? null;

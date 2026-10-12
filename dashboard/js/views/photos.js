@@ -11,7 +11,7 @@ function paint(el) {
   el.querySelectorAll('.ph-nav').forEach((b) => { b.hidden = !real; });
   if (!real) {
     el.querySelector('.ph-stage').innerHTML =
-      `<div class="ph-mark"><img src="/icon-512.png" alt=""><span class="serif">${esc(BRAND)}</span></div>`;
+      `<div class="ph-mark"><img src="/emblem.png" alt=""><span class="serif">${esc(BRAND)}</span></div>`;
     el.querySelector('.ph-cap').innerHTML = '';
     return;
   }
@@ -19,7 +19,7 @@ function paint(el) {
   index = ((index % photos.length) + photos.length) % photos.length;
   const photo = photos[index];
   el.querySelector('.ph-stage').innerHTML = `<img src="${esc(photo.url)}" alt="">`;
-  el.querySelector('.ph-cap').innerHTML = `<img src="/icon-192.png" alt=""><div><b>${esc(BRAND)}</b><span class="serif">${esc(photo.caption || '')}</span></div>`;
+  el.querySelector('.ph-cap').innerHTML = `<img src="/emblem.png" alt=""><div><b>${esc(BRAND)}</b><span class="serif">${esc(photo.caption || '')}</span></div>`;
 }
 
 register('photos', {

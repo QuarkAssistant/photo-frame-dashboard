@@ -68,6 +68,8 @@ ul { margin: 0; padding: 0; list-style: none; }
   aspect-ratio: 1;
   object-fit: contain;
   flex-shrink: 0;
+  background: transparent;
+  border-radius: 50%;
 }
 .rail-brand span {
   font-family: var(--serif);
@@ -243,7 +245,7 @@ button.card:active, .h-hero:active, .h-photo:active { transform: scale(0.985); }
   gap: calc(var(--u) * 0.4);
 }
 .saver.is-open { display: flex; }
-.saver img { width: calc(var(--u) * 14); height: calc(var(--u) * 14); object-fit: cover; border-radius: 18%; }
+.saver img { width: calc(var(--u) * 14); height: calc(var(--u) * 14); object-fit: contain; border-radius: 50%; background: transparent; }
 .saver-name { font-size: clamp(32px, calc(var(--u) * 3.2), 56px); line-height: 1; }
 .saver-time { font-size: clamp(72px, calc(var(--u) * 10), 160px); line-height: 0.85; }
 .saver-time span { font-size: 0.28em; letter-spacing: 0.08em; margin-left: 0.15em; }

@@ -11,6 +11,8 @@ export const state = {
   photoSource: 'emblem',
   routines: ROUTINES,
   calendarSource: 'mock',
+  grocerySource: 'store',
+  groceryReason: '',
 };
 
 const listeners = new Set();
@@ -27,6 +29,8 @@ function applySeed() {
   state.photos = [];
   state.photoSource = 'emblem';
   state.calendarSource = 'mock';
+  state.grocerySource = 'store';
+  state.groceryReason = '';
 }
 
 async function get(url) {
@@ -79,8 +83,11 @@ export async function refreshAll() {
     state.chores = ch.value.chores || [];
     if (ch.value.routines) state.routines = ch.value.routines;
   } else if (!state.chores.length) state.chores = seedStore().chores;
-  if (gr.status === 'fulfilled') state.groceries = gr.value.groceries || [];
-  else if (!state.groceries.length) state.groceries = seedStore().groceries;
+  if (gr.status === 'fulfilled') {
+    state.groceries = gr.value.groceries || [];
+    state.grocerySource = gr.value.source || 'store';
+    state.groceryReason = gr.value.reason || '';
+  } else if (!state.groceries.length) state.groceries = seedStore().groceries;
   if (hw.status === 'fulfilled') state.homework = hw.value.homework || [];
   else if (!state.homework.length) state.homework = seedStore().homework;
   if (ph.status === 'fulfilled') {
@@ -95,7 +102,11 @@ export async function refreshLists() {
     get('/api/chores'), get('/api/groceries'), get('/api/homework'),
   ]);
   if (ch.status === 'fulfilled') state.chores = ch.value.chores || state.chores;
-  if (gr.status === 'fulfilled') state.groceries = gr.value.groceries || state.groceries;
+  if (gr.status === 'fulfilled') {
+    state.groceries = gr.value.groceries || state.groceries;
+    state.grocerySource = gr.value.source || state.grocerySource;
+    state.groceryReason = gr.value.reason || '';
+  }
   if (hw.status === 'fulfilled') state.homework = hw.value.homework || state.homework;
   emit();
 }
@@ -130,6 +141,8 @@ export async function groceryAction(body) {
   try {
     const data = await post('/api/groceries', body);
     state.groceries = data.groceries;
+    state.grocerySource = data.source || state.grocerySource;
+    state.groceryReason = data.reason || '';
     emit();
   } catch {
     emit();

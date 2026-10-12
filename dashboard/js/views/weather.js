@@ -1,6 +1,6 @@
 import { state } from '../data.js';
 import { register } from '../app.js';
-import { dayStrip, hourStrip, nowBlock } from '../weatherui.js';
+import { dayStrip, hourStrip, nowBlock, tempChart } from '../weatherui.js';
 import { esc } from '../ui.js';
 
 function page(w) {
@@ -11,6 +11,7 @@ function page(w) {
     nowBlock(w, 64) +
     `<section class="wx-block"><div class="label">Next hours</div>${hourStrip(w.hours, 32)}</section>` +
     `<section class="wx-block"><div class="label">Next 5 days</div>${dayStrip(w.days, 32, true)}</section>` +
+    `<section class="wx-block wx-chart"><div class="label">Next 24 hours <span class="wx-legend">°F · rain %</span></div>${tempChart(w.chart || w.hours)}</section>` +
     `</div>`;
 }
 

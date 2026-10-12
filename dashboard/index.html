@@ -21,11 +21,16 @@
   <script>
     (function () {
       try {
+        var params = new URLSearchParams(location.search);
+        if (params.get('night') === 'off') return;
+        var raw = params.get('now');
+        var date = raw ? new Date(raw) : new Date();
+        if (isNaN(date.getTime())) date = new Date();
         var fmt = new Intl.DateTimeFormat('en-US', {
           timeZone: 'America/Chicago', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
         });
         var hour = 0, minute = 0;
-        fmt.formatToParts(new Date()).forEach(function (p) {
+        fmt.formatToParts(date).forEach(function (p) {
           if (p.type === 'hour') hour = Number(p.value);
           if (p.type === 'minute') minute = Number(p.value);
         });

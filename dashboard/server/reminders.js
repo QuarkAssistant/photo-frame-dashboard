@@ -6,13 +6,33 @@ import { fileURLToPath } from 'node:url';
 
 const execFileAsync = promisify(execFile);
 const TTL = 60 * 1000;
+const HELPER_TIMEOUT = 8000;
+const AUTH_ERRORS = new Set([
+  'denied', 'restricted', 'notDetermined', 'writeOnly',
+  'noList', 'missingPrefix', 'missingTitle', 'missingId', 'notFound', 'unknownCommand',
+]);
 const here = path.dirname(fileURLToPath(import.meta.url));
 const swiftSrc = path.join(here, 'reminders.swift');
 const jxaSrc = path.join(here, 'reminders.jxa.js');
 const bin = path.join(here, 'bin', 'reminders-grocery');
 
 let binPromise = null;
-let cache = { at: 0, data: null, failed: false };
+let cache = { at: 0, data: null, failed: false, reason: '', ttl: TTL };
+
+function helperReason(err) {
+  const stdout = String(err.stdout || '').trim();
+  if (stdout) {
+    try {
+      const data = JSON.parse(stdout);
+      if (data && data.error) return String(data.error);
+    } catch { /* helper spoke prose */ }
+  }
+  const blob = `${err.stderr || ''} ${err.message || ''}`.toLowerCase();
+  if (err.killed || err.code === 'ETIMEDOUT' || blob.includes('timed out') || blob.includes('sigkill')) return 'timeout';
+  if (blob.includes('not authorized') || blob.includes('(-1743)') || blob.includes('denied') || blob.includes('not permitted')) return 'denied';
+  if (blob.includes('not determined')) return 'notDetermined';
+  return String(err.message || 'failed').slice(0, 180);
+}
 
 function prefix() {
   return process.env.REMINDERS_GROCERY_LIST || 'Supermercado';
@@ -41,7 +61,7 @@ async function ensureBinary() {
     try { binTime = fs.statSync(bin).mtimeMs; } catch { /* compiled on first use */ }
     if (binTime >= srcTime) return bin;
     fs.mkdirSync(path.dirname(bin), { recursive: true });
-    await execFileAsync('swiftc', ['-O', '-o', bin, swiftSrc], { timeout: 120000 });
+    await execFileAsync('swiftc', ['-O', '-o', bin, swiftSrc], { timeout: 20000, killSignal: 'SIGKILL' });
     return bin;
   })().catch((err) => {
     console.error('reminders swiftc:', err.message);
@@ -59,46 +79,66 @@ async function runHelper(command, arg) {
     ? [{ cmd: compiled, args }]
     : [];
   attempts.push({ cmd: 'osascript', args: ['-l', 'JavaScript', jxaSrc, ...args] });
-  let last = 'Reminders helper failed';
+  let last = 'failed';
   for (const attempt of attempts) {
     try {
       const { stdout } = await execFileAsync(attempt.cmd, attempt.args, {
-        timeout: 20000,
+        timeout: HELPER_TIMEOUT,
+        killSignal: 'SIGKILL',
         maxBuffer: 2 * 1024 * 1024,
       });
-      const data = JSON.parse(String(stdout || '').trim() || '{}');
-      if (!data.ok) throw new Error(data.error || 'reminders failed');
+      let text = String(stdout || '').trim();
+      if (text.startsWith('"') && text.endsWith('"')) {
+        try { text = JSON.parse(text); } catch { /* osascript sometimes quotes the JSON */ }
+      }
+      const data = typeof text === 'string' ? JSON.parse(text || '{}') : text;
+      if (!data.ok) {
+        const reason = String(data.error || 'failed');
+        const error = new Error(reason);
+        error.reason = reason;
+        throw error;
+      }
       return data;
     } catch (err) {
-      last = err.message || String(err);
+      last = err.reason || helperReason(err);
+      if (AUTH_ERRORS.has(last)) break;
     }
   }
-  throw new Error(last);
+  const error = new Error(last);
+  error.reason = last;
+  throw error;
 }
 
 async function readList() {
-  if (process.platform !== 'darwin') return null;
+  if (process.platform !== 'darwin') return { data: null, reason: 'unavailable' };
   const now = Date.now();
-  if (now - cache.at < TTL) return cache.failed ? null : cache.data;
+  if (now - cache.at < cache.ttl) return { data: cache.failed ? null : cache.data, reason: cache.reason };
   try {
     const data = await runHelper('list');
-    cache = { at: now, data, failed: false };
-    return data;
+    cache = { at: now, data, failed: false, reason: '', ttl: TTL };
+    return { data, reason: '' };
   } catch (err) {
-    console.error('reminders:', err.message);
-    cache = { at: now, data: null, failed: true };
-    return null;
+    const reason = err.reason || err.message || 'failed';
+    console.error('reminders:', reason);
+    const ttl = reason === 'notDetermined' || reason === 'timeout' ? 15000 : TTL;
+    cache = { at: now, data: null, failed: true, reason, ttl };
+    return { data: null, reason };
   }
 }
 
+function withReason(payload, reason) {
+  if (!reason) return payload;
+  return { ...payload, reason };
+}
+
 export async function loadGroceries(store) {
-  const data = await readList();
-  if (!data) return store.groceries();
+  const { data, reason } = await readList();
+  if (!data) return withReason(store.groceries(), reason);
   return shape(data);
 }
 
 export async function saveGrocery(store, body) {
-  if (process.platform !== 'darwin') return store.grocery(body);
+  if (process.platform !== 'darwin') return withReason(await store.grocery(body), 'unavailable');
   const action = body?.action || 'toggle';
   try {
     if (action === 'add') {
@@ -109,12 +149,15 @@ export async function saveGrocery(store, body) {
     } else if (action !== 'clear-done' && action !== 'remove') {
       return store.grocery(body);
     }
-    cache = { at: 0, data: null, failed: false };
-    const data = await readList();
+    cache = { at: 0, data: null, failed: false, reason: '', ttl: TTL };
+    const { data, reason } = await readList();
     if (data) return shape(data);
+    return withReason(store.groceries(), reason);
   } catch (err) {
-    console.error('reminders:', err.message);
-    cache = { at: Date.now(), data: null, failed: true };
+    const reason = err.reason || err.message || 'failed';
+    console.error('reminders:', reason);
+    cache = { at: Date.now(), data: null, failed: true, reason, ttl: TTL };
+    return withReason(store.groceries(), reason);
   }
   return store.grocery(body);
 }

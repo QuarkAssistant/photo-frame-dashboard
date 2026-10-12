@@ -3,6 +3,22 @@ import { groceryAction, state } from '../data.js';
 import { register } from '../app.js';
 import { esc } from '../ui.js';
 
+function reasonLine() {
+  const reason = state.groceryReason;
+  if (!reason || state.grocerySource === 'reminders') return '';
+  const text = {
+    denied: 'Reminders access denied',
+    notDetermined: 'Reminders access not granted yet',
+    restricted: 'Reminders access restricted',
+    writeOnly: 'Reminders access is write-only',
+    timeout: 'Reminders did not answer',
+    noList: 'No Reminders list matches that name',
+    unavailable: '',
+  }[reason];
+  if (text === '') return '';
+  return `<p class="s-reason">${esc(text || `Reminders: ${reason}`)}</p>`;
+}
+
 function paint(el) {
   const open = state.groceries.filter((g) => !g.done);
   const done = state.groceries.filter((g) => g.done);
@@ -12,7 +28,7 @@ function paint(el) {
     return `<section class="s-cat"><div class="s-cat-h"><b>${esc(cat)}</b><span>${open.filter((g) => g.cat === cat).length}</span></div>${rows}</section>`;
   }).join('');
   el.querySelector('.s-list').innerHTML = groups || '<div class="empty serif">The list is clear.</div>';
-  el.querySelector('.s-count').innerHTML = `<span class="num">${open.length}</span> to get`;
+  el.querySelector('.s-count').innerHTML = `<span class="num">${open.length}</span> to get${reasonLine()}`;
   el.querySelector('.s-done').innerHTML = done.length
     ? `<button class="s-drawer-h" type="button" data-grocery="show-done">Checked <span class="num">${done.length}</span></button>` +
       (el.dataset.showDone === '1'

@@ -9,7 +9,7 @@ import { assignEvent, displayTitle } from '../family.js';
 import { fToC, hourLabelFromHour } from '../mock.js';
 import { clockLabel, inNightWindow, nightAnchor, parseClockMinutes } from '../night.js';
 import { chicagoRange, zonedToUtc } from '../time.js';
-import { formatRange, formatTime } from '../js/ui.js';
+import { compactTitle, formatRange, formatTime } from '../js/ui.js';
 import { createApi } from './app.js';
 import { eventsFromIcs } from './ical.js';
 
@@ -114,6 +114,7 @@ test('serves mock calendar and toggles a chore when env is missing', async () =>
   assert.ok(added.groceries.some((g) => g.name === 'Oats' && !g.done));
   const grocery = await (await fetch(`${base}/api/grocery`)).json();
   assert.equal(grocery.source, 'store');
+  assert.equal(grocery.reason, 'unavailable');
   assert.ok(grocery.groceries.some((g) => g.name === 'Oats'));
   const cfg = await (await fetch(`${base}/api/config`)).json();
   assert.equal(cfg.nightStart, '23:00');
@@ -127,6 +128,10 @@ test('serves mock calendar and toggles a chore when env is missing', async () =>
   assert.equal(wx.hours[0].label, 'Now');
   for (const hour of wx.hours.slice(1)) assert.match(hour.label, /^\d{1,2} (AM|PM)$/);
   assert.equal(wx.days.length, 5);
+  assert.equal(wx.chart.length, 24);
+  for (const slot of wx.chart) {
+    if (slot.label !== 'Now') assert.match(slot.label, /^\d{1,2} (AM|PM)$/);
+  }
   server.close();
 });
 
@@ -160,6 +165,13 @@ test('night window wraps midnight and a tap is a separate wake', () => {
   const b = nightAnchor(11);
   assert.notDeepEqual(a, b);
   assert.ok(a.x >= 8 && a.x <= 71 && a.y >= 12 && a.y <= 69);
+});
+
+test('compact titles drop the academy prefix', () => {
+  assert.equal(compactTitle('U14 Boys Academy - Team Training'), 'Team Training');
+  assert.equal(compactTitle('U13 Boys Academy - Game'), 'Game');
+  assert.equal(compactTitle('U14 Boys Academy – Strength and Conditioning'), 'Strength and Conditioning');
+  assert.equal(compactTitle('School drop-off'), 'School drop-off');
 });
 
 test('hour labels use a full AM/PM and Celsius tracks Fahrenheit', () => {

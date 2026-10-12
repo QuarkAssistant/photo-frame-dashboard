@@ -45,6 +45,43 @@ export function dayStrip(days, size, withLow) {
   return `<div class="wx-days" style="grid-template-columns:repeat(${list.length},minmax(0,1fr))">${cells}</div>`;
 }
 
+export function tempChart(points) {
+  const list = points || [];
+  if (list.length < 2) return '';
+  const temps = list.map((p) => Math.round(p.temp));
+  const lo = Math.min(...temps);
+  const hi = Math.max(...temps);
+  const span = Math.max(1, hi - lo);
+  const n = list.length;
+  const x = (i) => (n === 1 ? 0 : (i / (n - 1)) * 100);
+  const y = (t) => 8 + (1 - (t - lo) / span) * 78;
+  const line = list.map((p, i) => `${i ? 'L' : 'M'}${x(i).toFixed(2)},${y(Math.round(p.temp)).toFixed(2)}`).join(' ');
+  const area = `${line} L100,100 L0,100 Z`;
+  const bars = list.map((p, i) => {
+    const pop = Math.max(0, Math.min(100, Number(p.pop) || 0));
+    if (!pop) return '';
+    const bw = 100 / n * 0.55;
+    const bh = pop * 0.42;
+    return `<rect x="${(x(i) - bw / 2).toFixed(2)}" y="${(100 - bh).toFixed(2)}" width="${bw.toFixed(2)}" height="${bh.toFixed(2)}" fill="rgba(122, 138, 60, 0.45)"></rect>`;
+  }).join('');
+  const marks = [];
+  for (let i = 0; i < n; i += 3) marks.push(i);
+  if (marks[marks.length - 1] !== n - 1) marks.push(n - 1);
+  const labels = marks.map((i) => {
+    const left = x(i);
+    const align = i === 0 ? 'left:0' : i === n - 1 ? 'right:0' : `left:${left.toFixed(2)}%;transform:translateX(-50%)`;
+    return `<span style="${align}">${esc(list[i].label)}</span>`;
+  }).join('');
+  return `<div class="wx-chart-plot">` +
+    `<div class="wx-yaxis"><span class="num">${hi}°</span><span class="num">${lo}°</span></div>` +
+    `<svg viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label="Next 24 hours">` +
+    bars +
+    `<path d="${area}" fill="rgba(31, 58, 58, 0.14)"></path>` +
+    `<path d="${line}" fill="none" stroke="#1F3A3A" stroke-width="1.6" vector-effect="non-scaling-stroke"></path>` +
+    `</svg></div>` +
+    `<div class="wx-chart-x">${labels}</div>`;
+}
+
 export function nowBlock(w, iconSize) {
   const place = w.place || 'Naperville';
   const note = w.summary ? `<p class="wx-note">${esc(w.summary)}</p>` : '';

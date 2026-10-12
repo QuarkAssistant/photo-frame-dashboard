@@ -50,13 +50,13 @@ On the Mac, the grocery page and the Home tile read the shared Reminders list wh
 
 `npm run reminders:build` compiles `server/reminders.swift` with `swiftc` into `server/bin/reminders-grocery` (gitignored). The server compiles it on first use when the binary is missing or older than the source. If `swiftc` is not available, it falls back to `osascript` with `server/reminders.jxa.js`. The incomplete items (title, notes, id) are cached for about 60 seconds. Checking an item off marks it complete in Reminders. Adding an item creates a reminder in that list, so the family’s phones stay in sync.
 
-`/api/grocery` and `/api/groceries` include `source`: `reminders` or `store`. On Linux, or if Reminders cannot be read, the board uses `data/store.json`.
+`/api/grocery` and `/api/groceries` include `source`: `reminders` or `store`. On Linux, or if Reminders cannot be read, the board uses `data/store.json` and `reason` says why (`denied`, `notDetermined`, `timeout`, `unavailable`, …). The helper and the `osascript` fallback each give up after 8 seconds, so the page does not wait on a permission dialog.
 
 The first time the helper runs, macOS asks for Reminders access. Allow it under **System Settings → Privacy & Security → Reminders** for Terminal, `node`, or `reminders-grocery`. An unsigned command-line tool is often attributed to the app that launched it (Terminal, or the launchd job). If no prompt appears, run `server/bin/reminders-grocery list Supermercado` once from Terminal, or `tccutil reset Reminders` and try again.
 
 ## Weather
 
-Open-Meteo is called with `LAT` and `LON` (Naperville unless you change them) and `WEATHER_PLACE` for the city name. Temperatures are stored in Fahrenheit and shown with Celsius beside them: the current reading is like `61°F` with `16°C`, the high and low are like `76°F / 24°C`, and each hour and forecast day puts °F above a smaller °C. Hour labels are `Now`, `12 AM`, `1 AM`, `2 PM`. The Home card is the current reading and the next eight hours, with a precipitation percent only when it is above zero. Tap the card for the five-day forecast. The result is cached about ten minutes. If Open-Meteo cannot be reached, a mock forecast is served.
+Open-Meteo is called with `LAT` and `LON` (Naperville unless you change them) and `WEATHER_PLACE` for the city name. Temperatures are stored in Fahrenheit and shown with Celsius beside them: the current reading is like `61°F` with `16°C`, the high and low are like `76°F / 24°C`, and each hour and forecast day puts °F above a smaller °C. Hour labels are `Now`, `12 AM`, `1 AM`, `2 PM`. The Home card is the current reading and the next eight hours, with a precipitation percent only when it is above zero. Tap the card for the five-day forecast and a 24-hour temperature and rain chart. The result is cached about ten minutes. If Open-Meteo cannot be reached, a mock forecast is served.
 
 ## Mac mini, always on
 
@@ -71,7 +71,7 @@ The process loads `.env` from the dashboard directory itself, so the secrets do 
 
 ## Night mode
 
-From `NIGHT_START` until `NIGHT_END` (default 23:00–06:00, `America/Chicago`) the board is a near-black screen with one small dim clock. Event times and this clock share `formatTime`, so the meridian is always `AM` or `PM`. The clock glides to a new spot every three minutes. Any tap brings the full board back for two minutes, then the night screen returns while the window is still open. Outside those hours the usual idle screensaver is unchanged. `/api/config` reports the window the server is using.
+From `NIGHT_START` until `NIGHT_END` (default 23:00–06:00, `America/Chicago`) the board is a near-black screen with one small dim clock. Event times and this clock share `formatTime`, so the meridian is always `AM` or `PM`. The clock glides to a new spot every three minutes. Any tap brings the full board back for two minutes, then the night screen returns while the window is still open. Outside those hours the usual idle screensaver is unchanged. `/api/config` reports the window the server is using. Add `?night=off` to keep the full board up, and `?now=2026-10-13T21:30:00.000Z` to pin the clock for a screenshot. The names at the top of Home show each person’s next timed event, skipping shared all-day holidays.
 
 ## Kiosk URL
 

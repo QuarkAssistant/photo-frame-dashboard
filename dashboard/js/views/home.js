@@ -4,7 +4,7 @@ import { addDaysYmd, ymd } from '../../time.js';
 import { state } from '../data.js';
 import { clockHtml, now, register, routineNow } from '../app.js';
 import {
-  avatar, dayParts, esc, formatRange, formatTime, nextUp, owner, pstyle, relDay, ring,
+  avatar, compactTitle, dayParts, esc, formatRange, formatTime, nextUp, owner, pstyle, relDay, ring,
 } from '../ui.js';
 import { hourStrip, nowBlock } from '../weatherui.js';
 
@@ -22,22 +22,11 @@ function personWhen(p) {
   const n = now();
   const today = ymd(n);
   const list = state.events
-    .filter((e) => e.people.includes(p.id) && !isMidnightPlaceholder(e))
-    .filter((e) => (e.allDay ? e.end > today : new Date(e.end) > n))
-    .sort((a, b) => {
-      const ad = a.allDay ? String(a.start).slice(0, 10) : ymd(new Date(a.start));
-      const bd = b.allDay ? String(b.start).slice(0, 10) : ymd(new Date(b.start));
-      if (ad !== bd) return ad < bd ? -1 : 1;
-      if (a.allDay !== b.allDay) return a.allDay ? -1 : 1;
-      return String(a.start).localeCompare(String(b.start));
-    });
+    .filter((e) => e.people.includes(p.id) && !e.everyone && !e.allDay && !isMidnightPlaceholder(e))
+    .filter((e) => new Date(e.end) > n)
+    .sort((a, b) => String(a.start).localeCompare(String(b.start)));
   const next = list[0];
   if (!next) return '';
-  if (next.allDay) {
-    const day = String(next.start).slice(0, 10);
-    if (day === today) return 'All day';
-    return `${(dayParts(day).weekday || '').slice(0, 3)} All day`;
-  }
   if (new Date(next.start) <= n) return 'Now';
   const day = ymd(new Date(next.start));
   const t = formatTime(new Date(next.start));
@@ -115,7 +104,7 @@ function lanesHtml() {
       ? list.map((e) => {
         const cur = !e.allDay && new Date(e.start) <= n && new Date(e.end) > n;
         return `<button class="h-ev${cur ? ' is-now' : ''}" type="button" data-ev="${esc(e.id)}">` +
-          `<span class="h-ev-t">${esc(laneWhen(e, today, n))}</span><span class="h-ev-n">${esc(e.displayTitle || e.title)}</span></button>`;
+          `<span class="h-ev-t">${esc(laneWhen(e, today, n))}</span><span class="h-ev-n">${esc(compactTitle(e.displayTitle || e.title))}</span></button>`;
       }).join('')
       : '<div class="h-free serif"><i>Nothing</i> coming up</div>';
     return `<div class="h-lane" style="${pstyle(p)}"><div class="h-lane-head">${avatar(p)}<b>${esc(p.name)}</b></div>${rows}</div>`;
@@ -191,7 +180,7 @@ register('home', {
         `<div class="h-main"><div class="h-hero-slot"></div><div class="h-lanes"></div></div>` +
         `<div class="h-side">` +
         `<button class="h-photo" type="button" data-go="photos"><div class="h-photo-stage"></div>` +
-        `<div class="h-photo-mark"><img src="/icon-512.png" alt=""><span class="serif">${esc(BRAND)}</span></div>` +
+        `<div class="h-photo-mark"><img src="/emblem.png" alt=""><span class="serif">${esc(BRAND)}</span></div>` +
         `<div class="h-photo-cap"></div></button>` +
         `<button class="h-chores card" type="button" data-go="chores"></button>` +
         `<button class="h-shop card" type="button" data-go="grocery"></button>` +

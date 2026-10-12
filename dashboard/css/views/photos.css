@@ -16,6 +16,8 @@
   height: auto;
   aspect-ratio: 1;
   object-fit: contain;
+  background: transparent;
+  border-radius: 50%;
 }
 .ph-mark span { font-size: clamp(28px, calc(var(--u) * 3), 52px); }
 .ph-stage { position: absolute; top: 0; right: 0; bottom: 0; left: 0; }
@@ -46,6 +48,6 @@
   background: linear-gradient(0deg, rgba(18, 36, 36, 0.82), rgba(18, 36, 36, 0));
   color: #F4EFE4;
 }
-.ph-cap img { width: calc(var(--u) * 3.2); height: calc(var(--u) * 3.2); border-radius: 16%; object-fit: cover; }
+.ph-cap img { width: calc(var(--u) * 3.2); height: calc(var(--u) * 3.2); border-radius: 50%; object-fit: contain; background: transparent; }
 .ph-cap b { display: block; letter-spacing: 0.08em; text-transform: uppercase; font-size: var(--fs-min); }
 .ph-cap span { font-size: clamp(22px, calc(var(--u) * 2), 36px); font-style: italic; }

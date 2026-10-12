@@ -115,7 +115,7 @@ const WX_LABELS = {
   fog: 'Fog',
 };
 
-export function describeWeather({ temp, code, hi, lo, hours, days, source, place }) {
+export function describeWeather({ temp, code, hi, lo, hours, days, chart, source, place }) {
   const list = hours || [];
   let summary = '';
   const wetAt = list.findIndex((h, i) => i > 0 && h.pop >= 50);
@@ -143,6 +143,10 @@ export function describeWeather({ temp, code, hi, lo, hours, days, source, place
       const f = Math.round(h.temp);
       return { ...h, temp: f, tempC: fToC(f) };
     }),
+    chart: (chart || list).map((h) => {
+      const f = Math.round(h.temp);
+      return { ...h, temp: f, tempC: fToC(f) };
+    }),
     days: (days || []).map((d) => {
       const dayHi = Math.round(d.hi);
       const dayLo = Math.round(d.lo);
@@ -153,7 +157,7 @@ export function describeWeather({ temp, code, hi, lo, hours, days, source, place
 
 export function mockWeather(now = new Date()) {
   const hours = [];
-  for (let i = 0; i < 8; i++) {
+  for (let i = 0; i < 24; i++) {
     const t = new Date(now.getTime() + i * 3600000);
     const hp = parts(t);
     const temp = Math.round(54 + 12 * Math.sin(((hp.hour - 4) / 24) * Math.PI * 2));
@@ -188,7 +192,8 @@ export function mockWeather(now = new Date()) {
     code: hours[0].code,
     hi: days[0].hi,
     lo: days[0].lo,
-    hours,
+    hours: hours.slice(0, 8),
+    chart: hours,
     days,
   });
 }

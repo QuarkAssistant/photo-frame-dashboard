@@ -64,7 +64,8 @@
 
 .shop { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(240px, 0.8fr); grid-template-rows: auto minmax(0, 1fr); gap: var(--gap); }
 .s-head { grid-column: 1 / -1; }
-.s-count { margin-left: auto; color: var(--mute); font-size: var(--fs-m); }
+.s-count { margin-left: auto; color: var(--mute); font-size: var(--fs-m); text-align: right; }
+.s-reason { display: block; margin-top: 2px; font-size: var(--fs-min); font-weight: 700; color: var(--alert); }
 .s-count .num { font-size: clamp(32px, calc(var(--u) * 2.6), 48px); color: var(--ink); margin-right: 6px; }
 .s-main { min-height: 0; overflow: auto; }
 .s-cat { margin-bottom: 10px; }

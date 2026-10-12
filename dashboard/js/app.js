@@ -22,9 +22,13 @@ let nightSlot = null;
 let wakeUntil = 0;
 let nightStartMin = parseClockMinutes(DEFAULT_NIGHT_START, 23 * 60);
 let nightEndMin = parseClockMinutes(DEFAULT_NIGHT_END, 6 * 60);
+const pageParams = new URLSearchParams(location.search);
+const nightOff = pageParams.get('night') === 'off';
+const nowParam = pageParams.get('now');
+const nowOverride = nowParam && !Number.isNaN(new Date(nowParam).getTime()) ? new Date(nowParam).getTime() : null;
 
 export function register(name, view) { views[name] = view; }
-export function now() { return new Date(); }
+export function now() { return nowOverride == null ? new Date() : new Date(nowOverride); }
 export function member() { return memberId ? FAMILY.find((p) => p.id === memberId) : null; }
 export { icon, state };
 
@@ -42,7 +46,9 @@ export function go(name) {
   const el = document.getElementById(`view-${viewName}`);
   if (views[viewName] && el) views[viewName].show(el);
   const hash = person ? person.id : viewName;
-  if (location.hash !== `#${hash}`) history.replaceState(null, '', `#${hash}`);
+  if (location.hash !== `#${hash}`) {
+    history.replaceState(null, '', `${location.pathname}${location.search}#${hash}`);
+  }
 }
 
 export function rerender() {
@@ -65,7 +71,7 @@ function rail() {
     `<button class="rail-item rail-person" type="button" data-go="${p.id}" style="${pstyle(p)}">${avatar(p)}<span>${esc(p.name)}</span></button>`
   ).join('');
   document.getElementById('rail').innerHTML =
-    `<div class="rail-brand"><img src="/icon-192.png" alt=""><span>${esc(BRAND)}</span></div>` +
+    `<div class="rail-brand"><img src="/emblem.png" alt=""><span>${esc(BRAND)}</span></div>` +
     item('home', 'home', 'Today') +
     item('calendar', 'calendar', 'Calendar') +
     item('chores', 'tasks', 'Chores') +
@@ -113,7 +119,7 @@ function paintSaver() {
     ? `<div class="saver-next">${esc(up.event.displayTitle || up.event.title)}</div>`
     : '';
   document.getElementById('saver').innerHTML =
-    `<img src="/icon-512.png" alt="">` +
+    `<img src="/emblem.png" alt="">` +
     `<div class="saver-name serif">${esc(BRAND)}</div>` +
     `<div class="saver-time num">${c.h}:${c.m}<span>${c.ap}</span></div>` +
     `<div class="saver-date">${esc(dp.weekday)} ${esc(dp.month)} ${esc(dp.day)}</div>` +
@@ -161,7 +167,7 @@ function paintNight(date, animate) {
 }
 
 function syncNight(date) {
-  const show = inNight(date) && Date.now() >= wakeUntil;
+  const show = !nightOff && inNight(date) && Date.now() >= wakeUntil;
   const el = document.getElementById('night');
   if (!el) return;
   if (show) {
