@@ -186,3 +186,9 @@ Shown only for upcoming timed events with a location.
   album link, home address/coordinates or network details.
 - Public posts credit the upstream project:
   [wesbos/photo-frame-dashboard](https://github.com/wesbos/photo-frame-dashboard).
+
+## Open items
+- [x] **Stable address for the dashboard host** (done 2026-10-12): DASHBOARD_HOST has a DHCP
+  reservation on the home gateway; macOS private Wi-Fi address set to Fixed. This prevents
+  address changes only, not sleep/Wi-Fi outages/stopped service.
+- [ ] Verify the v0.3.2 slideshow rotation on the frame itself after a reload.
