@@ -71,7 +71,7 @@ export function tempChart(points) {
     });
   }
   const grid = ticks.map((tick) =>
-    `<line x1="0" y1="${tick.y.toFixed(2)}" x2="100" y2="${tick.y.toFixed(2)}" stroke="rgba(31, 58, 58, 0.22)" stroke-width="1" vector-effect="non-scaling-stroke"></line>`
+    `<line x1="0" y1="${tick.y.toFixed(2)}" x2="100" y2="${tick.y.toFixed(2)}" stroke="rgba(31, 58, 58, 0.4)" stroke-width="1.25" vector-effect="non-scaling-stroke"></line>`
   ).join('');
   const bars = list.map((p, i) => {
     const pop = Math.max(0, Math.min(100, Number(p.pop) || 0));
@@ -97,8 +97,9 @@ export function tempChart(points) {
   return `<div class="wx-chart-plot">` +
     `<div class="wx-yaxis">${yLabels}</div>` +
     `<svg viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label="Next 24 hours">` +
-    grid + bars +
+    bars +
     `<path d="${area}" fill="rgba(31, 58, 58, 0.14)"></path>` +
+    grid +
     `<path d="${line}" fill="none" stroke="#1F3A3A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"></path>` +
     `</svg></div>` +
     `<div class="wx-chart-x">${labels}</div>`;
