@@ -225,3 +225,4 @@ Shown only for upcoming timed events with a location.
   than 30 min. The Home Grocery card then shows a small "Store tags not updating since H:MM PM" pill,
   and the Mac posts one notification (and another when it recovers).
 - The failure path is covered by a unit test with a simulated error (`node --test server/tagger.test.js`).
+- Store tags are never shown on the dashboard: `/api/grocery` strips every `stores:` line from notes server-side (other notes lines are kept). The stale warning pill is still shown.

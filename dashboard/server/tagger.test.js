@@ -55,3 +55,9 @@ test('failure path: counts failures, flags stale after 3, notifies once, recover
   assert.equal(notes.length, 2);
   assert.equal(isStale({ consecutiveFailures: 0, lastSuccess: new Date(Date.now() - 31 * 60000).toISOString() }), true);
 });
+
+test('dashboard never sees store tags', async () => {
+  const { stripStoreTags } = await import('./reminders.js');
+  assert.equal(stripStoreTags('stores: #any'), '');
+  assert.equal(stripStoreTags('buy 2\nStores: #costco #target\nbig one'), 'buy 2\nbig one');
+});
