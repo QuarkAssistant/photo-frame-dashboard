@@ -3,7 +3,7 @@ import { addDaysYmd, weekdayIndex, ymd } from '../../time.js';
 import { state } from '../data.js';
 import { icon } from '../icons.js';
 import { now, register } from '../app.js';
-import { dayParts, esc, formatRange, formatTime, onDay, owner, pstyle, relDay } from '../ui.js';
+import { dayParts, esc, eventTitle, formatRange, formatTime, onDay, owner, pstyle, relDay } from '../ui.js';
 
 let mode = 'agenda';
 let weekShift = 0;
@@ -19,7 +19,7 @@ function eventRow(e) {
   const who = e.everyone ? 'Everyone' : (FAMILY.find((m) => m.id === e.people[0])?.name || '');
   return `<button class="ag" type="button" data-ev="${esc(e.id)}" style="${pstyle(p)}">` +
     `<span class="ag-time">${esc(time)}</span>` +
-    `<span class="ag-main"><b>${esc(e.displayTitle || e.title)}</b>` +
+    `<span class="ag-main"><b>${esc(eventTitle(e))}</b>` +
     (e.location ? `<small>${esc(e.location)}</small>` : '') +
     `</span><span class="ag-who">${esc(who)}</span></button>`;
 }
@@ -54,7 +54,7 @@ function week() {
       const p = owner(e);
       const time = e.allDay ? 'All day' : formatTime(e.start);
       return `<button class="wk-ev" type="button" data-ev="${esc(e.id)}" style="${pstyle(p)}">` +
-        `<span>${esc(time)}</span><b>${esc(e.displayTitle || e.title)}</b></button>`;
+        `<span>${esc(time)}</span><b>${esc(eventTitle(e))}</b></button>`;
     }).join('') || '<div class="wk-free serif"><i>Clear</i></div>';
     cols += `<div class="wk-col${day === today ? ' is-today' : ''}">` +
       `<div class="wk-h"><b>${esc(dp.weekday.slice(0, 3))}</b><span class="num">${esc(dp.day)}</span></div>` +

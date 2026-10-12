@@ -1,7 +1,7 @@
 import { state, toggleChore, toggleHomework } from '../data.js';
 import { member, now, register } from '../app.js';
 import { ymd, addDaysYmd } from '../../time.js';
-import { avatar, dayParts, esc, formatRange, onDay, owner, pstyle, relDay } from '../ui.js';
+import { avatar, dayParts, esc, eventTitle, formatRange, onDay, owner, pstyle, relDay } from '../ui.js';
 
 function upcoming(person) {
   const today = ymd(now());
@@ -22,7 +22,7 @@ function upcoming(person) {
     const time = e.allDay ? 'All day' : formatRange(e.start, e.end);
     const p = owner(e);
     return head + `<button class="m-ev" type="button" data-ev="${esc(e.id)}" style="${pstyle(p)}">` +
-      `<span class="m-ev-t">${esc(time)}</span><b>${esc(e.displayTitle || e.title)}</b></button>`;
+      `<span class="m-ev-t">${esc(time)}</span><b>${esc(eventTitle(e))}</b></button>`;
   }).join('');
 }
 

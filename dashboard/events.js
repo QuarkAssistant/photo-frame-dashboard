@@ -4,6 +4,19 @@ import { addDaysYmd, parts, ymd } from './time.js';
 // Collapse punctuation, possessives, and a trailing s so
 // "Indigenous Peoples' Day" and "Indigenous People Day" match,
 // without treating "Team Training" and "Strength and Conditioning" as one event.
+// "UESC U12B Pre EA - Practice: UESC U12B Pre EA Practice" → the part after the colon
+// when both sides normalize to the same title.
+export function collapseColonDup(title) {
+  const text = String(title || '').trim();
+  const cut = text.indexOf(':');
+  if (cut < 1) return text;
+  const left = text.slice(0, cut).trim();
+  const right = text.slice(cut + 1).trim();
+  if (!left || !right) return text;
+  if (normEventTitle(left) === normEventTitle(right)) return right;
+  return text;
+}
+
 export function normEventTitle(title) {
   let text = displayTitle(String(title || ''));
   text = text.normalize('NFKD').replace(/\p{M}+/gu, '');

@@ -1,4 +1,4 @@
-import { isMidnightPlaceholder } from '../events.js';
+import { collapseColonDup, isMidnightPlaceholder } from '../events.js';
 import { EVERYONE, memberById } from '../family.js';
 import { addDaysYmd, parts, TIMEZONE, ymd } from '../time.js';
 
@@ -34,7 +34,36 @@ export function formatRange(aIso, bIso) {
 
 // Home columns already name the person, so the academy prefix is noise.
 export function compactTitle(title) {
-  return String(title || '').replace(/^U1[34] Boys Academy\s*[-–—]\s*/i, '');
+  const stripped = collapseColonDup(title).replace(/^U1[34] Boys Academy\s*[-–—]\s*/i, '');
+  return collapseColonDup(stripped);
+}
+
+export function eventTitle(event) {
+  const raw = event && typeof event === 'object' ? (event.displayTitle || event.title || '') : event;
+  return collapseColonDup(raw);
+}
+
+// Next timed event for one person inside the 14-day board window.
+// Personal events win. Shared all-day holidays are skipped. None → en dash.
+export function nextPersonWhen(events, personId, now = new Date()) {
+  const today = ymd(now);
+  const horizon = addDaysYmd(today, 14);
+  const timed = (events || [])
+    .filter((e) => e.people && e.people.includes(personId) && !e.allDay && !isMidnightPlaceholder(e))
+    .filter((e) => {
+      const start = new Date(e.start);
+      if (Number.isNaN(start.getTime()) || new Date(e.end) <= now) return false;
+      return ymd(start) < horizon;
+    })
+    .sort((a, b) => String(a.start).localeCompare(String(b.start)));
+  const next = timed.find((e) => !e.everyone) || timed[0];
+  if (!next) return '\u2013';
+  if (new Date(next.start) <= now) return 'Now';
+  const day = ymd(new Date(next.start));
+  const t = formatTime(next.start);
+  if (day === today) return t;
+  const weekday = (dayParts(day).weekday || '').slice(0, 3);
+  return `${weekday} ${t}`;
 }
 
 export function dayParts(iso) {

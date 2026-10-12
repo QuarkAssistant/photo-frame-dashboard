@@ -4,12 +4,13 @@ import http from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
-import { dedupeEvents, normEventTitle } from '../events.js';
+import { collapseColonDup, dedupeEvents, normEventTitle } from '../events.js';
 import { assignEvent, displayTitle } from '../family.js';
 import { fToC, hourLabelFromHour } from '../mock.js';
 import { clockLabel, inNightWindow, nightAnchor, parseClockMinutes } from '../night.js';
 import { chicagoRange, zonedToUtc } from '../time.js';
-import { compactTitle, formatRange, formatTime } from '../js/ui.js';
+import { compactTitle, eventTitle, formatRange, formatTime, nextPersonWhen } from '../js/ui.js';
+import { tempChart } from '../js/weatherui.js';
 import { createApi } from './app.js';
 import { eventsFromIcs } from './ical.js';
 
@@ -172,6 +173,67 @@ test('compact titles drop the academy prefix', () => {
   assert.equal(compactTitle('U13 Boys Academy - Game'), 'Game');
   assert.equal(compactTitle('U14 Boys Academy – Strength and Conditioning'), 'Strength and Conditioning');
   assert.equal(compactTitle('School drop-off'), 'School drop-off');
+});
+
+test('collapses a title that repeats itself after the colon', () => {
+  const dup = 'UESC U12B Pre EA - Practice: UESC U12B Pre EA Practice';
+  assert.equal(collapseColonDup(dup), 'UESC U12B Pre EA Practice');
+  assert.equal(compactTitle(dup), 'UESC U12B Pre EA Practice');
+  assert.equal(eventTitle({ title: 'Lucas — ' + dup, displayTitle: dup }), 'UESC U12B Pre EA Practice');
+  assert.equal(collapseColonDup('Team Training: Bring water'), 'Team Training: Bring water');
+  assert.equal(compactTitle('U14 Boys Academy - Practice: Practice'), 'Practice');
+});
+
+test('people list shows the next timed event through 14 days', () => {
+  const now = zonedToUtc(2026, 10, 12, 0, 30, 0);
+  const wed = zonedToUtc(2026, 10, 14, 18, 0, 0);
+  const soonerShared = zonedToUtc(2026, 10, 13, 15, 0, 0);
+  const far = zonedToUtc(2026, 10, 27, 18, 0, 0);
+  const hour = 60 * 60 * 1000;
+  const ev = (id, start, people, extra) => ({
+    id,
+    allDay: false,
+    everyone: false,
+    people,
+    start: start.toISOString(),
+    end: new Date(start.getTime() + hour).toISOString(),
+    title: id,
+    ...extra,
+  });
+  const events = [
+    {
+      id: 'holiday', allDay: true, everyone: true,
+      people: ['thiago', 'gilmara', 'jp', 'lucas'],
+      start: '2026-10-12', end: '2026-10-13', title: 'No School',
+    },
+    ev('shared', soonerShared, ['thiago', 'gilmara'], { everyone: true, title: 'Dinner' }),
+    ev('thiago', wed, ['thiago'], { title: 'Office' }),
+    ev('far', far, ['gilmara'], { title: 'Later' }),
+  ];
+  assert.equal(nextPersonWhen(events, 'thiago', now), 'Wed 6:00 PM');
+  assert.equal(nextPersonWhen(events, 'gilmara', now), 'Tue 3:00 PM');
+  assert.equal(nextPersonWhen(events, 'jp', now), '\u2013');
+  assert.equal(nextPersonWhen([ev('far', far, ['lucas'])], 'lucas', now), '\u2013');
+  const today = zonedToUtc(2026, 10, 12, 16, 0, 0);
+  assert.equal(nextPersonWhen([ev('soon', today, ['jp'])], 'jp', now), '4:00 PM');
+});
+
+test('weather chart scales rain to the plot and draws a 2.5px line', () => {
+  const points = Array.from({ length: 24 }, (_, i) => ({
+    temp: 60 + i,
+    pop: i === 3 ? 100 : i === 4 ? 50 : 0,
+    label: i === 0 ? 'Now' : '1 AM',
+  }));
+  const svg = tempChart(points);
+  assert.match(svg, /stroke-width="2\.5"/);
+  assert.doesNotMatch(svg, /stroke-dasharray/);
+  const lines = svg.match(/<line /g) || [];
+  assert.ok(lines.length >= 3 && lines.length <= 4);
+  const heights = [...svg.matchAll(/height="([0-9.]+)"/g)].map((m) => Number(m[1]));
+  const full = Math.max(...heights);
+  const half = heights.find((h) => h < full - 1);
+  assert.ok(full > 80);
+  assert.ok(Math.abs(half - full / 2) < 0.2);
 });
 
 test('hour labels use a full AM/PM and Celsius tracks Fahrenheit', () => {

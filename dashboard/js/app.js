@@ -8,7 +8,7 @@ import { parts, ymd } from '../time.js';
 import { refreshAll, refreshLists, state, subscribe } from './data.js';
 import { icon } from './icons.js';
 import {
-  avatar, clockBits, dayParts, esc, formatRange, formatTime, nextUp, onDay, owner, pstyle, relDay,
+  avatar, clockBits, dayParts, esc, eventTitle, formatRange, formatTime, nextUp, onDay, owner, pstyle, relDay,
 } from './ui.js';
 
 const views = {};
@@ -94,7 +94,7 @@ export function openEvent(id) {
     `<div class="sheet" style="${pstyle(p)}">` +
     `<button class="sheet-x" type="button" data-close aria-label="Close">${icon('x', 26)}</button>` +
     `<div class="sheet-pad"><div class="sheet-who">${esc(who)}</div>` +
-    `<h2 class="serif sheet-h">${esc(ev.displayTitle || ev.title)}</h2>` +
+    `<h2 class="serif sheet-h">${esc(eventTitle(ev))}</h2>` +
     `<p class="sheet-p">${esc(when)}</p>` +
     (ev.location ? `<p class="sheet-loc">${esc(ev.location)}</p>` : '') +
     `</div></div>`;
@@ -116,7 +116,7 @@ function paintSaver() {
   const dp = dayParts(ymd(n));
   const up = nextUp(state.events, n);
   const next = up
-    ? `<div class="saver-next">${esc(up.event.displayTitle || up.event.title)}</div>`
+    ? `<div class="saver-next">${esc(eventTitle(up.event))}</div>`
     : '';
   document.getElementById('saver').innerHTML =
     `<img src="/emblem.png" alt="">` +

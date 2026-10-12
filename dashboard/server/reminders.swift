@@ -2,7 +2,6 @@ import EventKit
 import Foundation
 
 // Reads and writes ONE Reminders list. Never fetches every list's reminders.
-@main
 struct RemindersGrocery {
   static func main() {
     let args = Array(CommandLine.arguments.dropFirst())
@@ -38,7 +37,7 @@ struct RemindersGrocery {
       let wanted = extra.trimmingCharacters(in: .whitespacesAndNewlines)
       if wanted.isEmpty { emit(["ok": false, "error": "missingId"], code: 1) }
       var found: EKReminder?
-      let pred = store.predicate(forRemindersIn: [calendar])
+      let pred = store.predicateForReminders(in: [calendar])
       let finished = wait(seconds: 7) { done in
         store.fetchReminders(matching: pred) { items in
           found = items?.first { item in
@@ -64,7 +63,7 @@ struct RemindersGrocery {
     var rows: [[String: String]] = []
     // Incomplete items in this list only. A nil due-date predicate has dropped
     // undated reminders on some macOS versions, so filter isCompleted instead.
-    let openPred = store.predicate(forRemindersIn: [calendar])
+    let openPred = store.predicateForReminders(in: [calendar])
     let listed = wait(seconds: 7) { done in
       store.fetchReminders(matching: openPred) { items in
         rows = (items ?? []).filter { !$0.isCompleted }.map { item in
@@ -146,3 +145,5 @@ struct RemindersGrocery {
     exit(code)
   }
 }
+
+RemindersGrocery.main()

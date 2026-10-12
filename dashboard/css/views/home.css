@@ -30,8 +30,8 @@
 .h-who { display: flex; align-items: center; gap: 8px; min-width: 0; text-align: left; }
 .h-who > .avatar { flex: 0 0 auto; }
 .h-who-meta { flex: 1; display: flex; align-items: baseline; justify-content: space-between; gap: 6px; min-width: 0; }
-.h-who b { font-size: var(--fs-min); font-weight: 800; }
-.h-who small { font-size: var(--fs-min); color: var(--mute); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.h-who b { font-size: var(--fs-min); font-weight: 800; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.h-who small { flex: none; font-size: var(--fs-min); color: var(--mute); white-space: nowrap; font-variant-numeric: tabular-nums; }
 
 .h-main { grid-column: 1 / 8; display: grid; grid-template-rows: minmax(0, 0.92fr) minmax(0, 1fr); gap: var(--gap); min-height: 0; }
 .h-hero-slot { min-height: 0; display: grid; }
