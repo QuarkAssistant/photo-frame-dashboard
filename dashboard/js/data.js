@@ -8,6 +8,7 @@ export const state = {
   groceries: [],
   homework: [],
   photos: [],
+  extras: { holidays: [], fixtures: [] },
   photoSource: 'emblem',
   routines: ROUTINES,
   calendarSource: 'mock',
@@ -63,13 +64,15 @@ export async function refreshAll() {
     get('/api/groceries'),
     get('/api/homework'),
     get('/api/photos'),
+    get('/api/extras'),
   ]);
   if (results.every((r) => r.status === 'rejected')) {
     if (!state.events.length) applySeed();
     emit();
     return;
   }
-  const [cal, wx, ch, gr, hw, ph] = results;
+  const [cal, wx, ch, gr, hw, ph, ex] = results;
+  if (ex && ex.status === 'fulfilled') state.extras = ex.value;
   if (cal.status === 'fulfilled') {
     state.events = dedupeEvents(cal.value.events || []);
     state.calendarSource = cal.value.source || 'icloud';

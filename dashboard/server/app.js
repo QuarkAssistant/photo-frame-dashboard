@@ -10,6 +10,7 @@ import { calendarPayload } from './calendar.js';
 import { loadEnv } from './env.js';
 import { listPhotos, photoJpeg } from './photos.js';
 import { albumStatus, syncAlbum } from './album.js';
+import { extrasPayload } from './extras.js';
 import { loadGroceries, saveGrocery } from './reminders.js';
 import { openStore } from './store.js';
 import { weatherPayload } from './weather.js';
@@ -112,6 +113,7 @@ export function createApi({ root }) {
       if (pathname === '/api/config' && req.method === 'GET') return sendJson(res, 200, nightConfig());
       if (pathname === '/api/calendar' && req.method === 'GET') return sendJson(res, 200, await calendarPayload());
       if (pathname === '/api/weather' && req.method === 'GET') return sendJson(res, 200, await weatherPayload());
+      if (pathname === '/api/extras' && req.method === 'GET') return sendJson(res, 200, await extrasPayload());
       if (pathname === '/api/photos/sync') return sendJson(res, 200, req.method === 'POST' ? await syncAlbum() : albumStatus);
       if (pathname === '/api/photos' && req.method === 'GET') return sendJson(res, 200, listPhotos());
       if (pathname.startsWith('/api/photos/') && req.method === 'GET') {

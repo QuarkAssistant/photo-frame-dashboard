@@ -244,3 +244,19 @@
 .hw-hours { display: table; width: 100%; table-layout: fixed; margin-top: 4px; }
 .hw-hr { display: table-cell; width: 20%; text-align: center; vertical-align: top; padding: 0 3px; }
 .hw-now-txt > * { display: block; }
+/* v8: holidays & game days strip (table layout, old-WebView safe) */
+.h-main { grid-template-rows: minmax(0, 0.92fr) auto minmax(0, 1fr); }
+.h-days { min-width: 0; }
+.hd-row { display: table; width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 6px 0; margin: 0 -6px; width: calc(100% + 12px); }
+.hd-c { display: table-cell; vertical-align: top; background: #F4EDDC; border-radius: 10px; padding: 6px 9px 7px; border-top: 3px solid var(--olive); overflow: hidden; }
+.hd-c.hd-game { border-top-color: #C8102E; background: #F4EDDC; }
+.hd-when { display: block; font-size: 11px; font-weight: 800; color: var(--mute); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0.02em; }
+.hd-cc { display: inline-block; font-style: normal; font-size: 9px; font-weight: 900; letter-spacing: 0.06em; padding: 1px 4px; border-radius: 4px; margin-right: 5px; color: #F4EDDC; background: var(--ink); vertical-align: 1px; }
+.hd-cc.hd-br { background: #2E6B3F; }
+.hd-cc.hd-us { background: #1F3A5A; }
+.hd-cc.hd-fla { background: #111; color: #fff; border-left: 3px solid #C8102E; }
+.hd-name { display: block; margin-top: 2px; font-size: 13px; font-weight: 800; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hd-name small { font-size: 10px; font-weight: 700; color: var(--mute); margin-left: 3px; }
+.hd-c { width: 18%; padding: 6px 8px 7px; }
+.hd-c.hd-game { width: 23%; }
+.hd-name { font-size: 12px; }

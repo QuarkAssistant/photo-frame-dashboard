@@ -34,6 +34,35 @@ function weatherHtml() {
     `<div class="hw-hours">${cells}</div>`;
 }
 
+const TZ = 'America/Chicago';
+function dayLabel(ymdStr) {
+  const today = ymd(now());
+  if (ymdStr === today) return 'Today';
+  if (ymdStr === addDaysYmd(today, 1)) return 'Tomorrow';
+  const d = new Date(`${ymdStr}T12:00:00Z`);
+  return d.toLocaleDateString('en-US', { timeZone: 'UTC', weekday: 'short', month: 'short', day: 'numeric' });
+}
+function kickoff(iso) {
+  const d = new Date(iso);
+  const day = ymd(d);
+  const t = d.toLocaleTimeString('en-US', { timeZone: TZ, hour: 'numeric', minute: '2-digit', hour12: true });
+  const today = ymd(now());
+  const wd = day === today ? 'Today' : day === addDaysYmd(today, 1) ? 'Tomorrow'
+    : d.toLocaleDateString('en-US', { timeZone: TZ, weekday: 'short' });
+  return `${wd} ${t}`;
+}
+function daysHtml() {
+  const ex = state.extras || {};
+  const hol = (ex.holidays || []).map((h) =>
+    `<div class="hd-c"><span class="hd-when"><i class="hd-cc hd-${h.country.toLowerCase()}">${esc(h.country)}</i>${esc(dayLabel(h.date))}</span>` +
+    `<b class="hd-name">${esc(h.country === 'BR' ? h.local : h.name)}</b></div>`).join('');
+  const fx = (ex.fixtures || []).map((f) =>
+    `<div class="hd-c hd-game"><span class="hd-when"><i class="hd-cc hd-fla">FLA</i>${esc(kickoff(f.start))}</span>` +
+    `<b class="hd-name">${f.home ? 'vs' : '@'} ${esc(f.opponent)} <small>${esc(f.competition)}</small></b></div>`).join('');
+  if (!hol && !fx) return '';
+  return `<div class="hd-row">${hol}${fx}</div>`;
+}
+
 function personWhen(p) {
   return nextPersonWhen(state.events, p.id, now());
 }
@@ -175,6 +204,7 @@ function paint(el) {
   el.querySelector('.h-family').innerHTML = familyHtml();
   el.querySelector('.h-hero-slot').innerHTML = heroHtml();
   el.querySelector('.h-lanes').innerHTML = lanesHtml();
+  el.querySelector('.h-days').innerHTML = daysHtml();
   el.querySelector('.h-chores').innerHTML = choresHtml();
   el.querySelector('.h-shop').innerHTML = shopHtml();
   showSlide(el);
@@ -188,7 +218,7 @@ register('home', {
         `<div class="h-clock" data-clock></div>` +
         `<button class="h-weather card" type="button" data-go="weather"></button>` +
         `<div class="h-family"></div>` +
-        `<div class="h-main"><div class="h-hero-slot"></div><div class="h-lanes"></div></div>` +
+        `<div class="h-main"><div class="h-hero-slot"></div><div class="h-days"></div><div class="h-lanes"></div></div>` +
         `<div class="h-side">` +
         `<button class="h-photo" type="button" data-go="photos"><div class="h-photo-stage"></div>` +
         `<div class="h-photo-mark"><img src="/emblem.png" alt=""><span class="serif">${esc(BRAND)}</span></div>` +
