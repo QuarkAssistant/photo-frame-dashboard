@@ -10,6 +10,7 @@
 - **v0.3.1** — TomTom live traffic as the primary ETA source.
 - **v0.3.2** — Slideshow robustness (random start, own timer, load timeout, watchdog).
 - **v0.4** — Grocery store tagger for the shared Reminders list.
+- **v0.4.1** — Tagger reliability: run log, status counters, stale warning + notification.
 
 ![Home (redacted)](img/home-redacted.png)
 ![Weather page (redacted)](img/weather-redacted.png)
@@ -209,3 +210,18 @@ Shown only for upcoming timed events with a location.
   #dollartree #wholefoods #dicks` (Dick's Sporting Goods) `#hmart #any` (nearly every grocery store).
 - Status: `GET /api/grocery/tagger`. Disable with `GROCERY_TAGGER=off` in `.env`.
   Tests: `node --test server/tagger.test.js`.
+
+## v0.4.1 — Tagger reliability
+- Runs inside the dashboard server (LaunchAgent `com.coelho.dashboard`, `RunAtLoad=true`,
+  `KeepAlive=true`): it starts at login (the host logs in automatically after a reboot) and is
+  restarted by launchd if it crashes. A run starts at server start and then every 5 min; runs never
+  overlap, and every run catches its own errors so one failure never stops the interval.
+- Log: `~/Library/Logs/coelho-tagger.log`, one line per run
+  (`<time> ok checked=N changed=N skipped=N` or `<time> error failures=N <message>`), trimmed to the
+  newest half when it passes ~1 MB.
+- `GET /api/grocery/tagger` → `lastSuccess`, `lastError`, `lastErrorAt`, `consecutiveFailures`,
+  `checked`, `changed`, `applied`, `skipped`, `stale`, `intervalMinutes`.
+- **Failure flag:** `stale` is true after 3 consecutive failures or when the last success is older
+  than 30 min. The Home Grocery card then shows a small "Store tags not updating since H:MM PM" pill,
+  and the Mac posts one notification (and another when it recovers).
+- The failure path is covered by a unit test with a simulated error (`node --test server/tagger.test.js`).

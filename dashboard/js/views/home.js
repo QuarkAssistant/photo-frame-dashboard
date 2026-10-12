@@ -196,7 +196,13 @@ function choresHtml() {
 function shopHtml() {
   const open = state.groceries.filter((g) => !g.done);
   const recent = open.slice(0, 3);
-  return `<div class="label">Grocery</div><div class="h-stat"><span class="num">${open.length}</span><small>items to get</small></div>` +
+  const tg = state.tagger;
+  let warn = '';
+  if (tg && tg.stale) {
+    const since = tg.lastSuccess ? formatTime(tg.lastSuccess) : '';
+    warn = `<div class="h-tagwarn">Store tags not updating${since ? ` since ${esc(since)}` : ''}</div>`;
+  }
+  return warn + `<div class="label">Grocery</div><div class="h-stat"><span class="num">${open.length}</span><small>items to get</small></div>` +
     `<ul class="h-recent">${recent.map((g) => `<li><i></i>${esc(g.name)}</li>`).join('')}</ul>`;
 }
 

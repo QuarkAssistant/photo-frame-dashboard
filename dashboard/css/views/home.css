@@ -271,3 +271,6 @@
 .lv-drive { display: inline-block; vertical-align: middle; margin-left: 10px; font-size: 13px; font-weight: 700; opacity: 0.85; }
 @-webkit-keyframes lvpulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
 @keyframes lvpulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+/* v0.4.1: tagger warning on the Grocery card */
+.h-shop { position: relative; }
+.h-tagwarn { position: absolute; top: 8px; right: 10px; font-size: 10px; font-weight: 800; color: #B8432F; background: #FBF5E8; border: 1px solid rgba(184, 67, 47, 0.35); border-radius: 999px; padding: 2px 8px; white-space: nowrap; }
