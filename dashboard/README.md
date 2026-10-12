@@ -75,11 +75,13 @@ From `NIGHT_START` until `NIGHT_END` (default 23:00–06:00, `America/Chicago`) 
 
 ## Kiosk URL
 
-The frame must use HTTP on the LAN. In [`kiosk/src/com/wesbos/homehq/MainActivity.java`](kiosk/src/com/wesbos/homehq/MainActivity.java) the default is:
+The frame must use HTTP on the LAN. The committed kiosk default is `http://DASHBOARD_HOST:4173`. [`kiosk/build.sh`](kiosk/build.sh) reads a gitignored [`kiosk/local.properties`](kiosk/local.properties.example) and bakes `dashboard.url` into the APK. If that file is missing or the value is empty, the build keeps the placeholder.
 
-```text
-http://10.0.0.28:4173
+```properties
+dashboard.url=http://DASHBOARD_HOST:4173
 ```
+
+Copy [`kiosk/local.properties.example`](kiosk/local.properties.example) to `kiosk/local.properties` and set the host the frame can reach. Do not commit that file.
 
 The activity is a HOME handler. This frame is Android 6.0.1 (API 23), so the home app was chosen in the HOME picker with Always (`cmd package set-home-activity` does not exist). If the page fails to load, the WebView retries every 10 seconds. A two-finger hold opens the other launcher instead of this app. Cleartext is already allowed in the manifest. The launcher icon is the circle emblem. Build notes and the revert commands (`pm disable com.wesbos.homehq` or uninstall, then `KEYCODE_HOME`) are in the [frame write-up](../docs/coelho-de-oliveira-pf1007l.md).
 

@@ -1,0 +1,4 @@
+# Copy to local.properties (same directory). That file is gitignored.
+# build.sh bakes dashboard.url into the kiosk APK.
+# Leave this placeholder, or omit the file, and the APK keeps http://DASHBOARD_HOST:4173.
+dashboard.url=http://DASHBOARD_HOST:4173
