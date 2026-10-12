@@ -7,6 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "serve": "node server/index.js",
+    "reminders:build": "mkdir -p server/bin && swiftc -O -o server/bin/reminders-grocery server/reminders.swift",
     "deploy": "vite build && wrangler deploy"
   },
   "devDependencies": {

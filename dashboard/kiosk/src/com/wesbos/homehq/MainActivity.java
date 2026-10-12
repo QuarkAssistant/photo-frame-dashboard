@@ -12,6 +12,8 @@ import android.view.WindowManager;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceError;
 
 /**
  * Full-screen kiosk WebView for the Home HQ wall tablet.
@@ -24,7 +26,11 @@ import android.webkit.WebViewClient;
  */
 public class MainActivity extends Activity {
   static final String TAG = "HomeHQ";
-  static final String DEFAULT_URL = "https://home-dashboard.wesbos.workers.dev/";
+  // The frame's trust store has no ISRG Root X1, so the kiosk must load the
+  // dashboard over plain HTTP from the Mac mini on the LAN. It must not call
+  // external HTTPS. Replace MAC_MINI_IP with that machine's address — the
+  // server from `npm run serve` binds 0.0.0.0:4173.
+  static final String DEFAULT_URL = "http://10.0.0.28:4173";
   static final long EXIT_HOLD_MS = 1500;
   static final float EXIT_SLOP_PX = 60;
 
@@ -43,8 +49,24 @@ public class MainActivity extends Activity {
       Intent home = new Intent(Intent.ACTION_MAIN);
       home.addCategory(Intent.CATEGORY_HOME);
       home.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+      // When this kiosk is itself the default HOME app, a plain HOME intent would just
+      // reopen it, so target the first other launcher (e.g. Rootless) explicitly.
+      for (android.content.pm.ResolveInfo ri : getPackageManager().queryIntentActivities(home, 0)) {
+        if (ri.activityInfo != null && !getPackageName().equals(ri.activityInfo.packageName)) {
+          home.setClassName(ri.activityInfo.packageName, ri.activityInfo.name);
+          break;
+        }
+      }
       startActivity(home);
       finish();
+    }
+  };
+
+  private final Runnable retryLoad = new Runnable() {
+    @Override
+    public void run() {
+      String u = web.getUrl();
+      web.loadUrl(u != null && !u.startsWith("data:") && !u.startsWith("about:") ? u : DEFAULT_URL);
     }
   };
 
@@ -61,7 +83,19 @@ public class MainActivity extends Activity {
     s.setDomStorageEnabled(true);
     s.setUseWideViewPort(true);
     s.setMediaPlaybackRequiresUserGesture(false);
-    web.setWebViewClient(new WebViewClient()); // keep navigation inside the kiosk
+    // Keep navigation inside the kiosk. If the main page fails (e.g. Wi-Fi not up yet
+    // right after boot, or the MacBook briefly away), retry every 10s instead of
+    // leaving an error page on the wall.
+    web.setWebViewClient(new WebViewClient() {
+      @Override
+      public void onReceivedError(WebView view, WebResourceRequest req, WebResourceError err) {
+        if (req != null && req.isForMainFrame()) {
+          Log.w(TAG, "Main frame load failed: " + err.getDescription() + "; retrying in 10s");
+          handler.removeCallbacks(retryLoad);
+          handler.postDelayed(retryLoad, 10000);
+        }
+      }
+    });
     setContentView(web);
 
     String url = getIntent().getDataString();
