@@ -38,6 +38,12 @@ function prefix() {
   return process.env.REMINDERS_GROCERY_LIST || 'Supermercado';
 }
 
+// Store tags ("stores: #..." lines written by the tagger) are for phone shortcuts only;
+// never send them to the dashboard. Other notes lines are kept.
+export function stripStoreTags(notes) {
+  return String(notes || '').split('\n').filter((l) => !/^\s*stores:/i.test(l)).join('\n').trim();
+}
+
 function shape(data) {
   return {
     source: 'reminders',
@@ -45,7 +51,7 @@ function shape(data) {
     groceries: (data.items || []).map((item) => ({
       id: String(item.id || ''),
       name: String(item.title || ''),
-      notes: String(item.notes || ''),
+      notes: stripStoreTags(item.notes),
       cat: 'Other',
       done: false,
     })),
