@@ -5,8 +5,9 @@ import { icon } from '../icons.js';
 import { now, register } from '../app.js';
 import { dayParts, esc, eventTitle, formatRange, formatTime, onDay, owner, pstyle, relDay } from '../ui.js';
 
-let mode = 'agenda';
+let mode = typeof location !== 'undefined' && /[?&]cal=week\b/.test(location.search) ? 'week' : 'agenda';
 let weekShift = 0;
+const WK_SLOTS = 6;
 
 function weekStart(iso) {
   const dow = weekdayIndex(iso);
@@ -49,13 +50,18 @@ function week() {
   for (let i = 0; i < 7; i++) {
     const day = addDaysYmd(start, i);
     const dp = dayParts(day);
-    const list = state.events.filter((e) => onDay(e, day));
-    const chips = list.map((e) => {
+    const list = state.events.filter((e) => onDay(e, day))
+      .sort((a, b) => (a.allDay === b.allDay ? String(a.start).localeCompare(String(b.start)) : (a.allDay ? -1 : 1)));
+    // Equal day cells: same slot count every day, overflow -> "+N more".
+    const shownList = list.length > WK_SLOTS ? list.slice(0, WK_SLOTS - 1) : list;
+    const more = list.length - shownList.length;
+    const chips = shownList.map((e) => {
       const p = owner(e);
       const time = e.allDay ? 'All day' : formatTime(e.start);
       return `<button class="wk-ev" type="button" data-ev="${esc(e.id)}" style="${pstyle(p)}">` +
         `<span>${esc(time)}</span><b>${esc(eventTitle(e))}</b></button>`;
-    }).join('') || '<div class="wk-free serif"><i>Clear</i></div>';
+    }).join('') + (more > 0 ? `<button class="wk-ev wk-more" type="button" data-cal="agenda">+${more} more</button>` : '') ||
+      '<div class="wk-free serif"><i>Clear</i></div>';
     cols += `<div class="wk-col${day === today ? ' is-today' : ''}">` +
       `<div class="wk-h"><b>${esc(dp.weekday.slice(0, 3))}</b><span class="num">${esc(dp.day)}</span></div>` +
       `<div class="wk-list">${chips}</div></div>`;

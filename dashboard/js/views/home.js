@@ -189,6 +189,7 @@ function laneWhen(e, today, n) {
   return `${dayParts(day).weekday.slice(0, 3)} ${t}`;
 }
 
+const LANE_SLOTS = V2 ? 4 : 6;
 function lanesHtml() {
   const n = now();
   const today = ymd(n);
@@ -198,14 +199,19 @@ function lanesHtml() {
       .filter((e) => e.people.includes(p.id))
       .filter((e) => (e.allDay ? e.start <= until && e.end > today : ymd(new Date(e.start)) <= until && new Date(e.end) > n))
       .sort((a, b) => String(a.start).localeCompare(String(b.start)))
-      .slice(0, 6);
-    const rows = list.length
-      ? list.map((e) => {
-        const cur = !e.allDay && new Date(e.start) <= n && new Date(e.end) > n;
-        return `<button class="h-ev${cur ? ' is-now' : ''}" type="button" data-ev="${esc(e.id)}">` +
-          `<span class="h-ev-t">${esc(laneWhen(e, today, n))}</span><span class="h-ev-n">${esc(compactTitle(e.displayTitle || e.title))}</span></button>`;
-      }).join('')
-      : '<div class="h-free serif"><i>Nothing</i> coming up</div>';
+      ;
+    // Equal lanes: every person gets the same number of fixed-height slots;
+    // overflow becomes a "+N more" slot, empty slots keep the rows aligned.
+    const shown = list.length > LANE_SLOTS ? list.slice(0, LANE_SLOTS - 1) : list;
+    const extra = list.length - shown.length;
+    let rows = shown.map((e) => {
+      const cur = !e.allDay && new Date(e.start) <= n && new Date(e.end) > n;
+      return `<button class="h-ev${cur ? ' is-now' : ''}" type="button" data-ev="${esc(e.id)}">` +
+        `<span class="h-ev-t">${esc(laneWhen(e, today, n))}</span><span class="h-ev-n">${esc(compactTitle(e.displayTitle || e.title))}</span></button>`;
+    }).join('');
+    if (extra > 0) rows += `<button class="h-ev h-ev--more" type="button" data-go="${p.id}">+${extra} more</button>`;
+    if (!list.length) rows = '<div class="h-ev h-ev--free serif"><i>Nothing</i> coming up</div>';
+    for (let k = Math.max(shown.length + (extra > 0 ? 1 : 0), 1); k < LANE_SLOTS; k++) rows += '<div class="h-ev h-ev--empty"></div>';
     return `<div class="h-lane" style="${pstyle(p)}"><div class="h-lane-head">${avatar(p)}<b>${esc(p.name)}</b></div>${rows}</div>`;
   }).join('');
 }
@@ -230,7 +236,7 @@ function choresHtml() {
 
 function shopHtml() {
   const open = state.groceries.filter((g) => !g.done);
-  const recent = open.slice(0, 3);
+  const recent = open.slice(0, V2 ? 5 : 3);
   const tg = state.tagger;
   let warn = '';
   if (tg && tg.stale) {
@@ -311,6 +317,6 @@ register('home', {
     el.querySelector('.h-hero-slot').innerHTML = heroHtml();
     el.querySelector('.h-lanes').innerHTML = lanesHtml();
     el.querySelector('.h-family').innerHTML = familyHtml();
-    if (now().getMinutes() === 0) el.querySelector('.h-weather').innerHTML = weatherHtml();
+      if (now().getMinutes() === 0) el.querySelector('.h-weather').innerHTML = weatherHtml();
   },
 });

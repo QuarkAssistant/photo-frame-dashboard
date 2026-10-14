@@ -1,0 +1,24 @@
+/* Settings (old-WebView safe: margins, no gap) */
+#dimmer { position: fixed; top: 0; right: 0; bottom: 0; left: 0; background: #000; opacity: 0; pointer-events: none; z-index: 9999; -webkit-transition: opacity 0.4s; transition: opacity 0.4s; }
+.st { height: 100%; overflow: auto; }
+.st-head { margin-bottom: 12px; }
+.st-head h1 { display: inline-block; font-size: clamp(36px, calc(var(--u) * 3.3), 56px); line-height: 1.12; padding-bottom: 2px; }
+.st-sub { color: var(--mute); font-size: var(--fs-m); margin-left: 14px; }
+.st-body { -webkit-column-count: 2; column-count: 2; -webkit-column-gap: 16px; column-gap: 16px; }
+.st-card { display: inline-block; width: 100%; box-sizing: border-box; background: var(--card); border-radius: var(--r); padding: 14px 16px; margin: 0 0 16px 0; -webkit-column-break-inside: avoid; break-inside: avoid; }
+.st-card h2 { font-size: 13px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-2); margin: 0 0 10px 0; }
+.st-card h2 .i { width: 18px; height: 18px; vertical-align: -3px; margin-right: 6px; display: inline-block; }
+.st-chips { white-space: nowrap; }
+.st-chip { display: inline-block; min-width: 72px; height: 48px; margin: 0 6px 6px 0; padding: 0 12px; border-radius: 999px; background: var(--paper); box-shadow: inset 0 0 0 2px rgba(31,58,58,0.25); font-weight: 800; font-size: 15px; color: var(--ink); }
+.st-chip.is-on { background: var(--ink); color: var(--cream); box-shadow: none; }
+.st-note { margin: 4px 0 0 0; font-size: 13px; color: var(--mute); line-height: 1.35; }
+.st-row { display: table; width: 100%; padding: 7px 0; border-bottom: 1px solid rgba(31,58,58,0.12); }
+.st-l, .st-v { display: table-cell; vertical-align: middle; font-size: 15px; }
+.st-l { color: var(--mute); font-weight: 700; width: 42%; }
+.st-v { text-align: right; font-weight: 800; color: var(--ink); }
+.st-v small { display: block; font-weight: 600; font-size: 12px; color: var(--mute); }
+.st-actions { margin-top: 12px; }
+.st-btn { display: inline-block; height: 48px; padding: 0 18px; margin: 0 8px 6px 0; border-radius: 12px; background: var(--ink); color: var(--cream); font-weight: 800; font-size: 15px; vertical-align: middle; }
+.st-btn--warn { background: #B8432F; }
+.st-btn:disabled { background: transparent; color: var(--mute); box-shadow: inset 0 0 0 2px rgba(31,58,58,0.2); }
+.st-need { display: inline-block; vertical-align: middle; font-size: 11px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #8A6A1F; background: #F3E3B5; border-radius: 999px; padding: 3px 9px; }
