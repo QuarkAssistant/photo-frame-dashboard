@@ -13,6 +13,12 @@ test('classifies Portuguese grocery names', () => {
   for (const n of ['Salsinha','Milho doce','Refrigerante','Gelo','Talheres, prato e copos descartáveis','Guardanapo','Oats']) assert.ok(classify(n, map), n);
   assert.ok(classify('Gelo', map).includes('#costco'));
   assert.ok(classify('Guardanapo', map).includes('#dollartree'));
+  assert.deepEqual(classify('Picanha', map), ['#intlfresh', '#napervillefresh', '#wildfork']);
+  assert.deepEqual(classify('Fraldinha', map), ['#intlfresh', '#napervillefresh', '#wildfork']);
+  assert.deepEqual(classify('Salmão', map), ['#any', '#wildfork']);
+  assert.ok(classify('Ribeye steak', map).includes('#wildfork'));
+  assert.ok(!classify('Pão de alho', map).includes('#wildfork'));
+  assert.ok(!classify('Tomate', map).includes('#wildfork'));
 });
 
 test('adds a line, keeping other notes', () => {

@@ -451,3 +451,11 @@ Local commits only.
 - Guard: if a test process ever reaches the real helper, it throws `test-guard` instead of running it.
 - `npm test` runs `REMINDERS_FAKE=1 node --test server/*.test.js`. `server/reminders-safety.test.js` checks the fake is active and adds land only in memory. Test items are named "Test … (fake list)".
 - Rule: never run tests or scripts against the real list; cleanup of real items is done by Thiago.
+
+## v1.4 — Wild Fork Foods (#wildfork)
+
+- New store tag `#wildfork` (Wild Fork Foods, frozen meat & seafood). It is an **additive** ("also") rule: it is appended to whatever stores the first matching rule gives, instead of replacing them.
+- Meats/steaks/seafood/frozen proteins, PT + EN (picanha, fraldinha, alcatra, maminha, costela, contrafilé, filé mignon, carne, bife, frango, linguiça, salmão, camarão, peixe, tilápia, bacalhau, steak, ribeye, brisket, chicken, salmon, shrimp, seafood, lamb, pork, sausage, …).
+- Brazilian cuts (fraldinha, alcatra, maminha, costela, contrafilé, cupim, coxão) joined Picanha in the Brazilian-butcher rule, so e.g. Picanha and Fraldinha → `#intlfresh #napervillefresh #wildfork`; a meat with no other rule → `#any #wildfork`.
+- Hand-edited `stores:` lines are still never overwritten.
+- `npm test` now also uses `--test-force-exit --test-timeout=20000` so a stuck test cannot hang the run.
