@@ -1,4 +1,4 @@
-import { GROCERY_CATS } from '../../mock.js';
+import { SECTIONS, sectionFor, sortBySection } from '../../sections.js';
 import { groceryAction, state } from '../data.js';
 import { register } from '../app.js';
 import { esc } from '../ui.js';
@@ -29,9 +29,10 @@ function usualsHtml() {
 function paint(el) {
   const u = el.querySelector('.s-usuals');
   if (u) u.innerHTML = usualsHtml();
-  const open = state.groceries.filter((g) => !g.done);
+  // Always grouped by store section (fixed order), alphabetical inside.
+  const open = sortBySection(state.groceries.filter((g) => !g.done).map((g) => ({ ...g, cat: sectionFor(g.name) })));
   const done = state.groceries.filter((g) => g.done);
-  const cats = GROCERY_CATS.filter((cat) => open.some((g) => g.cat === cat));
+  const cats = SECTIONS.filter((cat) => open.some((g) => g.cat === cat));
   const groups = cats.map((cat) => {
     const rows = open.filter((g) => g.cat === cat).map((g) => row(g)).join('');
     return `<section class="s-cat"><div class="s-cat-h"><b>${esc(cat)}</b><span>${open.filter((g) => g.cat === cat).length}</span></div>${rows}</section>`;

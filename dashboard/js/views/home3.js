@@ -5,6 +5,7 @@ import { state } from '../data.js';
 import { now } from '../app.js';
 import { avatar, compactTitle, dayParts, esc, formatRange, formatTime, onDay, owner, pstyle, ring } from '../ui.js';
 import { celsius } from '../weatherui.js';
+import { sectionFor, sortBySection } from '../../sections.js';
 import { icon } from '../icons.js';
 
 const pair = (f, c) => `${Math.round(f)} °F <i>/</i> ${c} °C`;
@@ -101,7 +102,7 @@ export function chores3(routine) {
 }
 
 export function shop3() {
-  const open = state.groceries.filter((g) => !g.done);
+  const open = sortBySection(state.groceries.filter((g) => !g.done).map((g) => ({ ...g, cat: sectionFor(g.name) })));
   return `<div class="label">Grocery</div><div class="g3-stat"><span class="num">${open.length}</span> <small>items to get</small></div>` +
     `<ul class="g3-list">${open.slice(0, 6).map((g) => `<li><i></i>${esc(g.name)}</li>`).join('')}</ul>`;
 }

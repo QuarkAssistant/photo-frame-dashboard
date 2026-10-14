@@ -47,7 +47,8 @@ export function classify(title, map) {
   for (const r of map.rules) {
     if (r.tags.length && r.keys.some((k) => t.includes(` ${k} `))) return r.tags;
   }
-  return null;
+  // Nothing is ever left untagged: unknown items can be bought anywhere.
+  return map.allowed.has('#any') ? ['#any'] : null;
 }
 
 export function tagLine(tags) {
