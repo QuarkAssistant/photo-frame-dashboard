@@ -399,3 +399,20 @@ Local commits only.
 - Find My helper Accessibility on macOS 27: System Settings → Privacy & Security → Accessibility
   (direct link: `x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility`).
   Use **+** to add `dashboard/server/bin/findmy-people` if it isn't listed, then switch it on.
+
+## v1.1: real "now" weather from NWS station observations
+
+- Open-Meteo's model "current" missed light rain (it said Clear while DuPage Airport reported
+  Light Rain). The server (`server/nws.js`) now reads the latest observation from api.weather.gov,
+  sending the User-Agent header NWS requires. It's cached for 5 min, alongside the 10-min weather
+  cache.
+- Station order: `NWS_STATION` (.env, optional), then **KDPA** (DuPage Airport), then the
+  nearest stations from `points/{LAT,LON}`, then KARR. Observations older than 90 min are ignored.
+- NWS text/icon map to the header condition and icon (Light rain / Rain / Drizzle /
+  Thunderstorms / Snow / Fog / Overcast / Partly cloudy / Clear). The observed temperature replaces
+  the model's when fresh.
+- Rain is shown if NWS reports it, or if Open-Meteo `current.precipitation` or `minutely_15`
+  precipitation around now is above 0.
+- The "Now" hourly column follows the observed condition and temperature. Later hours and the
+  7-day forecast stay Open-Meteo.
+- `/api/weather` includes `observed: { station, at, text }` for debugging.
