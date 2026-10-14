@@ -134,7 +134,7 @@ function heroHtml() {
   return `<button class="h-hero" type="button" style="${pstyle(p)}" data-ev="${esc(e.id)}">` +
     `<div class="h-hero-main"><div class="label label--on">Next up · ${esc(who)}</div>` +
     `<div class="h-hero-title serif">${esc(eventTitle(e))}</div>` +
-    `<div class="h-hero-meta">${meta}</div>${leaveHtml(e, up.phase)}</div>` +
+    `<div class="h-hero-meta">${meta}</div>${leaveHtml(e, up.phase)}${V2 ? thenHtml(e) : ''}</div>` +
     `<div class="h-hero-big"><div class="h-hero-day">${esc(heroDay(e.start).replace(',', '').toUpperCase())}</div>${big}</div></button>`;
 }
 
@@ -253,6 +253,22 @@ function realPhotos() {
 }
 
 let homeSlides = null;
+let lastRatio = 1.5;
+
+// v4: size the photo box to the photo's own ratio inside the available area
+// (no crop, no bars). Portrait photos get a narrower box, centred.
+function fitPhoto(btn, w, h) {
+  if (w && h) lastRatio = w / h;
+  const area = btn.parentNode;
+  const aw = area.clientWidth; const ah = area.clientHeight;
+  if (!aw || !ah) return;
+  let bw = aw; let bh = aw / lastRatio;
+  if (bh > ah) { bh = ah; bw = ah * lastRatio; }
+  btn.style.width = `${Math.round(bw)}px`;
+  btn.style.height = `${Math.round(bh)}px`;
+  btn.style.left = `${Math.round((aw - bw) / 2)}px`;
+  btn.style.top = `${Math.round((ah - bh) / 2)}px`;
+}
 
 function showSlide(root) {
   const photoBtn = root.querySelector('.h-photo');
@@ -268,7 +284,8 @@ function showSlide(root) {
   if (!homeSlides) {
     homeSlides = createSlides(stage, {
       interval: 15000,
-      onShow(photo) {
+      onShow(photo, w, h) {
+        if (V2) fitPhoto(photoBtn, w, h);
         const cap = photoBtn.querySelector('.h-photo-cap');
         if (cap) { cap.innerHTML = photo.caption ? `<span>${esc(photo.caption)}</span>` : ''; cap.style.display = photo.caption ? '' : 'none'; }
       },
@@ -282,7 +299,7 @@ function showSlide(root) {
 function paint3(el) {
   const clock = el.querySelector('[data-clock]');
   if (clock) clock.innerHTML = clockHtml(now());
-  el.querySelector('.h-weather').innerHTML = weather3();
+  el.querySelector('.h-weather').innerHTML = weatherHtml();
   el.querySelector('.h-family').innerHTML = family3();
   el.querySelector('.h-hero-slot').innerHTML = heroHtml();
   el.querySelector('.h-days').innerHTML = daysHtml();
@@ -290,6 +307,9 @@ function paint3(el) {
   el.querySelector('.h-chores').innerHTML = chores3(routineNow());
   el.querySelector('.h-shop').innerHTML = shop3();
   showSlide(el);
+  const pb = el.querySelector('.h-photo');
+  setTimeout(() => fitPhoto(pb), 60);
+  setTimeout(() => fitPhoto(pb), 800);
   loadWhere(() => { const f = el.querySelector('.h-family'); if (f) f.innerHTML = family3(); });
 }
 
@@ -317,7 +337,7 @@ register('home', {
           `<button class="h-weather card" type="button" data-go="weather"></button>` +
           `<div class="h-family"></div>` +
           `<div class="h-main"><div class="h-hero-slot"></div><div class="h-days"></div><div class="h-cal3"></div></div>` +
-          `<div class="h-side"><div class="h-photo-box"><button class="h-photo" type="button" data-go="photos"><div class="h-photo-stage"></div>` +
+          `<div class="h-side"><div class="h-photo-area"><button class="h-photo" type="button" data-go="photos"><div class="h-photo-stage"></div>` +
           `<div class="h-photo-mark"><img src="/emblem.png" alt=""><span class="serif">${esc(BRAND)}</span></div>` +
           `<div class="h-photo-cap"></div></button></div>` +
           `<button class="h-chores card" type="button" data-go="chores"></button>` +
@@ -351,3 +371,5 @@ register('home', {
       if (now().getMinutes() === 0) el.querySelector('.h-weather').innerHTML = weatherHtml();
   },
 });
+
+window.addEventListener('resize', () => { const pb = document.querySelector('.home3 .h-photo'); if (pb) fitPhoto(pb); });

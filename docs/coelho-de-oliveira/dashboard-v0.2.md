@@ -326,3 +326,39 @@ Local commits only; not pushed or merged yet.
      POSTs a place to the dashboard. This is official and private, but needs per-phone setup.
   3. Share each person's location with the Mac's Apple ID and read the Find My app window. This
      is fragile and not recommended.
+
+## v0.8 (branch `cursor/home-layout-v2`, preview `?layout=v2`): Home v4 + Find My helper
+
+Local commits only.
+
+**Home v4** uses exactly the card versions Thiago picked:
+- the clock and the full-width weather header with hourly columns (the earlier version);
+- the family 2×2 with name, place and "Updated X min ago";
+- Next Up with Leave-by, the After-that list and the big time;
+- the holiday/Flamengo strip and the 5-column family calendar;
+- the photo, then the Chores rings and Grocery.
+
+It works in light and dark.
+
+- **Photo uses its own aspect ratio.** The slideshow reports each image's natural size and
+  `fitPhoto()` sizes the photo box to that ratio inside the free area, centred. There are no side
+  bars, no blurred fill and no crop; portrait photos get a narrower box. The size is recomputed on
+  each photo, on repaint and on window resize.
+- **Avatars are not cropped.** The full 256×256 picture sits in a rounded square
+  (`background-size: contain`), not a circle.
+
+**Find My → `/api/whereabouts`**
+- `server/findmy.swift` builds to `server/bin/findmy-people` with `npm run findmy:build` (git-ignored).
+- It reads the Find My app's People list through the macOS Accessibility API. Each entry reads like
+  "Name, Nearby, Town, ST · 2 min ago".
+- It writes `~/Library/Application Support/coelho-dashboard/whereabouts.json` (chmod 600, outside
+  the repo, never committed). The fields are `place`, plus `at` derived from "X min ago".
+- Names are matched by first name (JP also matches "João"). Extra aliases, such as an Apple ID
+  email shown instead of a contact name, go in the git-ignored `.env`:
+  `FINDMY_MAP=thiago=<apple id>;…`
+- LaunchAgent `com.coelho.findmy` (template at `launchd/com.coelho.findmy.plist.example`) runs it
+  every 5 min. Log: `~/Library/Logs/coelho-findmy.log`.
+- **One-time permission (Thiago, at the MacBook):** System Settings → Privacy & Security →
+  Accessibility → enable **findmy-people** (`…/dashboard/server/bin/findmy-people`). Until then the
+  LaunchAgent logs `not-trusted`. A rebuild of the binary may require toggling it again.
+- If Find My shows "No Location Found", the card shows that text with no time.

@@ -63,7 +63,7 @@ export function createSlides(host, opts) {
       layers[front].className = 'sl-layer';
       front = back;
       lastShown = Date.now();
-      if (opts.onShow) opts.onShow(list[index]);
+      if (opts.onShow) opts.onShow(list[index], img.naturalWidth, img.naturalHeight);
       if (list.length > 1) { preload = new Image(); preload.src = urlAt(index + 1); }
       schedule();
     }
