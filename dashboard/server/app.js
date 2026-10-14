@@ -134,7 +134,15 @@ export function createApi({ root }) {
         const fs = await import('node:fs/promises');
         const os = await import('node:os');
         const file = process.env.WHEREABOUTS_FILE || `${os.homedir()}/Library/Application Support/coelho-dashboard/whereabouts.json`;
-        try { return sendJson(res, 200, { ok: true, ...JSON.parse(await fs.readFile(file, 'utf8')) }); }
+        try {
+          const data = JSON.parse(await fs.readFile(file, 'utf8'));
+          // Rows without a relative time ("Now", live, or the me-card) get the helper's
+          // run time, so every person always has a real timestamp.
+          for (const v of Object.values(data.people || {})) {
+            if (!v.at || Number.isNaN(new Date(v.at).getTime())) v.at = data.updatedAt || new Date().toISOString();
+          }
+          return sendJson(res, 200, { ok: true, ...data });
+        }
         catch { return sendJson(res, 200, { ok: false, reason: 'no-findmy-source', people: {} }); }
       }
       if (pathname === '/api/chores') {

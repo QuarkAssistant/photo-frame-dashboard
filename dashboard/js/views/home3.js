@@ -49,7 +49,7 @@ export function family3() {
   const cell = (p) => {
     const loc = where.ok && where.people && where.people[p.id];
     const place = loc ? esc(loc.place || 'Unknown') : '<span class="f3-na">Location off</span>';
-    const when = loc ? (loc.at ? `Updated ${esc(ago(loc.at))}` : 'Find My') : 'Find My not connected';
+    const when = loc ? `Updated ${esc(ago(loc.at || where.updatedAt || new Date().toISOString()))}` : 'Find My not connected';
     return `<td class="f3-c"><button class="f3" type="button" data-go="${p.id}" style="${pstyle(p)}">${avatar(p)}` +
       `<span class="f3-m"><b>${esc(p.name)}</b><span class="f3-p">${place}</span><small>${when}</small></span></button></td>`;
   };
