@@ -267,3 +267,62 @@ sits above the big start time so it is never ambiguous. Dates use America/Chicag
 full AM/PM. Plain block/flex layout with `-webkit-` prefixes (old-WebView safe).
 
 - v0.5.2: place captions say `UK` instead of `GB`, and London boroughs/districts (City of Westminster, Greater London, etc.) display as `London, UK`. Applied at display time; the place cache keeps raw names.
+
+## v0.7 (branch `cursor/home-layout-v2`, preview `?layout=v2`) — Home v3, themes, month view
+
+Local commits only; not pushed or merged yet.
+
+**Home v3 layout** (`js/views/home3.js`, `css/views/home3.css`)
+- Header: clock · compact weather · family 2×2.
+- Weather card, inspired by a phone widget: big `70 °F / 21 °C`, condition in italic, then
+  `H … · L … · Feels …` (Open-Meteo `apparent_temperature`) and 5 small hourly bars (bar height =
+  relative temperature, AM/PM labels).
+- Family 2×2: avatar + name + Find My place + "Updated X min ago". It reads `/api/whereabouts`,
+  which serves `~/Library/Application Support/coelho-dashboard/whereabouts.json` (or
+  `WHEREABOUTS_FILE`). Shape: `{ "updatedAt": ISO, "people": { "thiago": { "place": "Home", "at": ISO }, … } }`.
+  Without that file it shows "Location off · Find My not connected".
+- Family calendar: one table, Today + next 4 days, 4 equal slots per day, "+N more" opens
+  Calendar.
+- Photo: fixed 3:2 landscape box (padding-top ratio, no `aspect-ratio`), whole photo (contain) on
+  a blurred fill.
+- Chores: progress rings per person in their color, "Anyone" grey, tagged **Preview**. Counts come
+  from the existing chores store for the current routine; tapping still opens the Chores page.
+- Grocery: count + up to 6 items in two columns.
+
+**Event color rule** (`family.js` `peopleFor`)
+- The calendar is the Apple family calendar `Calendário da Família`, read over iCloud CalDAV.
+- An event belongs to a person when its title begins with that person's name before " — "
+  (e.g. "⚽️ JP — Team Training").
+- Anything else (no prefix, school-wide, trips, shows) counts as Family / everyone (dark teal).
+- The chip color is the person's avatar color.
+- The calendar fetch now starts on the 1st of the current month and covers 75 days, so the month
+  view is full.
+
+**Calendar page**
+- Agenda / Week / **Month** toggle. Month is a Sunday-first table with equal cells, 2–3 chips per
+  day and "+N more"; the arrows move to next month. `?cal=month` opens it directly.
+- A color legend at the bottom: each person, Family / everyone, Holiday BR, Holiday US, Flamengo.
+
+**Theme** (Settings → Theme: Light / Dark / Auto (sunset))
+- Dark keeps the palette (forest/teal paper, cream ink, olive accents) via `css/theme-dark.css`
+  (`html.theme-dark`).
+- Auto uses today's Open-Meteo sunset and sunrise and is re-checked every minute.
+- Saved per frame in `localStorage`. `?theme=dark|light|auto` overrides it for screenshots.
+
+**Find My (family locations): status**
+- The dashboard Mac is signed into a different Apple ID than Thiago's.
+- The Find My cache (`~/Library/Caches/com.apple.findmy.fmipcore`) is blocked by macOS privacy
+  controls ("Operation not permitted"). On macOS 14.4+ the `Items.data` / `Devices.data` files
+  are also encrypted with a keychain key, so reading the cache is not a viable path.
+- The iCloud credential in `.env` is an app-specific password (CalDAV only). It cannot access Find
+  My.
+- Workable options, all producing the same `whereabouts.json`:
+  1. **Recommended:** Thiago (the Family Sharing organizer) runs `pyicloud` once on the MacBook
+     with his own Apple ID, completes 2FA interactively and stores the session in the keychain.
+     A LaunchAgent then polls the family devices list every ~5 min and reverse-geocodes each
+     member's primary iPhone to "Home" (within ~150 m of HOME_LAT/LON) or a city or neighborhood.
+     The session must be re-trusted every ~2 months. This uses an unofficial API that can break.
+  2. Each person's iPhone runs a Shortcuts automation (e.g. when leaving or arriving home) that
+     POSTs a place to the dashboard. This is official and private, but needs per-phone setup.
+  3. Share each person's location with the Mac's Apple ID and read the Find My app window. This
+     is fragile and not recommended.

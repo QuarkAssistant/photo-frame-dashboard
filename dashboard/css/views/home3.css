@@ -1,0 +1,86 @@
+/* Home v3 (?layout=v2). Old-WebView safe: tables, margins, padding-top ratio box. */
+.home3 .h-clock { grid-column: 1 / 4; }
+.home3 .h-weather { grid-column: 4 / 8; padding: 6px 10px; margin-bottom: 10px; }
+.home3 .h-family { grid-column: 8 / 13; padding: 0 0 8px 0; display: block; }
+.home3 .h-main { grid-column: 1 / 8; grid-template-rows: auto auto minmax(0, 1fr); }
+.home3 .h-side { grid-column: 8 / 13; display: block; overflow: hidden; }
+
+/* weather */
+.w3 { width: 100%; border-collapse: collapse; }
+.w3 td { vertical-align: middle; padding: 0; }
+.w3-now { white-space: nowrap; }
+.w3-big { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; line-height: 1; color: var(--ink); }
+.w3-big i { font-style: normal; color: var(--olive); }
+.w3-big .i { width: 26px; height: 26px; vertical-align: -4px; margin-right: 6px; }
+.w3-cond { margin-top: 3px; font-family: var(--serif); font-style: italic; font-size: 19px; color: #B07A2E; line-height: 1.05; }
+.w3-cond span { font-family: var(--sans); font-style: normal; font-size: 11px; color: var(--mute); font-weight: 700; }
+.w3-hl { margin-top: 3px; font-size: 10.5px; font-weight: 700; color: var(--ink-2); }
+.w3-hl i { font-style: normal; color: var(--olive); }
+.w3-hours { width: 44%; padding-left: 8px !important; }
+.w3-bars { width: 100%; table-layout: fixed; border-collapse: collapse; }
+.w3-hr { text-align: center; vertical-align: bottom !important; padding: 0 2px !important; }
+.w3-t { display: block; font-size: 10px; font-weight: 800; color: var(--ink-2); }
+.w3-bar-box { display: block; height: 30px; position: relative; }
+.w3-bar { position: absolute; left: 3px; right: 3px; bottom: 0; border-radius: 5px; background: rgba(var(--ink-rgb), 0.22); }
+.w3-hr.is-now .w3-bar { background: #C8913F; }
+.w3-l { display: block; margin-top: 2px; font-size: 9px; font-weight: 800; color: var(--mute); white-space: nowrap; }
+
+/* family + location */
+.f3-t { width: 100%; height: 100%; table-layout: fixed; border-collapse: collapse; }
+.f3-c { width: 50%; padding: 2px 4px; vertical-align: middle; }
+.f3 { display: block; width: 100%; text-align: left; white-space: nowrap; overflow: hidden; }
+.f3 .avatar { display: inline-block; vertical-align: middle; width: 44px; height: 44px; min-width: 44px; min-height: 44px; line-height: 44px; font-size: 15px; text-align: center; box-shadow: 0 0 0 3px var(--c); margin-right: 9px; }
+.f3-m { display: inline-block; vertical-align: middle; max-width: 150px; overflow: hidden; line-height: 1.15; }
+.f3-m b { display: block; font-size: 13px; font-weight: 800; color: var(--ink); }
+.f3-p { display: block; font-size: 12px; font-weight: 700; color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; }
+.f3-na { color: var(--mute); font-weight: 600; }
+.f3-m small { display: block; font-size: 10px; color: var(--mute); overflow: hidden; text-overflow: ellipsis; }
+
+/* five-day family calendar */
+.h-cal3 { min-height: 0; overflow: hidden; }
+.c3-label { margin-bottom: 4px; }
+.c3 { width: calc(100% + 8px); margin: 0 -4px; table-layout: fixed; border-collapse: separate; border-spacing: 4px 0; }
+.c3-col { vertical-align: top; background: var(--card); border-radius: 12px; padding: 0 5px 5px 5px; }
+.c3-col.is-today { box-shadow: inset 0 0 0 2px var(--ink); }
+.c3-h { padding: 6px 2px 4px; border-bottom: 2px solid var(--ink); margin-bottom: 4px; white-space: nowrap; overflow: hidden; }
+.c3-h b { font-size: 11px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
+.c3-h span { float: right; font-size: 11px; font-weight: 700; color: var(--mute); }
+.c3-ev { display: block; width: 100%; box-sizing: border-box; height: 46px; margin-top: 4px; padding: 4px 6px; border-radius: 8px; background: rgba(var(--c-rgb), 0.18); border-left: 4px solid var(--c); text-align: left; overflow: hidden; }
+.c3-t { display: block; font-size: 10px; font-weight: 800; color: var(--ink-2); white-space: nowrap; }
+.c3-n { display: block; font-size: 11.5px; font-weight: 700; line-height: 1.15; color: var(--ink); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.c3-empty { background: transparent; border: 1px dashed rgba(var(--ink-rgb), 0.18); }
+.c3-free { background: transparent; border: 0; color: var(--mute); font-size: 15px; padding-top: 12px; }
+.c3-more { background: transparent; border: 2px solid rgba(var(--ink-rgb), 0.25); text-align: center; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink); }
+
+/* landscape photo box (3:2 via padding-top) */
+.h-photo-box { position: relative; width: 100%; height: 0; padding-top: 66.6667%; margin-bottom: var(--gap); }
+.home3 .h-photo { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+/* chores rings + grocery */
+.home3 .h-chores, .home3 .h-shop { display: block; width: 100%; box-sizing: border-box; padding: 10px 14px; text-align: left; }
+.home3 .h-chores { margin-bottom: var(--gap); }
+.r3-tag { font-style: normal; font-size: 9px; background: #F3E3B5; color: #8A6A1F; padding: 1px 6px; border-radius: 999px; margin-left: 4px; vertical-align: 1px; }
+.r3-t { width: 100%; table-layout: fixed; border-collapse: collapse; margin-top: 6px; }
+.r3 { text-align: center; vertical-align: top; }
+.r3-dial { position: relative; width: 56px; height: 56px; margin: 0 auto; }
+.r3-dial .ring { width: 56px; height: 56px; }
+.r3-dial .ring-bg { fill: none; stroke: rgba(var(--c-rgb), 0.22); stroke-width: 6; }
+.r3-dial .ring-fg { fill: none; stroke: var(--c); stroke-width: 6; stroke-linecap: round; }
+.r3-dial b { position: absolute; top: 0; left: 0; width: 56px; line-height: 56px; font-size: 14px; color: var(--ink); }
+.r3 span { display: block; margin-top: 3px; font-size: 11px; font-weight: 700; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.g3-stat .num { font-size: 34px; line-height: 1; font-weight: 800; }
+.g3-stat small { color: var(--mute); font-size: 12px; }
+.g3-list { margin-top: 4px; -webkit-column-count: 2; column-count: 2; -webkit-column-gap: 12px; column-gap: 12px; }
+.g3-list li { font-size: 12.5px; line-height: 1.5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.g3-list i { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--olive); margin-right: 7px; vertical-align: 1px; }
+/* v3 fixes */
+.home3 .h-chores, .home3 .h-shop { height: auto; min-height: 0; }
+.home3 .h-weather { grid-column: 4 / 9; }
+.home3 .h-family { grid-column: 9 / 13; }
+.w3-hours { width: 48%; }
+.w3-l { font-size: 9px; letter-spacing: -0.02em; }
+.f3 .avatar { width: 40px; height: 40px; min-width: 40px; min-height: 40px; line-height: 40px; margin-right: 7px; }
+.f3-m { max-width: 120px; }
+.c3-ev { height: 62px; }
+.c3-n { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.c3-free { padding-top: 20px; }

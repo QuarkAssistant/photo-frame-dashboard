@@ -11,6 +11,36 @@ import { icon } from '../icons.js';
 
 const KEY_BRIGHT = 'coelho.brightness';
 const KEY_SAVER = 'coelho.saverSeconds';
+const KEY_THEME = 'coelho.theme';
+
+export function themeChoice() {
+  const q = new URLSearchParams(location.search).get('theme');
+  if (q === 'light' || q === 'dark' || q === 'auto') return q;
+  const v = localStorage.getItem(KEY_THEME);
+  return v === 'dark' || v === 'auto' ? v : 'light';
+}
+
+// Auto: dark between today's sunset and sunrise (Open-Meteo, America/Chicago wall clock).
+function hm(str) { const m = String(str || '').match(/T(\d\d):(\d\d)/); return m ? Number(m[1]) * 60 + Number(m[2]) : null; }
+function fmt12(str) {
+  const m = hm(str);
+  if (m == null) return '—';
+  const h = Math.floor(m / 60); const mm = String(m % 60).padStart(2, '0');
+  return `${h % 12 || 12}:${mm} ${h < 12 ? 'AM' : 'PM'}`;
+}
+export function applyTheme() {
+  const c = themeChoice();
+  let dark = c === 'dark';
+  if (c === 'auto') {
+    const w = state.weather || {};
+    const rise = hm(w.sunrise) ?? 7 * 60; const set = hm(w.sunset) ?? 18 * 60 + 30;
+    const t = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Chicago', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+      .format(new Date()).split(':').map(Number);
+    const mins = (t[0] % 24) * 60 + t[1];
+    dark = mins >= set || mins < rise;
+  }
+  document.documentElement.classList.toggle('theme-dark', dark);
+}
 const bridge = () => (typeof window !== 'undefined' && window.FrameBridge) || null;
 
 function call(name, ...args) {
@@ -72,6 +102,11 @@ function paint(el) {
   const cur = sv == null ? 300 : sv;
   const saver = [[120, '2 min'], [300, '5 min'], [600, '10 min'], [1800, '30 min'], [0, 'Off']].map(([s, l]) =>
     `<button type="button" class="st-chip${s === cur ? ' is-on' : ''}" data-set-saver="${s}">${l}</button>`).join('');
+  const th = themeChoice();
+  const themeBtns = [['light', 'Light'], ['dark', 'Dark'], ['auto', 'Auto (sunset)']].map(([k, l]) =>
+    `<button type="button" class="st-chip${k === th ? ' is-on' : ''}" data-set-theme="${k}">${l}</button>`).join('');
+  const ww = state.weather || {};
+  const sun = ww.sunset ? `Sunset today ${fmt12(ww.sunset)} · sunrise ${fmt12(ww.sunrise)}` : 'Auto uses today\'s sunset and sunrise.';
   const w = wifiInfo();
   const net = w && w.ssid ? `${esc(w.ssid)}` : (navigator.onLine ? 'Connected' : 'Offline');
   const sig = w && w.rssi != null ? `Signal ${esc(String(w.level))}/4 · ${esc(String(w.rssi))} dBm` : '';
@@ -84,6 +119,7 @@ function paint(el) {
   el.querySelector('.st-body').innerHTML =
     `<section class="st-card"><h2>${icon('sun', 20)} Brightness</h2><div class="st-chips">${steps}</div>` +
     `<p class="st-note">${b ? 'Sets the screen backlight.' : 'Software dimming for now (darkens the page). Real backlight control needs the kiosk update.'}</p></section>` +
+    `<section class="st-card"><h2>Theme</h2><div class="st-chips">${themeBtns}</div><p class="st-note">${sun}</p></section>` +
     `<section class="st-card"><h2>${icon('photo', 20)} Photo screensaver after</h2><div class="st-chips">${saver}</div>` +
     `<p class="st-note">Idle time before the photo screensaver starts. Night mode still runs 11:00 PM – 6:00 AM.</p></section>` +
     `<section class="st-card"><h2>Wi-Fi</h2>${row('Network', net, sig)}${row('Dashboard server', srv)}` +
@@ -107,6 +143,8 @@ register('settings', {
       el.addEventListener('click', (e) => {
         const br = e.target.closest('[data-set-bright]');
         if (br) { localStorage.setItem(KEY_BRIGHT, br.dataset.setBright); applyBrightness(); paint(el); return; }
+        const th = e.target.closest('[data-set-theme]');
+        if (th) { localStorage.setItem(KEY_THEME, th.dataset.setTheme); applyTheme(); paint(el); return; }
         const sv = e.target.closest('[data-set-saver]');
         if (sv) { localStorage.setItem(KEY_SAVER, sv.dataset.setSaver); paint(el); return; }
         const vo = e.target.closest('[data-set-vol]');

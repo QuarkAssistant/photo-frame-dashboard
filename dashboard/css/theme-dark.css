@@ -1,0 +1,24 @@
+/* Dark theme: same forest/teal, cream, olive palette, inverted. html.theme-dark */
+html.theme-dark {
+  --paper: #132221;
+  --paper-2: #1A2D2C;
+  --card: #1E3533;
+  --ink: #EDE3CF;
+  --ink-rgb: 237, 227, 207;
+  --ink-2: #D4C9B2;
+  --mute: #A29A88;
+  --line: #2F4846;
+  --olive: #A8B85A;
+  --cream: #132221;
+  --c-ink: #F4EFE4;
+}
+html.theme-dark body { background: #132221; color: var(--ink); }
+html.theme-dark .hd-c, html.theme-dark .hd-c.hd-game { background: #1E3533; }
+html.theme-dark .h-photo, html.theme-dark .h-photo-box { background: #0E1918; }
+html.theme-dark .w3-cond { color: #E0AE5C; }
+html.theme-dark .w3-hr.is-now .w3-bar { background: #E0AE5C; }
+html.theme-dark .lv { background: #F4EDDC; color: #1F3A3A; }
+html.theme-dark .r3-tag, html.theme-dark .st-need { background: #4A3F1E; color: #F3E3B5; }
+html.theme-dark .c3-ev .c3-n, html.theme-dark .r3-dial b { color: var(--ink); }
+html.theme-dark .rail-brand img { background: #E8DCC4; }
+html.theme-dark .h-hero .label, html.theme-dark .h-hero { color: var(--c-ink); }

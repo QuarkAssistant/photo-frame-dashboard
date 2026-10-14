@@ -28,6 +28,7 @@ function pageParams0() { return new URLSearchParams(location.search); }
 // Mockup flag: ?layout=v2 (default Home unchanged).
 if (pageParams0().get('layout') === 'v2') document.documentElement.className += ' layout-v2';
 let saverOpen = false;
+let themeFn = null;
 let nightOpen = false;
 let nightSlot = null;
 let wakeUntil = 0;
@@ -257,6 +258,7 @@ function tick() {
   }
   if (n.getMinutes() !== lastMin) {
     lastMin = n.getMinutes();
+    if (themeFn) themeFn();
     const view = views[current];
     const el = document.getElementById(`view-${current}`);
     if (view && view.tick && el) view.tick(el);
@@ -327,7 +329,7 @@ export { clockHtml, formatTime, owner };
 
 export async function start() {
   rail();
-  import('./views/settings.js').then((m) => m.applyBrightness()).catch(() => {});
+  import('./views/settings.js').then((m) => { m.applyBrightness(); m.applyTheme(); themeFn = m.applyTheme; }).catch(() => {});
   bind();
   syncNight(now());
   await loadNightConfig();

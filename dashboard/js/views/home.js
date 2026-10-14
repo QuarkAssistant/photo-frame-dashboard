@@ -8,6 +8,7 @@ import {
 import { celsius } from '../weatherui.js';
 import { createSlides } from '../slides.js';
 import { icon } from '../icons.js';
+import { chores3, days3, family3, loadWhere, shop3, weather3 } from './home3.js';
 
 
 function wxPair(f, c, cls = '') {
@@ -133,7 +134,7 @@ function heroHtml() {
   return `<button class="h-hero" type="button" style="${pstyle(p)}" data-ev="${esc(e.id)}">` +
     `<div class="h-hero-main"><div class="label label--on">Next up · ${esc(who)}</div>` +
     `<div class="h-hero-title serif">${esc(eventTitle(e))}</div>` +
-    `<div class="h-hero-meta">${meta}</div>${leaveHtml(e, up.phase)}${V2 ? thenHtml(e) : ''}</div>` +
+    `<div class="h-hero-meta">${meta}</div>${leaveHtml(e, up.phase)}</div>` +
     `<div class="h-hero-big"><div class="h-hero-day">${esc(heroDay(e.start).replace(',', '').toUpperCase())}</div>${big}</div></button>`;
 }
 
@@ -278,7 +279,22 @@ function showSlide(root) {
   homeSlides.setPhotos(state.photos);
 }
 
+function paint3(el) {
+  const clock = el.querySelector('[data-clock]');
+  if (clock) clock.innerHTML = clockHtml(now());
+  el.querySelector('.h-weather').innerHTML = weather3();
+  el.querySelector('.h-family').innerHTML = family3();
+  el.querySelector('.h-hero-slot').innerHTML = heroHtml();
+  el.querySelector('.h-days').innerHTML = daysHtml();
+  el.querySelector('.h-cal3').innerHTML = days3();
+  el.querySelector('.h-chores').innerHTML = chores3(routineNow());
+  el.querySelector('.h-shop').innerHTML = shop3();
+  showSlide(el);
+  loadWhere(() => { const f = el.querySelector('.h-family'); if (f) f.innerHTML = family3(); });
+}
+
 function paint(el) {
+  if (V2) { paint3(el); return; }
   const clock = el.querySelector('[data-clock]');
   if (clock) clock.innerHTML = clockHtml(now());
   el.querySelector('.h-weather').innerHTML = weatherHtml();
@@ -295,6 +311,20 @@ register('home', {
   show(el) {
     if (!el.dataset.built) {
       el.dataset.built = '1';
+      if (V2) {
+        el.innerHTML = `<div class="home home3">` +
+          `<div class="h-clock" data-clock></div>` +
+          `<button class="h-weather card" type="button" data-go="weather"></button>` +
+          `<div class="h-family"></div>` +
+          `<div class="h-main"><div class="h-hero-slot"></div><div class="h-days"></div><div class="h-cal3"></div></div>` +
+          `<div class="h-side"><div class="h-photo-box"><button class="h-photo" type="button" data-go="photos"><div class="h-photo-stage"></div>` +
+          `<div class="h-photo-mark"><img src="/emblem.png" alt=""><span class="serif">${esc(BRAND)}</span></div>` +
+          `<div class="h-photo-cap"></div></button></div>` +
+          `<button class="h-chores card" type="button" data-go="chores"></button>` +
+          `<button class="h-shop card" type="button" data-go="grocery"></button></div></div>`;
+        paint(el);
+        return;
+      }
       el.innerHTML = `<div class="home">` +
         `<div class="h-clock" data-clock></div>` +
         `<button class="h-weather card" type="button" data-go="weather"></button>` +
@@ -312,6 +342,7 @@ register('home', {
   },
   tick(el) {
     if (!el.dataset.built) return;
+    if (V2) { paint3(el); return; }
     const clock = el.querySelector('[data-clock]');
     if (clock) clock.innerHTML = clockHtml(now());
     el.querySelector('.h-hero-slot').innerHTML = heroHtml();

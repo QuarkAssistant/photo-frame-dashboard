@@ -115,7 +115,9 @@ export async function calendarPayload(now = new Date()) {
   const user = process.env.ICLOUD_USER || '';
   const pass = process.env.ICLOUD_APP_PASSWORD || '';
   const name = process.env.ICLOUD_CALENDAR_NAME || 'Calendário da Família';
-  const range = chicagoRange(now, 14);
+  // From the 1st of this month through ~2 months ahead, so the Calendar month view is full.
+  const monthStart = new Date(`${new Intl.DateTimeFormat("en-CA", { timeZone: TIMEZONE }).format(now).slice(0, 8)}01T12:00:00Z`);
+  const range = chicagoRange(monthStart, 75);
   if (!user || !pass) {
     return {
       source: 'mock',

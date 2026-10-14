@@ -35,7 +35,7 @@ export async function weatherPayload(now = new Date()) {
   url.searchParams.set('longitude', String(lon));
   url.searchParams.set('current', 'temperature_2m,weather_code,relative_humidity_2m,wind_speed_10m,apparent_temperature');
   url.searchParams.set('hourly', 'temperature_2m,precipitation_probability,weather_code');
-  url.searchParams.set('daily', 'temperature_2m_max,temperature_2m_min,weather_code');
+  url.searchParams.set('daily', 'temperature_2m_max,temperature_2m_min,weather_code,sunrise,sunset');
   url.searchParams.set('temperature_unit', 'fahrenheit');
   url.searchParams.set('wind_speed_unit', 'mph');
   url.searchParams.set('precipitation_unit', 'inch');
@@ -88,6 +88,10 @@ export async function weatherPayload(now = new Date()) {
     });
     shaped.humidity = data.current?.relative_humidity_2m ?? null;
     shaped.wind = data.current?.wind_speed_10m ?? null;
+    shaped.feels = data.current?.apparent_temperature ?? null;
+    // Local wall-clock strings (e.g. 2026-10-13T18:21) for the dark-mode "auto by sunset".
+    shaped.sunrise = data.daily?.sunrise?.[0] ?? null;
+    shaped.sunset = data.daily?.sunset?.[0] ?? null;
     cache = { at: now.getTime(), lat, lon, place, data: shaped };
     return shaped;
   } catch (err) {
