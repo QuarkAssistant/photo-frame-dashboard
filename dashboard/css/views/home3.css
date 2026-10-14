@@ -103,3 +103,7 @@
 .home3 .h-side { grid-template-columns: minmax(0, 1fr); }
 .home3 .h-photo-area, .home3 .h-chores, .home3 .h-shop { grid-column: 1; }
 .home3 .h-chores { height: auto; }
+/* v5: calendar fills to the bottom */
+.home3 .h-cal3 { min-height: 0; height: 100%; }
+.home3 .c3 { height: calc(100% - 18px); }
+.c3-ev { height: 54px; }

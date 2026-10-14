@@ -72,6 +72,25 @@ func press(_ e: AXUIElement, title: String, depth: Int = 0) -> Bool {
   for c in children(e) where press(c, title: title, depth: depth + 1) { return true }
   return false
 }
+// The detail sheet's own "Close" button (not the window's red close button).
+func closeDetail() {
+  func find(_ e: AXUIElement, _ d: Int) -> AXUIElement? {
+    if d > 12 { return nil }
+    if role(e) == "AXButton", (attr(e, "AXSubrole") as? String) != "AXCloseButton",
+       ((attr(e, kAXTitleAttribute) as? String)?.lowercased() == "close" || (attr(e, "AXIdentifier") as? String) == "Close") { return e }
+    for c in children(e) { if let f = find(c, d + 1) { return f } }
+    return nil
+  }
+  for w in (attr(root, kAXWindowsAttribute) as? [AXUIElement]) ?? [] {
+    if let b = find(w, 0) { AXUIElementPerformAction(b, kAXPressAction as CFString); Thread.sleep(forTimeInterval: 1.2); return }
+  }
+}
+// Tall window so the (virtualised) People list renders every person.
+for w in (attr(root, kAXWindowsAttribute) as? [AXUIElement]) ?? [] {
+  var size = CGSize(width: 1100, height: 900)
+  if let v = AXValueCreate(.cgSize, &size) { AXUIElementSetAttributeValue(w, kAXSizeAttribute as CFString, v) }
+}
+closeDetail()
 _ = press(root, title: "People")
 Thread.sleep(forTimeInterval: 2)
 
@@ -127,6 +146,68 @@ for r in entries {
     else if place.isEmpty && !t.lowercased().hasSuffix(" mi") && !t.lowercased().hasSuffix(" km") { place = t }
   }
   people[id] = ["place": place.isEmpty ? "Unknown" : place, "at": sawTime ? iso.string(from: at) : ""]
+}
+
+// Detail pass: selecting a person shows a card button
+// "Full Name, <street or place>, Nearby, Town, ST, <time>" — the most specific label Find My has.
+var homeStreet = ""
+if let env = try? String(contentsOf: envURL, encoding: .utf8) {
+  for line in env.split(separator: "\n") where line.hasPrefix("HOME_ADDRESS=") {
+    let v = line.dropFirst("HOME_ADDRESS=".count).trimmingCharacters(in: CharacterSet(charactersIn: "\"' "))
+    homeStreet = (v.components(separatedBy: ",").first ?? "").lowercased()
+  }
+}
+func allTexts(_ e: AXUIElement, _ d: Int, _ acc: inout [(AXUIElement, String, String)]) {
+  if d > 30 { return }
+  if let t = text(e) { acc.append((e, role(e), t.replacingOccurrences(of: "\u{00A0}", with: " "))) }
+  for c in children(e) { allTexts(c, d + 1, &acc) }
+}
+func starts(_ t: String, _ aliases: [String]) -> Bool {
+  let l = t.lowercased()
+  return aliases.contains { l.hasPrefix($0 + " ") || l.hasPrefix($0 + ",") }
+}
+func normStreet(_ s: String) -> String {
+  s.lowercased().replacingOccurrences(of: " circle", with: " cir").replacingOccurrences(of: " street", with: " st")
+    .replacingOccurrences(of: " avenue", with: " ave").replacingOccurrences(of: " drive", with: " dr").replacingOccurrences(of: " road", with: " rd")
+}
+if let win = (attr(root, kAXWindowsAttribute) as? [AXUIElement])?.first {
+  for (id, aliases) in family where people[id] != nil {
+    var acc: [(AXUIElement, String, String)] = []
+    allTexts(win, 0, &acc)
+    guard let row = acc.first(where: { x in x.1 == "AXStaticText" && starts(x.2, aliases) }) else { continue }
+    AXUIElementPerformAction(row.0, kAXPressAction as CFString)
+    Thread.sleep(forTimeInterval: 2)
+    acc = []
+    allTexts(win, 0, &acc)
+    guard let card = acc.first(where: { x in x.1 == "AXButton" && starts(x.2, aliases) }) else { continue }
+    // Open Details: the detail sheet's first comma line is the most specific label
+    // (street / place, Town, ST).
+    let before = Set(acc.map { $0.2 })
+    AXUIElementPerformAction(card.0, kAXPressAction as CFString)
+    Thread.sleep(forTimeInterval: 2)
+    acc = []
+    allTexts(win, 0, &acc)
+    let town = people[id]?["place"] ?? ""
+    let shortTown = (town.components(separatedBy: ",").first ?? town).trimmingCharacters(in: .whitespaces)
+    let line = acc.first(where: { x in x.1 == "AXStaticText" && !before.contains(x.2) && x.2.contains(", ")
+      && !starts(x.2, aliases) && (shortTown.isEmpty || x.2.contains(shortTown)) })?.2
+    closeDetail()
+    if dump { print("detail \(id): \(line == nil ? "none" : "found")") }
+    guard let detail = line else { continue }
+    let f = detail.components(separatedBy: ", ").map { $0.trimmingCharacters(in: .whitespaces) }
+    let label = f[0]
+    let isHome = label.lowercased() == "home" || (!homeStreet.isEmpty && normStreet(label).hasPrefix(normStreet(homeStreet)))
+    people[id]?["place"] = isHome ? "Home" : (label == shortTown || shortTown.isEmpty ? detail : "\(label), \(shortTown)")
+    people[id]?["detail"] = isHome ? "home" : "findmy"
+  }
+}
+
+// The currently selected person sometimes drops out of the list read; carry their
+// previous entry (with its original "at") instead of blanking them.
+let prevFile = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/Application Support/coelho-dashboard/whereabouts.json")
+if let d = try? Data(contentsOf: prevFile), let j = try? JSONSerialization.jsonObject(with: d) as? [String: Any],
+   let prev = j["people"] as? [String: [String: String]] {
+  for (id, v) in prev where people[id] == nil { people[id] = v }
 }
 
 let out: [String: Any] = ["updatedAt": iso.string(from: Date()), "source": "findmy-ax", "people": people]

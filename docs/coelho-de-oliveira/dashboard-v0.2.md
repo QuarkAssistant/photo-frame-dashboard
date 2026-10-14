@@ -362,3 +362,30 @@ It works in light and dark.
   Accessibility → enable **findmy-people** (`…/dashboard/server/bin/findmy-people`). Until then the
   LaunchAgent logs `not-trusted`. A rebuild of the binary may require toggling it again.
 - If Find My shows "No Location Found", the card shows that text with no time.
+
+## v0.9 (branch `cursor/home-layout-v2`): specific Find My places, taller family calendar
+
+Local commits only.
+
+**Find My labels** (`server/findmy.swift`)
+- The People list only says "Nearby, Town, ST". For each person the helper now:
+  1. selects the person's row;
+  2. presses their card ("Open Details");
+  3. reads the detail sheet's first line (the street or place Find My shows, e.g.
+     "Washington St, Naperville");
+  4. presses the sheet's **Close** button so Find My never stays stuck on a detail view.
+- If that line matches the street in `HOME_ADDRESS` (from the git-ignored `.env`), or Find My says
+  "Home", the card shows **Home**. Otherwise it shows "<street or place>, <town>".
+  "No Location Found" passes through with no time.
+- The Find My window is enlarged so every row renders. The selected person can drop out of the
+  list read, so their previous entry (with its original time) is kept instead of being blanked.
+- Coordinates are not exposed through Accessibility, so there is no reverse-geocoding. Places
+  stay in `whereabouts.json` (outside the repo).
+- After every rebuild, re-enable **findmy-people** under System Settings → Privacy & Security →
+  Accessibility, or the 5-minute LaunchAgent logs `not-trusted`.
+
+**Family calendar on Home**
+- The 5 columns stretch down to the bottom of the screen.
+- The number of equal 54 px slots per day is computed from the space between the calendar's top
+  and the bottom of the window, and recomputed on resize.
+- Each event shows start and end ("4:30 PM – 6:00 PM"); all-day events stay "All day".

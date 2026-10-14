@@ -296,6 +296,15 @@ function showSlide(root) {
   homeSlides.setPhotos(state.photos);
 }
 
+function calSlots(cal) {
+  // Space from the calendar's top to the bottom of the screen (minus page padding).
+  const top = cal.getBoundingClientRect().top;
+  const h = top > 0 ? window.innerHeight - top - 16 : (cal.clientHeight || 0);
+  const n = Math.floor((h - 18 - 34 - 8) / 58);
+  cal._slots = n > 0 ? n : 4;
+  return cal._slots;
+}
+
 function paint3(el) {
   const clock = el.querySelector('[data-clock]');
   if (clock) clock.innerHTML = clockHtml(now());
@@ -303,7 +312,12 @@ function paint3(el) {
   el.querySelector('.h-family').innerHTML = family3();
   el.querySelector('.h-hero-slot').innerHTML = heroHtml();
   el.querySelector('.h-days').innerHTML = daysHtml();
-  el.querySelector('.h-cal3').innerHTML = days3();
+  const cal = el.querySelector('.h-cal3');
+  // Fill the column to the bottom: as many equal 56 px slots per day as fit.
+  const refit = () => { const prev = cal._slots; const n = calSlots(cal); if (n !== prev || !cal.firstChild) cal.innerHTML = days3(n); };
+  cal.innerHTML = days3(calSlots(cal));
+  setTimeout(refit, 60);
+  setTimeout(refit, 600);
   el.querySelector('.h-chores').innerHTML = chores3(routineNow());
   el.querySelector('.h-shop').innerHTML = shop3();
   showSlide(el);
@@ -372,4 +386,7 @@ register('home', {
   },
 });
 
-window.addEventListener('resize', () => { const pb = document.querySelector('.home3 .h-photo'); if (pb) fitPhoto(pb); });
+window.addEventListener('resize', () => {
+  const pb = document.querySelector('.home3 .h-photo'); if (pb) fitPhoto(pb);
+  const cal = document.querySelector('.home3 .h-cal3'); if (cal) cal.innerHTML = days3(calSlots(cal));
+});

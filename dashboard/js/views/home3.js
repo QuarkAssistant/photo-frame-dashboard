@@ -3,7 +3,7 @@ import { FAMILY } from '../../family.js';
 import { addDaysYmd, ymd } from '../../time.js';
 import { state } from '../data.js';
 import { now } from '../app.js';
-import { avatar, compactTitle, dayParts, esc, formatTime, onDay, owner, pstyle, ring } from '../ui.js';
+import { avatar, compactTitle, dayParts, esc, formatRange, formatTime, onDay, owner, pstyle, ring } from '../ui.js';
 import { celsius } from '../weatherui.js';
 import { icon } from '../icons.js';
 
@@ -57,8 +57,8 @@ export function family3() {
 }
 
 // One family calendar: Today + next 4 days, chip color = owner's color.
-const SLOTS = 4;
-export function days3() {
+export function days3(slots = 4) {
+  const SLOTS = Math.max(3, slots);
   const n = now();
   const today = ymd(n);
   let cols = '';
@@ -73,7 +73,7 @@ export function days3() {
     let cells = shown.map((e) => {
       const p = owner(e);
       return `<button class="c3-ev" type="button" data-ev="${esc(e.id)}" style="${pstyle(p)}">` +
-        `<span class="c3-t">${esc(e.allDay ? 'All day' : formatTime(e.start))}</span>` +
+        `<span class="c3-t">${esc(e.allDay ? 'All day' : formatRange(e.start, e.end))}</span>` +
         `<span class="c3-n">${esc(compactTitle(e.displayTitle || e.title))}</span></button>`;
     }).join('');
     if (more > 0) cells += `<button class="c3-ev c3-more" type="button" data-go="calendar">+${more} more</button>`;
