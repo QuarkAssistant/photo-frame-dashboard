@@ -87,6 +87,24 @@ function heroDay(iso) {
   return new Intl.DateTimeFormat('en-US', { timeZone: tz, weekday: 'short', month: 'short', day: 'numeric' }).format(d);
 }
 
+const V2 = typeof location !== 'undefined' && /[?&]layout=v2\b/.test(location.search);
+
+// v2 mockup: the next few events after Next Up, filling the hero's empty lower half.
+function thenHtml(cur) {
+  const n = now();
+  const today = ymd(n);
+  const list = state.events
+    .filter((e) => e.id !== cur.id && !e.allDay && new Date(e.start) > new Date(cur.start))
+    .sort((a, b) => String(a.start).localeCompare(String(b.start)))
+    .slice(0, 3);
+  if (!list.length) return '';
+  return '<div class="h-then"><div class="label label--on">After that</div>' + list.map((e) => {
+    const who = e.everyone ? 'Everyone' : e.people.map((pid) => (FAMILY.find((m) => m.id === pid) || {}).name || '').join(' + ');
+    return `<div class="h-then-row"><span class="h-then-t">${esc(heroDay(e.start))} ${esc(formatTime(e.start))}</span>` +
+      `<span class="h-then-n">${esc(compactTitle(e.displayTitle || e.title))}</span><span class="h-then-w">${esc(who)}</span></div>`;
+  }).join('') + '</div>';
+}
+
 function heroHtml() {
   const up = nextUp(state.events, now());
   if (!up) {
@@ -110,7 +128,7 @@ function heroHtml() {
   return `<button class="h-hero" type="button" style="${pstyle(p)}" data-ev="${esc(e.id)}">` +
     `<div class="h-hero-main"><div class="label label--on">Next up · ${esc(who)}</div>` +
     `<div class="h-hero-title serif">${esc(eventTitle(e))}</div>` +
-    `<div class="h-hero-meta">${meta}</div>${leaveHtml(e, up.phase)}</div>` +
+    `<div class="h-hero-meta">${meta}</div>${leaveHtml(e, up.phase)}${V2 ? thenHtml(e) : ''}</div>` +
     `<div class="h-hero-big"><div class="h-hero-day">${esc(heroDay(e.start).replace(',', '').toUpperCase())}</div>${big}</div></button>`;
 }
 

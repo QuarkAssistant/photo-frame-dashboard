@@ -19,6 +19,8 @@ let lastMin = -1;
 let idle = 0;
 const SAVER_IDLE_S = Number(pageParams0().get('saver')) || 300;
 function pageParams0() { return new URLSearchParams(location.search); }
+// Mockup flag: ?layout=v2 (default Home unchanged).
+if (pageParams0().get('layout') === 'v2') document.documentElement.className += ' layout-v2';
 let saverOpen = false;
 let nightOpen = false;
 let nightSlot = null;
