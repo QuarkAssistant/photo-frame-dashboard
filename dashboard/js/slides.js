@@ -7,6 +7,18 @@
 // cannot stall the rotation (8 s load timeout), a watchdog restarts a stalled
 // loop, and the start index is random so a page reload doesn't always show the
 // same first photo.
+function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+// Lower-right "July 4, 2025 · Naperville, IL" caption; nothing when unknown.
+export function captionHtml(p) {
+  if (!p) return '';
+  var parts = [];
+  if (p.date) parts.push(esc(p.date));
+  if (p.place) parts.push(esc(p.place));
+  if (!parts.length) return '';
+  return '<div class="sl-cap"><span>' + parts.join(' &middot; ') + '</span></div>';
+}
+
 export function createSlides(host, opts) {
   opts = opts || {};
   var ms = opts.interval || 15000;
@@ -42,6 +54,7 @@ export function createSlides(host, opts) {
       done = true;
       var back = 1 - front;
       layers[back].style.backgroundImage = 'url("' + url + '")';
+      layers[back].innerHTML = captionHtml(list[index]);
       layers[back].className = 'sl-layer is-on';
       layers[front].className = 'sl-layer';
       front = back;
