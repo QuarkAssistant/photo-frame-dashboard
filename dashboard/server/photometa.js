@@ -124,10 +124,21 @@ async function reverse(lat, lon) {
   return places[key];
 }
 
+const LONDON = /^(city of london|city of westminster|greater london|london|westminster|camden|islington|hackney|tower hamlets|greenwich|lewisham|southwark|lambeth|wandsworth|hammersmith and fulham|(royal borough of )?kensington and chelsea|barking and dagenham|barnet|bexley|brent|bromley|croydon|ealing|enfield|haringey|harrow|havering|hillingdon|hounslow|(royal borough of )?kingston upon thames|merton|newham|redbridge|richmond upon thames|sutton|waltham forest)$/i;
+
+// Display-time normalization (cache keeps raw names): GB -> UK, London boroughs -> London.
+export function displayPlace(place) {
+  if (!place) return place;
+  const m = /^(.*), GB$/.exec(place);
+  if (!m) return place;
+  const city = m[1].replace(/^London Borough of /i, '');
+  return `${LONDON.test(city) ? 'London' : m[1]}, UK`;
+}
+
 export function metaFor(id) {
   const m = meta[id];
   if (!m) return {};
-  return { date: m.date || undefined, place: m.place || undefined };
+  return { date: m.date || undefined, place: displayPlace(m.place) || undefined };
 }
 
 let running = false;
