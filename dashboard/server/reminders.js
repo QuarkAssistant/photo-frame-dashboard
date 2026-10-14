@@ -116,7 +116,34 @@ async function ensureBinary() {
   return binPromise;
 }
 
+// ---- Test safety -------------------------------------------------------
+// Tests must NEVER read or write the family's real Reminders list.
+// REMINDERS_FAKE=1 (or running under `node --test`) swaps in an in-memory list.
+export function remindersFake() {
+  return process.env.REMINDERS_FAKE === '1' || Boolean(process.env.NODE_TEST_CONTEXT);
+}
+export const fakeList = { items: [], seq: 0 };
+export function resetFakeReminders(items = []) {
+  fakeList.items = items.map((it, i) => ({ id: `fake-${i}`, notes: '', completed: false, ...it }));
+  fakeList.seq = fakeList.items.length;
+  cache = { at: 0, data: null, failed: false, reason: '', ttl: TTL };
+}
+function fakeHelper(command, arg, arg2) {
+  if (command === 'add') fakeList.items.push({ id: `fake-${fakeList.seq++}`, title: arg, notes: '', completed: false });
+  if (command === 'complete') fakeList.items = fakeList.items.map((it) => (it.id === arg ? { ...it, completed: true } : it));
+  if (command === 'setnotes') {
+    const notes = Buffer.from(String(arg2 || ''), 'base64').toString('utf8');
+    fakeList.items = fakeList.items.map((it) => (it.id === arg ? { ...it, notes } : it));
+  }
+  return { ok: true, items: fakeList.items.map((it) => ({ ...it })) };
+}
+
 async function runHelper(command, arg, arg2) {
+  if (remindersFake()) return fakeHelper(command, arg, arg2);
+  // Guard: a test process that somehow bypassed the fake must not touch the real list.
+  if (process.env.NODE_TEST_CONTEXT || process.argv.some((a) => a === '--test')) {
+    throw Object.assign(new Error('refusing real Reminders in tests'), { reason: 'test-guard' });
+  }
   const args = [command, prefix()];
   if (arg) args.push(arg);
   if (arg2 != null) args.push(arg2);
@@ -156,7 +183,7 @@ async function runHelper(command, arg, arg2) {
 }
 
 async function readList() {
-  if (process.platform !== 'darwin') return { data: null, reason: 'unavailable' };
+  if (process.platform !== 'darwin' && !remindersFake()) return { data: null, reason: 'unavailable' };
   const now = Date.now();
   if (now - cache.at < cache.ttl) return { data: cache.failed ? null : cache.data, reason: cache.reason };
   try {
@@ -197,7 +224,7 @@ export async function loadGroceries(store) {
 }
 
 export async function saveGrocery(store, body) {
-  if (process.platform !== 'darwin') return withReason(await store.grocery(body), 'unavailable');
+  if (process.platform !== 'darwin' && !remindersFake()) return withReason(await store.grocery(body), 'unavailable');
   const action = body?.action || 'toggle';
   try {
     if (action === 'add') {
@@ -229,8 +256,10 @@ export async function listReminderItems() {
 }
 
 export async function setReminderNotes(id, notes) {
-  const compiled = await ensureBinary();
-  if (!compiled) throw new Error('helper not compiled');
+  if (!remindersFake()) {
+    const compiled = await ensureBinary();
+    if (!compiled) throw new Error('helper not compiled');
+  }
   const data = await runHelper('setnotes', String(id), Buffer.from(String(notes), 'utf8').toString('base64'));
   cache = { at: 0, data: null, failed: false, reason: '', ttl: TTL };
   return data.items || [];

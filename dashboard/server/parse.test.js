@@ -4,6 +4,7 @@ import http from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
+import { fakeList, resetFakeReminders } from './reminders.js';
 import { collapseColonDup, dedupeEvents, normEventTitle } from '../events.js';
 import { assignEvent, displayTitle } from '../family.js';
 import { fToC, hourLabelFromHour } from '../mock.js';
@@ -13,6 +14,9 @@ import { compactTitle, eventTitle, formatRange, formatTime, nextPersonWhen } fro
 import { tempChart } from '../js/weatherui.js';
 import { createApi } from './app.js';
 import { eventsFromIcs } from './ical.js';
+
+// Never touch the real Supermercado list from tests.
+process.env.REMINDERS_FAKE = '1';
 
 test('assigns the name before an em dash and ignores a leading emoji', () => {
   assert.deepEqual(assignEvent('⚽️ JP — U14 Boys Academy - Team Training').people, ['jp']);
@@ -89,6 +93,7 @@ test('serves mock calendar and toggles a chore when env is missing', async () =>
   delete process.env.ICLOUD_USER;
   delete process.env.ICLOUD_APP_PASSWORD;
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'coelho-'));
+  resetFakeReminders([]);
   const handle = createApi({ root });
   const server = http.createServer((req, res) => { handle(req, res); });
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
@@ -109,14 +114,13 @@ test('serves mock calendar and toggles a chore when env is missing', async () =>
   const added = await (await fetch(`${base}/api/groceries`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ action: 'add', name: 'Oats', cat: 'Pantry' }),
+    body: JSON.stringify({ action: 'add', name: 'Test oats (fake list)', cat: 'Pantry' }),
   })).json();
-  assert.equal(added.source, 'store');
-  assert.ok(added.groceries.some((g) => g.name === 'Oats' && !g.done));
+  // REMINDERS_FAKE: the add lands in the in-memory list, never in real Reminders.
+  assert.ok(fakeList.items.some((i) => i.title === 'Test oats (fake list)'));
+  assert.ok(added.groceries.some((g) => g.name === 'Test oats (fake list)' && !g.done));
   const grocery = await (await fetch(`${base}/api/grocery`)).json();
-  assert.equal(grocery.source, 'store');
-  assert.equal(grocery.reason, 'unavailable');
-  assert.ok(grocery.groceries.some((g) => g.name === 'Oats'));
+  assert.ok(grocery.groceries.some((g) => g.name === 'Test oats (fake list)'));
   const cfg = await (await fetch(`${base}/api/config`)).json();
   assert.equal(cfg.nightStart, '23:00');
   assert.equal(cfg.nightEnd, '06:00');
