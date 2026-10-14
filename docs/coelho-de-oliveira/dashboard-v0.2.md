@@ -426,3 +426,13 @@ Local commits only.
 - The family card always renders "Updated just now" / "Updated X min ago"; the raw "Find My"
   subtitle is gone. This was fixed server-side, so the helper binary was not rebuilt and the
   Accessibility grant is untouched.
+
+## v1.2: Binny's Beverage Depot in the store tagger
+
+- New store tag **`#binnys`** (Binny's Beverage Depot, Naperville) for wine, beer, cider, spirits and
+  mixers. Keywords cover Portuguese and English, e.g. vinho, espumante, cerveja, IPA, vodka, gin,
+  rum, cachaça, licor, vermouth, água tônica / tonic, club soda, soda water, bitters, Angostura,
+  ginger beer.
+- It's the first rule in `server/tagger-map.json`, so drinks win over the generic rules. Same
+  `stores: #binnys` notes line as the other stores, and hand edits are still respected.
+- Tags stay off the frame, as before.
