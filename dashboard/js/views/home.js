@@ -93,7 +93,8 @@ function heroDay(iso) {
   return new Intl.DateTimeFormat('en-US', { timeZone: tz, weekday: 'short', month: 'short', day: 'numeric' }).format(d);
 }
 
-const V2 = typeof location !== 'undefined' && /[?&]layout=v2\b/.test(location.search);
+// New Home is the default; ?layout=v1 keeps the old one.
+const V2 = !(typeof location !== 'undefined' && /[?&]layout=v1\b/.test(location.search));
 
 // v2 mockup: the next few events after Next Up, filling the hero's empty lower half.
 function thenHtml(cur) {

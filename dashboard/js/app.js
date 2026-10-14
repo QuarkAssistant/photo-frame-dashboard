@@ -25,8 +25,8 @@ function saverIdle() {
   return v == null ? 300 : (Number(v) || Infinity);
 }
 function pageParams0() { return new URLSearchParams(location.search); }
-// Mockup flag: ?layout=v2 (default Home unchanged).
-if (pageParams0().get('layout') === 'v2') document.documentElement.className += ' layout-v2';
+// New layout is default; ?layout=v1 restores the original Home.
+if (pageParams0().get('layout') !== 'v1') document.documentElement.className += ' layout-v2';
 let saverOpen = false;
 let themeFn = null;
 let nightOpen = false;

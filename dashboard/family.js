@@ -10,7 +10,8 @@ export const FAMILY = [
 ];
 
 // ?layout=v2 mockup: person colors sampled from each avatar's background.
-export const V2 = typeof location !== 'undefined' && /[?&]layout=v2\b/.test(location.search);
+// Default on; ?layout=v1 restores the original colors.
+export const V2 = !(typeof location !== 'undefined' && /[?&]layout=v1\b/.test(location.search));
 if (V2) {
   const C = {
     thiago: ['#AB2320', '171, 35, 32', '#FFF4EC'],

@@ -389,3 +389,13 @@ Local commits only.
 - The number of equal 54 px slots per day is computed from the space between the calendar's top
   and the bottom of the window, and recomputed on resize.
 - Each event shows start and end ("4:30 PM – 6:00 PM"); all-day events stay "All day".
+
+## v1.0: new Home is LIVE (default)
+
+- The Home v4/v5 layout (and its person colors) is now the default; no `?layout=v2` needed.
+  `?layout=v1` still shows the original Home.
+- Merged to `main` and served by the `com.coelho.dashboard` LaunchAgent. The frame picks it up
+  after a power-cycle.
+- Find My helper Accessibility on macOS 27: System Settings → Privacy & Security → Accessibility
+  (direct link: `x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility`).
+  Use **+** to add `dashboard/server/bin/findmy-people` if it isn't listed, then switch it on.
