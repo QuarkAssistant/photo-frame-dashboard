@@ -416,3 +416,13 @@ Local commits only.
 - The "Now" hourly column follows the observed condition and temperature. Later hours and the
   7-day forecast stay Open-Meteo.
 - `/api/weather` includes `observed: { station, at, text }` for debugging.
+
+## v1.1.1: Find My "Updated" time always shown
+
+- Rows can come without a relative time: "Now" or live entries, Thiago's own card, or the
+  LaunchAgent run reading the list without times. Those people had an empty `at`, so the card
+  showed a bare "Find My".
+- `/api/whereabouts` now fills a missing or invalid `at` with the helper's run time (`updatedAt`).
+- The family card always renders "Updated just now" / "Updated X min ago"; the raw "Find My"
+  subtitle is gone. This was fixed server-side, so the helper binary was not rebuilt and the
+  Accessibility grant is untouched.
