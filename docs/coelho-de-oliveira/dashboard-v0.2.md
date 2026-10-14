@@ -443,3 +443,11 @@ Local commits only.
 - `/api/groceries` returns items with `cat` and already sorted (section rank, then name, pt-BR collation). The Grocery page shows section headers in that order with items alphabetical inside; the Home grocery card lists items in section order. Store tags are never shown.
 - Tagger: new rules for herbs/corn/oats/cereal (#any), soda (#costco #walmart #target #jewel #marianos), ice (#costco #jewel #marianos #target) and disposable party goods/napkins (#dollartree #target #walmart #costco). Fallback: any item with no rule match gets `stores: #any`, so nothing stays untagged. Hand-edited `stores:` lines are still never overwritten.
 - Tests: `server/sections.test.js`, `server/tagger.test.js`.
+
+## v1.3.1 — Tests never touch the real Reminders list
+
+- Incident (Oct 14, 2026): `server/parse.test.js` POSTed "Oats" through the server, and because the shell had real Reminders access the item landed on the real "Supermercado ⚠️" list (several times).
+- Fix: `server/reminders.js` has an in-memory fake backend (`REMINDERS_FAKE=1`, also automatic under `node --test`). All helper calls (list/add/complete/setnotes) go to the fake list when it is on.
+- Guard: if a test process ever reaches the real helper, it throws `test-guard` instead of running it.
+- `npm test` runs `REMINDERS_FAKE=1 node --test server/*.test.js`. `server/reminders-safety.test.js` checks the fake is active and adds land only in memory. Test items are named "Test … (fake list)".
+- Rule: never run tests or scripts against the real list; cleanup of real items is done by Thiago.
