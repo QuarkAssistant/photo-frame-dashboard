@@ -265,3 +265,5 @@ The Next Up time line now starts with the day: `Today` / `Tomorrow` / `Wed, Oct 
 `4:30 PM – 6:00 PM · location`. A small uppercase label (`TODAY`, `TOMORROW`, `WED OCT 14`)
 sits above the big start time so it is never ambiguous. Dates use America/Chicago; times keep
 full AM/PM. Plain block/flex layout with `-webkit-` prefixes (old-WebView safe).
+
+- v0.5.2: place captions say `UK` instead of `GB`, and London boroughs/districts (City of Westminster, Greater London, etc.) display as `London, UK`. Applied at display time; the place cache keeps raw names.
