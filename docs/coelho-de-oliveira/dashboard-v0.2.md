@@ -12,6 +12,7 @@
 - **v0.4** — Grocery store tagger for the shared Reminders list.
 - **v0.4.1** — Tagger reliability: run log, status counters, stale warning + notification.
 - **v0.4.2** — Hide store tags on the dashboard; Quick add from real list history.
+- **v0.5** — Photo date/place captions on the Home slideshow and screensaver.
 
 ![Home (redacted)](img/home-redacted.png)
 ![Weather page (redacted)](img/weather-redacted.png)
@@ -194,7 +195,7 @@ Shown only for upcoming timed events with a location.
 - [x] **Stable address for the dashboard host** (done 2026-10-12): DASHBOARD_HOST has a DHCP
   reservation on the home gateway; macOS private Wi-Fi address set to Fixed. This prevents
   address changes only, not sleep/Wi-Fi outages/stopped service.
-- [ ] Verify the v0.3.2 slideshow rotation on the frame itself after a reload.
+- [x] Verify the v0.3.2 slideshow rotation on the frame itself — verified Oct 13, 2026 after a power-cycle.
 
 ## v0.4 — Grocery store tagger
 - Every **5 minutes** (inside the dashboard server, `server/tagger.js`) each **incomplete** item in the
@@ -236,3 +237,23 @@ Shown only for upcoming timed events with a location.
   Cached 10 min; returned as `usuals` by `/api/grocery` (never with store tags).
 - Tapping a tile adds a new incomplete reminder with that title (existing `add` path), which the
   tagger then tags.
+
+
+## v0.5 — Photo date & place captions
+
+Each slideshow photo (Home panel and idle screensaver) shows a small cream caption in its
+lower-right corner on a soft dark gradient, e.g. `July 4, 2025 · Naperville, IL`.
+
+- **Date:** EXIF `DateTimeOriginal` (fallback `DateTimeDigitized` / `DateTime`), read directly
+  from the JPEG bytes by `server/photometa.js` (no extra tools). Shown as camera-local date.
+- **Place:** EXIF GPS (iCloud shared-album downloads keep it), reverse-geocoded with
+  OpenStreetMap Nominatim (`zoom=10`, ≤ 1 request/s, identifying User-Agent). Short form:
+  `City, ST` in the US, `City, CC` elsewhere. Cached permanently by coordinates rounded to
+  2 decimals, so each area is looked up once.
+- **Caches (outside the repo, never committed):** per-photo metadata in
+  `~/Library/Caches/coelho-photos/meta.json`; place names in
+  `~/Library/Application Support/coelho-dashboard/places.json`.
+- `/api/photos` items gain optional `date` and `place`. Place is omitted when unknown; the
+  caption is omitted entirely when neither is known.
+- Old-WebView safe: absolute positioning, `-webkit-linear-gradient`, `text-shadow`, no `gap`.
+  The caption lives inside each crossfade layer, so it fades with its photo.

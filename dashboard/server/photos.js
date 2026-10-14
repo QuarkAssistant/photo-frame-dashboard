@@ -10,6 +10,7 @@ const CACHE = path.join(os.homedir(), 'Library', 'Caches', 'coelho-photos');
 const MAX_W = 1280;
 const MAX_H = 800;
 const pending = new Map();
+import { metaFor, refreshMeta } from './photometa.js';
 
 const EXT = new Set(['.jpg', '.jpeg', '.png', '.gif', '.webp', '.heic', '.tif', '.tiff']);
 const files = new Map();
@@ -46,12 +47,14 @@ export function listPhotos() {
     files.set(id, full);
     photos.push({
       id,
+      ...metaFor(id),
       url: `/api/photos/${id}`,
       caption: name.startsWith('icloud-') ? '' : path.basename(name, ext).replace(/[_-]+/g, ' '),
     });
   }
   photos.sort((a, b) => (a.caption + a.id).localeCompare(b.caption + b.id));
   if (!photos.length) return EMBLEM;
+  refreshMeta(new Map(files)).catch(() => {});
   return { source: 'folder', photos };
 }
 
