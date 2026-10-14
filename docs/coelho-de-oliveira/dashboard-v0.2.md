@@ -289,7 +289,7 @@ Local commits only; not pushed or merged yet.
   from the existing chores store for the current routine; tapping still opens the Chores page.
 - Grocery: count + up to 6 items in two columns.
 
-**Event color rule** (`family.js` `peopleFor`)
+**Event color rule** (`family.js` `assignEvent`)
 - The calendar is the Apple family calendar `Calendário da Família`, read over iCloud CalDAV.
 - An event belongs to a person when its title begins with that person's name before " — "
   (e.g. "⚽️ JP — Team Training").
