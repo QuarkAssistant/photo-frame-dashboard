@@ -274,3 +274,7 @@
 /* v0.4.1: tagger warning on the Grocery card */
 .h-shop { position: relative; }
 .h-tagwarn { position: absolute; top: 8px; right: 10px; font-size: 10px; font-weight: 800; color: #B8432F; background: #FBF5E8; border: 1px solid rgba(184, 67, 47, 0.35); border-radius: 999px; padding: 2px 8px; white-space: nowrap; }
+
+/* Next Up date label above the big time (old-WebView safe) */
+.h-hero-big { -webkit-flex-shrink: 0; flex-shrink: 0; text-align: right; }
+.h-hero-day { font-size: 13px; font-weight: 800; letter-spacing: 0.14em; opacity: 0.75; margin-bottom: 2px; white-space: nowrap; }

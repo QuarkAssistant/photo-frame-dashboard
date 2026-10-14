@@ -13,6 +13,7 @@
 - **v0.4.1** — Tagger reliability: run log, status counters, stale warning + notification.
 - **v0.4.2** — Hide store tags on the dashboard; Quick add from real list history.
 - **v0.5** — Photo date/place captions on the Home slideshow and screensaver.
+- **v0.5.1** — Next Up shows the event date (time line + label above the big time).
 
 ![Home (redacted)](img/home-redacted.png)
 ![Weather page (redacted)](img/weather-redacted.png)
@@ -257,3 +258,10 @@ lower-right corner on a soft dark gradient, e.g. `July 4, 2025 · Naperville, IL
   caption is omitted entirely when neither is known.
 - Old-WebView safe: absolute positioning, `-webkit-linear-gradient`, `text-shadow`, no `gap`.
   The caption lives inside each crossfade layer, so it fades with its photo.
+
+## v0.5.1 — Next Up event date
+
+The Next Up time line now starts with the day: `Today` / `Tomorrow` / `Wed, Oct 14`, then
+`4:30 PM – 6:00 PM · location`. A small uppercase label (`TODAY`, `TOMORROW`, `WED OCT 14`)
+sits above the big start time so it is never ambiguous. Dates use America/Chicago; times keep
+full AM/PM. Plain block/flex layout with `-webkit-` prefixes (old-WebView safe).
