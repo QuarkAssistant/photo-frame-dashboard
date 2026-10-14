@@ -1,3 +1,4 @@
+import { sectionFor, sortBySection } from '../sections.js';
 import { execFile } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -86,13 +87,13 @@ function shape(data) {
   return {
     source: 'reminders',
     list: data.list,
-    groceries: (data.items || []).map((item) => ({
+    groceries: sortBySection((data.items || []).map((item) => ({
       id: String(item.id || ''),
       name: String(item.title || ''),
       notes: stripStoreTags(item.notes),
-      cat: 'Other',
+      cat: sectionFor(item.title),
       done: false,
-    })),
+    }))),
   };
 }
 

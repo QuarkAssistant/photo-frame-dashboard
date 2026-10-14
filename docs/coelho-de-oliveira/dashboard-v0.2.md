@@ -436,3 +436,10 @@ Local commits only.
 - It's the first rule in `server/tagger-map.json`, so drinks win over the generic rules. Same
   `stores: #binnys` notes line as the other stores, and hand edits are still respected.
 - Tags stay off the frame, as before.
+
+## v1.3 — Grocery list sorted by store section
+
+- `dashboard/sections.js` (shared server + client) maps each item name (PT + EN, accent-insensitive, longest whole-word keyword wins) to one fixed section order: Produce, Bakery, Meat, Dairy, Frozen, Pantry, Drinks, Alcohol / Binny's, Personal care, Party & paper, Household, Other.
+- `/api/groceries` returns items with `cat` and already sorted (section rank, then name, pt-BR collation). The Grocery page shows section headers in that order with items alphabetical inside; the Home grocery card lists items in section order. Store tags are never shown.
+- Tagger: new rules for herbs/corn/oats/cereal (#any), soda (#costco #walmart #target #jewel #marianos), ice (#costco #jewel #marianos #target) and disposable party goods/napkins (#dollartree #target #walmart #costco). Fallback: any item with no rule match gets `stores: #any`, so nothing stays untagged. Hand-edited `stores:` lines are still never overwritten.
+- Tests: `server/sections.test.js`, `server/tagger.test.js`.
