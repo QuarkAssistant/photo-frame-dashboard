@@ -76,6 +76,17 @@ function familyHtml() {
   }).join('');
 }
 
+// 'Today' / 'Tomorrow' / 'Wed, Oct 14' in America/Chicago.
+function heroDay(iso) {
+  const tz = 'America/Chicago';
+  const key = (d) => new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
+  const d = new Date(iso);
+  const t = now();
+  if (key(d) === key(t)) return 'Today';
+  if (key(d) === key(new Date(t.getTime() + 86400000))) return 'Tomorrow';
+  return new Intl.DateTimeFormat('en-US', { timeZone: tz, weekday: 'short', month: 'short', day: 'numeric' }).format(d);
+}
+
 function heroHtml() {
   const up = nextUp(state.events, now());
   if (!up) {
@@ -95,11 +106,12 @@ function heroHtml() {
   }
   const meta = e.allDay
     ? relDay(e.start)
-    : `${formatRangeSafe(e)}${e.location ? ` · ${esc(e.location)}` : ''}`;
+    : `${heroDay(e.start)} · ${formatRangeSafe(e)}${e.location ? ` · ${esc(e.location)}` : ''}`;
   return `<button class="h-hero" type="button" style="${pstyle(p)}" data-ev="${esc(e.id)}">` +
     `<div class="h-hero-main"><div class="label label--on">Next up · ${esc(who)}</div>` +
     `<div class="h-hero-title serif">${esc(eventTitle(e))}</div>` +
-    `<div class="h-hero-meta">${meta}</div>${leaveHtml(e, up.phase)}</div>${big}</button>`;
+    `<div class="h-hero-meta">${meta}</div>${leaveHtml(e, up.phase)}</div>` +
+    `<div class="h-hero-big"><div class="h-hero-day">${esc(heroDay(e.start).replace(',', '').toUpperCase())}</div>${big}</div></button>`;
 }
 
 const etas = {};
