@@ -9,6 +9,19 @@ export const FAMILY = [
   { id: 'lucas', name: 'Lucas', initial: 'L', color: '#C4A46A', rgb: '196, 164, 106', ink: '#1F3A3A', kid: true },
 ];
 
+// ?layout=v2 mockup: person colors sampled from each avatar's background.
+// Default on; ?layout=v1 restores the original colors.
+export const V2 = !(typeof location !== 'undefined' && /[?&]layout=v1\b/.test(location.search));
+if (V2) {
+  const C = {
+    thiago: ['#AB2320', '171, 35, 32', '#FFF4EC'],
+    gilmara: ['#F78872', '247, 136, 114', '#3A1410'],
+    jp: ['#3D78BC', '61, 120, 188', '#F4F8FF'],
+    lucas: ['#8EAD74', '142, 173, 116', '#1E2E14'],
+  };
+  FAMILY.forEach((p) => { const c = C[p.id]; p.color = c[0]; p.rgb = c[1]; p.ink = c[2]; p.photo = `/avatars/${p.id}.jpg`; });
+}
+
 export const EVERYONE = {
   id: 'everyone', name: 'Everyone', initial: '★', color: '#1F3A3A', rgb: '31, 58, 58', ink: '#E8DCC4',
 };

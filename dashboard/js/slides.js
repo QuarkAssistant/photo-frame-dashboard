@@ -53,13 +53,17 @@ export function createSlides(host, opts) {
       if (done || my !== token) return;
       done = true;
       var back = 1 - front;
-      layers[back].style.backgroundImage = 'url("' + url + '")';
-      layers[back].innerHTML = captionHtml(list[index]);
+      // Whole photo (contain) over a blurred, dimmed copy of itself, so
+      // landscape and portrait shots are never cropped.
+      var bgUrl = 'url("' + url + '")';
+      layers[back].style.backgroundImage = '';
+      layers[back].innerHTML = '<div class="sl-bg" style="background-image:' + bgUrl.replace(/"/g, '&quot;') + '"></div>' +
+        '<div class="sl-fg" style="background-image:' + bgUrl.replace(/"/g, '&quot;') + '"></div>' + captionHtml(list[index]);
       layers[back].className = 'sl-layer is-on';
       layers[front].className = 'sl-layer';
       front = back;
       lastShown = Date.now();
-      if (opts.onShow) opts.onShow(list[index]);
+      if (opts.onShow) opts.onShow(list[index], img.naturalWidth, img.naturalHeight);
       if (list.length > 1) { preload = new Image(); preload.src = urlAt(index + 1); }
       schedule();
     }

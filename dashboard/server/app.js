@@ -128,6 +128,15 @@ export function createApi({ root }) {
         fs.createReadStream(file).pipe(res);
         return;
       }
+      if (pathname === '/api/whereabouts' && req.method === 'GET') {
+        // Written by a separate Find My helper (not committed data). Shape:
+        // { updatedAt, people: { thiago: { place, at }, ... } }. Missing file -> unavailable.
+        const fs = await import('node:fs/promises');
+        const os = await import('node:os');
+        const file = process.env.WHEREABOUTS_FILE || `${os.homedir()}/Library/Application Support/coelho-dashboard/whereabouts.json`;
+        try { return sendJson(res, 200, { ok: true, ...JSON.parse(await fs.readFile(file, 'utf8')) }); }
+        catch { return sendJson(res, 200, { ok: false, reason: 'no-findmy-source', people: {} }); }
+      }
       if (pathname === '/api/chores') {
         if (req.method === 'GET') return sendJson(res, 200, store.chores());
         if (req.method === 'POST') {
@@ -145,6 +154,13 @@ export function createApi({ root }) {
           const body = await readBody(req);
           return sendJson(res, 200, await store.setHomework(String(body.id || ''), body.done));
         }
+      }
+      const av = /^\/avatars\/([a-z]+)\.jpg$/.exec(pathname);
+      if (av) {
+        const f = path.join(root, 'local-assets', 'avatars', `${av[1]}.jpg`);
+        if (!fs.existsSync(f)) { res.writeHead(404); return res.end(); }
+        res.writeHead(200, { 'Content-Type': 'image/jpeg', 'Cache-Control': 'max-age=86400' });
+        return fs.createReadStream(f).pipe(res);
       }
       if (pathname.startsWith('/api/')) return sendJson(res, 404, { error: 'not found' });
 

@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "serve": "node server/index.js",
     "reminders:build": "mkdir -p server/bin && swiftc -O -o server/bin/reminders-grocery server/reminders.swift",
-    "deploy": "vite build && wrangler deploy"
+    "deploy": "vite build && wrangler deploy",
+    "findmy:build": "mkdir -p server/bin && swiftc -O -o server/bin/findmy-people server/findmy.swift"
   },
   "devDependencies": {
     "vite": "^8.3.1",

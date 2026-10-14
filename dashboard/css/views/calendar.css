@@ -1,6 +1,6 @@
 .cal { height: 100%; display: flex; flex-direction: column; min-height: 0; }
 .cal-head { display: flex; align-items: center; gap: calc(var(--u) * 0.8); flex: none; margin-bottom: calc(var(--u) * 0.6); }
-.cal-head h1 { font-size: clamp(36px, calc(var(--u) * 3.3), 56px); line-height: 0.95; }
+.cal-head h1 { font-size: clamp(36px, calc(var(--u) * 3.3), 56px); line-height: 1.12; padding-bottom: 2px; }
 .cal-range { color: var(--mute); font-size: var(--fs-m); margin-right: auto; }
 .cal-nav { display: flex; gap: 8px; flex: none; }
 .cal-nav button {
@@ -69,3 +69,25 @@
 .wk-ev span { display: block; font-size: 11px; font-weight: 800; letter-spacing: 0.02em; text-transform: uppercase; opacity: 0.85; white-space: nowrap; }
 .wk-ev b { display: block; font-size: clamp(11px, calc(var(--u) * 0.85), 14px); font-weight: 700; line-height: 1.15; }
 .wk-free { color: var(--mute); padding: 8px 4px; }
+
+/* v2d: equal week cells — fixed-height chips, no per-column scroll, +N more */
+.week { -webkit-align-items: stretch; align-items: stretch; }
+.wk-list { overflow: hidden; }
+.wk-ev { height: 62px; min-height: 62px; box-sizing: border-box; overflow: hidden; -webkit-flex: none; flex: none; }
+.wk-ev b { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.wk-more { background: transparent; color: var(--ink); border: 2px solid rgba(31,58,58,0.35); font-weight: 800; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; text-align: center; }
+.ag-time { width: 112px; }
+
+/* v3: month view + legend (tables, old-WebView safe) */
+.month { width: 100%; height: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 4px; }
+.month th { font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--mute); text-align: left; padding: 0 6px 2px; }
+.mo-c { vertical-align: top; background: var(--card); border-radius: 10px; padding: 4px 5px; height: 92px; overflow: hidden; }
+.mo-c.is-out { opacity: 0.45; }
+.mo-c.is-today { box-shadow: inset 0 0 0 2px var(--ink); }
+.mo-d { display: block; font-size: 13px; font-weight: 800; color: var(--ink); margin-bottom: 2px; }
+.mo-ev { display: block; width: 100%; box-sizing: border-box; height: 20px; line-height: 16px; margin-top: 2px; padding: 2px 5px; border-radius: 5px; background: var(--c); color: var(--c-ink); font-size: 10.5px; font-weight: 700; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mo-ev b { font-weight: 900; }
+.mo-more { display: block; margin-top: 2px; font-size: 10px; font-weight: 800; color: var(--mute); text-transform: uppercase; }
+.cal-legend { -webkit-flex: none; flex: none; padding-top: 8px; border-top: 1px solid var(--line); margin-top: 6px; white-space: nowrap; overflow: hidden; }
+.lg { display: inline-block; margin-right: 18px; font-size: 12px; font-weight: 700; color: var(--ink-2); }
+.lg i { display: inline-block; width: 12px; height: 12px; border-radius: 4px; margin-right: 6px; vertical-align: -1px; }

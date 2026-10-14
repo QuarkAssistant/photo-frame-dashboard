@@ -325,3 +325,14 @@ button.card:active, .h-hero:active, .h-photo:active { transform: scale(0.985); }
 .saver-hud .saver-date { font-size: 13px; margin-top: 4px; opacity: 0.85; }
 .saver-hud .saver-wx { font-size: 15px; font-weight: 800; margin-top: 4px; white-space: nowrap; }
 .saver-hud .saver-wx i { font-style: normal; color: #C9D38A; padding: 0 2px; }
+
+/* Avatar photos (local, git-ignored); initials stay underneath as fallback */
+.avatar.has-pic { position: relative; overflow: hidden; }
+.avatar-pic { position: absolute; top: 0; right: 0; bottom: 0; left: 0; border-radius: 50%; background-position: center; background-repeat: no-repeat; -webkit-background-size: cover; background-size: cover; }
+
+/* v2d: show the whole photo (contain) over a blurred fill; old-WebView safe */
+.sl-layer { background-image: none; }
+.sl-bg, .sl-fg { position: absolute; top: 0; right: 0; bottom: 0; left: 0; background-position: center center; background-repeat: no-repeat; }
+.sl-bg { top: -24px; right: -24px; bottom: -24px; left: -24px; -webkit-background-size: cover; background-size: cover; -webkit-filter: blur(18px) brightness(0.55); filter: blur(18px) brightness(0.55); }
+.sl-fg { -webkit-background-size: contain; background-size: contain; }
+.sl-cap { z-index: 1; }

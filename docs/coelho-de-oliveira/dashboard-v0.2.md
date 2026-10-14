@@ -267,3 +267,135 @@ sits above the big start time so it is never ambiguous. Dates use America/Chicag
 full AM/PM. Plain block/flex layout with `-webkit-` prefixes (old-WebView safe).
 
 - v0.5.2: place captions say `UK` instead of `GB`, and London boroughs/districts (City of Westminster, Greater London, etc.) display as `London, UK`. Applied at display time; the place cache keeps raw names.
+
+## v0.7 (branch `cursor/home-layout-v2`, preview `?layout=v2`) — Home v3, themes, month view
+
+Local commits only; not pushed or merged yet.
+
+**Home v3 layout** (`js/views/home3.js`, `css/views/home3.css`)
+- Header: clock · compact weather · family 2×2.
+- Weather card, inspired by a phone widget: big `70 °F / 21 °C`, condition in italic, then
+  `H … · L … · Feels …` (Open-Meteo `apparent_temperature`) and 5 small hourly bars (bar height =
+  relative temperature, AM/PM labels).
+- Family 2×2: avatar + name + Find My place + "Updated X min ago". It reads `/api/whereabouts`,
+  which serves `~/Library/Application Support/coelho-dashboard/whereabouts.json` (or
+  `WHEREABOUTS_FILE`). Shape: `{ "updatedAt": ISO, "people": { "thiago": { "place": "Home", "at": ISO }, … } }`.
+  Without that file it shows "Location off · Find My not connected".
+- Family calendar: one table, Today + next 4 days, 4 equal slots per day, "+N more" opens
+  Calendar.
+- Photo: fixed 3:2 landscape box (padding-top ratio, no `aspect-ratio`), whole photo (contain) on
+  a blurred fill.
+- Chores: progress rings per person in their color, "Anyone" grey, tagged **Preview**. Counts come
+  from the existing chores store for the current routine; tapping still opens the Chores page.
+- Grocery: count + up to 6 items in two columns.
+
+**Event color rule** (`family.js` `assignEvent`)
+- The calendar is the Apple family calendar `Calendário da Família`, read over iCloud CalDAV.
+- An event belongs to a person when its title begins with that person's name before " — "
+  (e.g. "⚽️ JP — Team Training").
+- Anything else (no prefix, school-wide, trips, shows) counts as Family / everyone (dark teal).
+- The chip color is the person's avatar color.
+- The calendar fetch now starts on the 1st of the current month and covers 75 days, so the month
+  view is full.
+
+**Calendar page**
+- Agenda / Week / **Month** toggle. Month is a Sunday-first table with equal cells, 2–3 chips per
+  day and "+N more"; the arrows move to next month. `?cal=month` opens it directly.
+- A color legend at the bottom: each person, Family / everyone, Holiday BR, Holiday US, Flamengo.
+
+**Theme** (Settings → Theme: Light / Dark / Auto (sunset))
+- Dark keeps the palette (forest/teal paper, cream ink, olive accents) via `css/theme-dark.css`
+  (`html.theme-dark`).
+- Auto uses today's Open-Meteo sunset and sunrise and is re-checked every minute.
+- Saved per frame in `localStorage`. `?theme=dark|light|auto` overrides it for screenshots.
+
+**Find My (family locations): status**
+- The dashboard Mac is signed into a different Apple ID than Thiago's.
+- The Find My cache (`~/Library/Caches/com.apple.findmy.fmipcore`) is blocked by macOS privacy
+  controls ("Operation not permitted"). On macOS 14.4+ the `Items.data` / `Devices.data` files
+  are also encrypted with a keychain key, so reading the cache is not a viable path.
+- The iCloud credential in `.env` is an app-specific password (CalDAV only). It cannot access Find
+  My.
+- Workable options, all producing the same `whereabouts.json`:
+  1. **Recommended:** Thiago (the Family Sharing organizer) runs `pyicloud` once on the MacBook
+     with his own Apple ID, completes 2FA interactively and stores the session in the keychain.
+     A LaunchAgent then polls the family devices list every ~5 min and reverse-geocodes each
+     member's primary iPhone to "Home" (within ~150 m of HOME_LAT/LON) or a city or neighborhood.
+     The session must be re-trusted every ~2 months. This uses an unofficial API that can break.
+  2. Each person's iPhone runs a Shortcuts automation (e.g. when leaving or arriving home) that
+     POSTs a place to the dashboard. This is official and private, but needs per-phone setup.
+  3. Share each person's location with the Mac's Apple ID and read the Find My app window. This
+     is fragile and not recommended.
+
+## v0.8 (branch `cursor/home-layout-v2`, preview `?layout=v2`): Home v4 + Find My helper
+
+Local commits only.
+
+**Home v4** uses exactly the card versions Thiago picked:
+- the clock and the full-width weather header with hourly columns (the earlier version);
+- the family 2×2 with name, place and "Updated X min ago";
+- Next Up with Leave-by, the After-that list and the big time;
+- the holiday/Flamengo strip and the 5-column family calendar;
+- the photo, then the Chores rings and Grocery.
+
+It works in light and dark.
+
+- **Photo uses its own aspect ratio.** The slideshow reports each image's natural size and
+  `fitPhoto()` sizes the photo box to that ratio inside the free area, centred. There are no side
+  bars, no blurred fill and no crop; portrait photos get a narrower box. The size is recomputed on
+  each photo, on repaint and on window resize.
+- **Avatars are not cropped.** The full 256×256 picture sits in a rounded square
+  (`background-size: contain`), not a circle.
+
+**Find My → `/api/whereabouts`**
+- `server/findmy.swift` builds to `server/bin/findmy-people` with `npm run findmy:build` (git-ignored).
+- It reads the Find My app's People list through the macOS Accessibility API. Each entry reads like
+  "Name, Nearby, Town, ST · 2 min ago".
+- It writes `~/Library/Application Support/coelho-dashboard/whereabouts.json` (chmod 600, outside
+  the repo, never committed). The fields are `place`, plus `at` derived from "X min ago".
+- Names are matched by first name (JP also matches "João"). Extra aliases, such as an Apple ID
+  email shown instead of a contact name, go in the git-ignored `.env`:
+  `FINDMY_MAP=thiago=<apple id>;…`
+- LaunchAgent `com.coelho.findmy` (template at `launchd/com.coelho.findmy.plist.example`) runs it
+  every 5 min. Log: `~/Library/Logs/coelho-findmy.log`.
+- **One-time permission (Thiago, at the MacBook):** System Settings → Privacy & Security →
+  Accessibility → enable **findmy-people** (`…/dashboard/server/bin/findmy-people`). Until then the
+  LaunchAgent logs `not-trusted`. A rebuild of the binary may require toggling it again.
+- If Find My shows "No Location Found", the card shows that text with no time.
+
+## v0.9 (branch `cursor/home-layout-v2`): specific Find My places, taller family calendar
+
+Local commits only.
+
+**Find My labels** (`server/findmy.swift`)
+- The People list only says "Nearby, Town, ST". For each person the helper now:
+  1. selects the person's row;
+  2. presses their card ("Open Details");
+  3. reads the detail sheet's first line (the street or place Find My shows, e.g.
+     "Washington St, Naperville");
+  4. presses the sheet's **Close** button so Find My never stays stuck on a detail view.
+- If that line matches the street in `HOME_ADDRESS` (from the git-ignored `.env`), or Find My says
+  "Home", the card shows **Home**. Otherwise it shows "<street or place>, <town>".
+  "No Location Found" passes through with no time.
+- The Find My window is enlarged so every row renders. The selected person can drop out of the
+  list read, so their previous entry (with its original time) is kept instead of being blanked.
+- Coordinates are not exposed through Accessibility, so there is no reverse-geocoding. Places
+  stay in `whereabouts.json` (outside the repo).
+- After every rebuild, re-enable **findmy-people** under System Settings → Privacy & Security →
+  Accessibility, or the 5-minute LaunchAgent logs `not-trusted`.
+
+**Family calendar on Home**
+- The 5 columns stretch down to the bottom of the screen.
+- The number of equal 54 px slots per day is computed from the space between the calendar's top
+  and the bottom of the window, and recomputed on resize.
+- Each event shows start and end ("4:30 PM – 6:00 PM"); all-day events stay "All day".
+
+## v1.0: new Home is LIVE (default)
+
+- The Home v4/v5 layout (and its person colors) is now the default; no `?layout=v2` needed.
+  `?layout=v1` still shows the original Home.
+- Merged to `main` and served by the `com.coelho.dashboard` LaunchAgent. The frame picks it up
+  after a power-cycle.
+- Find My helper Accessibility on macOS 27: System Settings → Privacy & Security → Accessibility
+  (direct link: `x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility`).
+  Use **+** to add `dashboard/server/bin/findmy-people` if it isn't listed, then switch it on.

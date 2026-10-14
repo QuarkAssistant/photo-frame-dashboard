@@ -6,5 +6,6 @@ import './views/grocery.js';
 import './views/member.js';
 import './views/photos.js';
 import './views/weather.js';
+import './views/settings.js';
 
 start();

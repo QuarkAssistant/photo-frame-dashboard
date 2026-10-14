@@ -8,6 +8,7 @@ import {
 import { celsius } from '../weatherui.js';
 import { createSlides } from '../slides.js';
 import { icon } from '../icons.js';
+import { chores3, days3, family3, loadWhere, shop3, weather3 } from './home3.js';
 
 
 function wxPair(f, c, cls = '') {
@@ -68,6 +69,11 @@ function personWhen(p) {
 }
 
 function familyHtml() {
+  if (V2) {
+    const face = (p) => `<button class="h-face" type="button" data-go="${p.id}" style="${pstyle(p)}" aria-label="${esc(p.name)}">${avatar(p)}</button>`;
+    return '<div class="h-faces"><div class="h-faces-row">' + FAMILY.slice(0, 2).map(face).join('') +
+      '</div><div class="h-faces-row">' + FAMILY.slice(2, 4).map(face).join('') + '</div></div>';
+  }
   return FAMILY.map((p) => {
     const sub = personWhen(p);
     const when = `<small>${esc(sub)}</small>`;
@@ -85,6 +91,25 @@ function heroDay(iso) {
   if (key(d) === key(t)) return 'Today';
   if (key(d) === key(new Date(t.getTime() + 86400000))) return 'Tomorrow';
   return new Intl.DateTimeFormat('en-US', { timeZone: tz, weekday: 'short', month: 'short', day: 'numeric' }).format(d);
+}
+
+// New Home is the default; ?layout=v1 keeps the old one.
+const V2 = !(typeof location !== 'undefined' && /[?&]layout=v1\b/.test(location.search));
+
+// v2 mockup: the next few events after Next Up, filling the hero's empty lower half.
+function thenHtml(cur) {
+  const n = now();
+  const today = ymd(n);
+  const list = state.events
+    .filter((e) => e.id !== cur.id && !e.allDay && new Date(e.start) > new Date(cur.start))
+    .sort((a, b) => String(a.start).localeCompare(String(b.start)))
+    .slice(0, 3);
+  if (!list.length) return '';
+  return '<div class="h-then"><div class="label label--on">After that</div>' + list.map((e) => {
+    const who = e.everyone ? 'Everyone' : e.people.map((pid) => (FAMILY.find((m) => m.id === pid) || {}).name || '').join(' + ');
+    return `<div class="h-then-row"><span class="h-then-t">${esc(heroDay(e.start))} ${esc(formatTime(e.start))}</span>` +
+      `<span class="h-then-n">${esc(compactTitle(e.displayTitle || e.title))}</span><span class="h-then-w">${esc(who)}</span></div>`;
+  }).join('') + '</div>';
 }
 
 function heroHtml() {
@@ -110,7 +135,7 @@ function heroHtml() {
   return `<button class="h-hero" type="button" style="${pstyle(p)}" data-ev="${esc(e.id)}">` +
     `<div class="h-hero-main"><div class="label label--on">Next up · ${esc(who)}</div>` +
     `<div class="h-hero-title serif">${esc(eventTitle(e))}</div>` +
-    `<div class="h-hero-meta">${meta}</div>${leaveHtml(e, up.phase)}</div>` +
+    `<div class="h-hero-meta">${meta}</div>${leaveHtml(e, up.phase)}${V2 ? thenHtml(e) : ''}</div>` +
     `<div class="h-hero-big"><div class="h-hero-day">${esc(heroDay(e.start).replace(',', '').toUpperCase())}</div>${big}</div></button>`;
 }
 
@@ -166,6 +191,7 @@ function laneWhen(e, today, n) {
   return `${dayParts(day).weekday.slice(0, 3)} ${t}`;
 }
 
+const LANE_SLOTS = V2 ? 4 : 6;
 function lanesHtml() {
   const n = now();
   const today = ymd(n);
@@ -175,14 +201,19 @@ function lanesHtml() {
       .filter((e) => e.people.includes(p.id))
       .filter((e) => (e.allDay ? e.start <= until && e.end > today : ymd(new Date(e.start)) <= until && new Date(e.end) > n))
       .sort((a, b) => String(a.start).localeCompare(String(b.start)))
-      .slice(0, 6);
-    const rows = list.length
-      ? list.map((e) => {
-        const cur = !e.allDay && new Date(e.start) <= n && new Date(e.end) > n;
-        return `<button class="h-ev${cur ? ' is-now' : ''}" type="button" data-ev="${esc(e.id)}">` +
-          `<span class="h-ev-t">${esc(laneWhen(e, today, n))}</span><span class="h-ev-n">${esc(compactTitle(e.displayTitle || e.title))}</span></button>`;
-      }).join('')
-      : '<div class="h-free serif"><i>Nothing</i> coming up</div>';
+      ;
+    // Equal lanes: every person gets the same number of fixed-height slots;
+    // overflow becomes a "+N more" slot, empty slots keep the rows aligned.
+    const shown = list.length > LANE_SLOTS ? list.slice(0, LANE_SLOTS - 1) : list;
+    const extra = list.length - shown.length;
+    let rows = shown.map((e) => {
+      const cur = !e.allDay && new Date(e.start) <= n && new Date(e.end) > n;
+      return `<button class="h-ev${cur ? ' is-now' : ''}" type="button" data-ev="${esc(e.id)}">` +
+        `<span class="h-ev-t">${esc(laneWhen(e, today, n))}</span><span class="h-ev-n">${esc(compactTitle(e.displayTitle || e.title))}</span></button>`;
+    }).join('');
+    if (extra > 0) rows += `<button class="h-ev h-ev--more" type="button" data-go="${p.id}">+${extra} more</button>`;
+    if (!list.length) rows = '<div class="h-ev h-ev--free serif"><i>Nothing</i> coming up</div>';
+    for (let k = Math.max(shown.length + (extra > 0 ? 1 : 0), 1); k < LANE_SLOTS; k++) rows += '<div class="h-ev h-ev--empty"></div>';
     return `<div class="h-lane" style="${pstyle(p)}"><div class="h-lane-head">${avatar(p)}<b>${esc(p.name)}</b></div>${rows}</div>`;
   }).join('');
 }
@@ -207,7 +238,7 @@ function choresHtml() {
 
 function shopHtml() {
   const open = state.groceries.filter((g) => !g.done);
-  const recent = open.slice(0, 3);
+  const recent = open.slice(0, V2 ? 5 : 3);
   const tg = state.tagger;
   let warn = '';
   if (tg && tg.stale) {
@@ -223,6 +254,22 @@ function realPhotos() {
 }
 
 let homeSlides = null;
+let lastRatio = 1.5;
+
+// v4: size the photo box to the photo's own ratio inside the available area
+// (no crop, no bars). Portrait photos get a narrower box, centred.
+function fitPhoto(btn, w, h) {
+  if (w && h) lastRatio = w / h;
+  const area = btn.parentNode;
+  const aw = area.clientWidth; const ah = area.clientHeight;
+  if (!aw || !ah) return;
+  let bw = aw; let bh = aw / lastRatio;
+  if (bh > ah) { bh = ah; bw = ah * lastRatio; }
+  btn.style.width = `${Math.round(bw)}px`;
+  btn.style.height = `${Math.round(bh)}px`;
+  btn.style.left = `${Math.round((aw - bw) / 2)}px`;
+  btn.style.top = `${Math.round((ah - bh) / 2)}px`;
+}
 
 function showSlide(root) {
   const photoBtn = root.querySelector('.h-photo');
@@ -238,7 +285,8 @@ function showSlide(root) {
   if (!homeSlides) {
     homeSlides = createSlides(stage, {
       interval: 15000,
-      onShow(photo) {
+      onShow(photo, w, h) {
+        if (V2) fitPhoto(photoBtn, w, h);
         const cap = photoBtn.querySelector('.h-photo-cap');
         if (cap) { cap.innerHTML = photo.caption ? `<span>${esc(photo.caption)}</span>` : ''; cap.style.display = photo.caption ? '' : 'none'; }
       },
@@ -249,7 +297,39 @@ function showSlide(root) {
   homeSlides.setPhotos(state.photos);
 }
 
+function calSlots(cal) {
+  // Space from the calendar's top to the bottom of the screen (minus page padding).
+  const top = cal.getBoundingClientRect().top;
+  const h = top > 0 ? window.innerHeight - top - 16 : (cal.clientHeight || 0);
+  const n = Math.floor((h - 18 - 34 - 8) / 58);
+  cal._slots = n > 0 ? n : 4;
+  return cal._slots;
+}
+
+function paint3(el) {
+  const clock = el.querySelector('[data-clock]');
+  if (clock) clock.innerHTML = clockHtml(now());
+  el.querySelector('.h-weather').innerHTML = weatherHtml();
+  el.querySelector('.h-family').innerHTML = family3();
+  el.querySelector('.h-hero-slot').innerHTML = heroHtml();
+  el.querySelector('.h-days').innerHTML = daysHtml();
+  const cal = el.querySelector('.h-cal3');
+  // Fill the column to the bottom: as many equal 56 px slots per day as fit.
+  const refit = () => { const prev = cal._slots; const n = calSlots(cal); if (n !== prev || !cal.firstChild) cal.innerHTML = days3(n); };
+  cal.innerHTML = days3(calSlots(cal));
+  setTimeout(refit, 60);
+  setTimeout(refit, 600);
+  el.querySelector('.h-chores').innerHTML = chores3(routineNow());
+  el.querySelector('.h-shop').innerHTML = shop3();
+  showSlide(el);
+  const pb = el.querySelector('.h-photo');
+  setTimeout(() => fitPhoto(pb), 60);
+  setTimeout(() => fitPhoto(pb), 800);
+  loadWhere(() => { const f = el.querySelector('.h-family'); if (f) f.innerHTML = family3(); });
+}
+
 function paint(el) {
+  if (V2) { paint3(el); return; }
   const clock = el.querySelector('[data-clock]');
   if (clock) clock.innerHTML = clockHtml(now());
   el.querySelector('.h-weather').innerHTML = weatherHtml();
@@ -266,6 +346,20 @@ register('home', {
   show(el) {
     if (!el.dataset.built) {
       el.dataset.built = '1';
+      if (V2) {
+        el.innerHTML = `<div class="home home3">` +
+          `<div class="h-clock" data-clock></div>` +
+          `<button class="h-weather card" type="button" data-go="weather"></button>` +
+          `<div class="h-family"></div>` +
+          `<div class="h-main"><div class="h-hero-slot"></div><div class="h-days"></div><div class="h-cal3"></div></div>` +
+          `<div class="h-side"><div class="h-photo-area"><button class="h-photo" type="button" data-go="photos"><div class="h-photo-stage"></div>` +
+          `<div class="h-photo-mark"><img src="/emblem.png" alt=""><span class="serif">${esc(BRAND)}</span></div>` +
+          `<div class="h-photo-cap"></div></button></div>` +
+          `<button class="h-chores card" type="button" data-go="chores"></button>` +
+          `<button class="h-shop card" type="button" data-go="grocery"></button></div></div>`;
+        paint(el);
+        return;
+      }
       el.innerHTML = `<div class="home">` +
         `<div class="h-clock" data-clock></div>` +
         `<button class="h-weather card" type="button" data-go="weather"></button>` +
@@ -283,11 +377,17 @@ register('home', {
   },
   tick(el) {
     if (!el.dataset.built) return;
+    if (V2) { paint3(el); return; }
     const clock = el.querySelector('[data-clock]');
     if (clock) clock.innerHTML = clockHtml(now());
     el.querySelector('.h-hero-slot').innerHTML = heroHtml();
     el.querySelector('.h-lanes').innerHTML = lanesHtml();
     el.querySelector('.h-family').innerHTML = familyHtml();
-    if (now().getMinutes() === 0) el.querySelector('.h-weather').innerHTML = weatherHtml();
+      if (now().getMinutes() === 0) el.querySelector('.h-weather').innerHTML = weatherHtml();
   },
+});
+
+window.addEventListener('resize', () => {
+  const pb = document.querySelector('.home3 .h-photo'); if (pb) fitPhoto(pb);
+  const cal = document.querySelector('.home3 .h-cal3'); if (cal) cal.innerHTML = days3(calSlots(cal));
 });

@@ -14,6 +14,11 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceError;
+import android.webkit.JavascriptInterface;
+import android.media.AudioManager;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
+import android.provider.Settings;
 
 /**
  * Full-screen kiosk WebView for the Home HQ wall tablet.
@@ -40,6 +45,74 @@ public class MainActivity extends Activity {
   private final float[] exitX = new float[2];
   private final float[] exitY = new float[2];
   private boolean exitArmed;
+  /** FrameBridge only answers while the dashboard origin is loaded. */
+  private volatile boolean trusted;
+
+  private boolean isDashboard(String url) {
+    if (url == null) return false;
+    android.net.Uri a = android.net.Uri.parse(url);
+    android.net.Uri b = android.net.Uri.parse(DEFAULT_URL);
+    return "http".equals(a.getScheme()) && a.getHost() != null && a.getHost().equals(b.getHost()) && a.getPort() == b.getPort();
+  }
+
+  /**
+   * window.FrameBridge for the dashboard's Settings page.
+   * Brightness = this window's backlight (no permission). Wi-Fi info needs
+   * ACCESS_WIFI_STATE. Reboot uses root (the frame is rooted).
+   */
+  final class FrameBridge {
+    @JavascriptInterface public String version() { return trusted ? "1" : null; }
+
+    @JavascriptInterface public boolean setBrightness(final float level) {
+      if (!trusted) return false;
+      handler.post(new Runnable() {
+        @Override public void run() {
+          WindowManager.LayoutParams lp = getWindow().getAttributes();
+          lp.screenBrightness = Math.max(0.05f, Math.min(1f, level));
+          getWindow().setAttributes(lp);
+        }
+      });
+      return true;
+    }
+
+    @JavascriptInterface public String getWifi() {
+      if (!trusted) return null;
+      try {
+        WifiManager wm = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
+        WifiInfo wi = wm.getConnectionInfo();
+        String ssid = wi.getSSID() == null ? "" : wi.getSSID().replace("\"", "");
+        int level = WifiManager.calculateSignalLevel(wi.getRssi(), 5);
+        return "{\"enabled\":" + wm.isWifiEnabled() + ",\"ssid\":\"" + ssid.replace("\\", "").replace("\"", "") +
+            "\",\"rssi\":" + wi.getRssi() + ",\"level\":" + level + "}";
+      } catch (Exception e) { return null; }
+    }
+
+    @JavascriptInterface public void openWifiSettings() {
+      if (!trusted) return;
+      Intent i = new Intent(Settings.ACTION_WIFI_SETTINGS);
+      i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+      startActivity(i);
+    }
+
+    @JavascriptInterface public int getVolume() {
+      if (!trusted) return -1;
+      AudioManager am = (AudioManager) getSystemService(AUDIO_SERVICE);
+      int max = am.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+      return max > 0 ? Math.round(100f * am.getStreamVolume(AudioManager.STREAM_MUSIC) / max) : 0;
+    }
+
+    @JavascriptInterface public void setVolume(int pct) {
+      if (!trusted) return;
+      AudioManager am = (AudioManager) getSystemService(AUDIO_SERVICE);
+      int max = am.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+      am.setStreamVolume(AudioManager.STREAM_MUSIC, Math.round(max * Math.max(0, Math.min(100, pct)) / 100f), 0);
+    }
+
+    @JavascriptInterface public void reboot() {
+      if (!trusted) return;
+      try { Runtime.getRuntime().exec(new String[] {"su", "-c", "reboot"}); } catch (Exception e) { Log.w(TAG, "reboot failed", e); }
+    }
+  }
 
   private final Runnable exitToLauncher = new Runnable() {
     @Override
@@ -86,7 +159,13 @@ public class MainActivity extends Activity {
     // Keep navigation inside the kiosk. If the main page fails (e.g. Wi-Fi not up yet
     // right after boot, or the MacBook briefly away), retry every 10s instead of
     // leaving an error page on the wall.
+    web.addJavascriptInterface(new FrameBridge(), "FrameBridge");
     web.setWebViewClient(new WebViewClient() {
+      @Override
+      public void onPageStarted(WebView view, String url, android.graphics.Bitmap icon) {
+        trusted = isDashboard(url);
+      }
+
       @Override
       public void onReceivedError(WebView view, WebResourceRequest req, WebResourceError err) {
         if (req != null && req.isForMainFrame()) {

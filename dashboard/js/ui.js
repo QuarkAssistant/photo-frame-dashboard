@@ -12,7 +12,8 @@ export function pstyle(p) {
 
 export function avatar(p) {
   const wide = p.initial && p.initial.length > 1 ? ' avatar--wide' : '';
-  return `<span class="avatar${wide}" style="${pstyle(p)}">${esc(p.initial)}</span>`;
+  const pic = p.photo ? `<i class="avatar-pic" style="background-image:url('${p.photo}')"></i>` : '';
+  return `<span class="avatar${wide}${pic ? ' has-pic' : ''}" style="${pstyle(p)}">${esc(p.initial)}${pic}</span>`;
 }
 
 export function clockBits(date) {

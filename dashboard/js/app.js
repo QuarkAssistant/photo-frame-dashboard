@@ -17,9 +17,18 @@ let current = 'home';
 let memberId = null;
 let lastMin = -1;
 let idle = 0;
-const SAVER_IDLE_S = Number(pageParams0().get('saver')) || 300;
+// ?saver= wins (screenshots); else the Settings choice (0 = off); else 5 min.
+function saverIdle() {
+  const q = Number(pageParams0().get('saver'));
+  if (q) return q;
+  const v = localStorage.getItem('coelho.saverSeconds');
+  return v == null ? 300 : (Number(v) || Infinity);
+}
 function pageParams0() { return new URLSearchParams(location.search); }
+// New layout is default; ?layout=v1 restores the original Home.
+if (pageParams0().get('layout') !== 'v1') document.documentElement.className += ' layout-v2';
 let saverOpen = false;
+let themeFn = null;
 let nightOpen = false;
 let nightSlot = null;
 let wakeUntil = 0;
@@ -80,6 +89,7 @@ function rail() {
     item('chores', 'tasks', 'Chores') +
     item('grocery', 'cart', 'Grocery') +
     people +
+    item('settings', 'gear', 'Settings') +
     `<div class="rail-clock" data-railclock></div>`;
 }
 
@@ -248,13 +258,14 @@ function tick() {
   }
   if (n.getMinutes() !== lastMin) {
     lastMin = n.getMinutes();
+    if (themeFn) themeFn();
     const view = views[current];
     const el = document.getElementById(`view-${current}`);
     if (view && view.tick && el) view.tick(el);
     if (saverOpen) paintSaver();
   }
   idle += 1;
-  if (!nightOpen && !inNight(n) && !saverOpen && idle >= SAVER_IDLE_S) openSaver();
+  if (!nightOpen && !inNight(n) && !saverOpen && idle >= saverIdle()) openSaver();
 }
 
 function bind() {
@@ -318,6 +329,7 @@ export { clockHtml, formatTime, owner };
 
 export async function start() {
   rail();
+  import('./views/settings.js').then((m) => { m.applyBrightness(); m.applyTheme(); themeFn = m.applyTheme; }).catch(() => {});
   bind();
   syncNight(now());
   await loadNightConfig();
