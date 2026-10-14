@@ -36,6 +36,7 @@ export function loadMap(file = MAP_FILE) {
   return {
     allowed,
     rules: m.rules.map((r) => ({
+      also: Boolean(r.also),
       tags: r.tags.filter((t) => allowed.has(t)),
       keys: r.keywords.map(normalize).filter(Boolean),
     })),
@@ -44,11 +45,15 @@ export function loadMap(file = MAP_FILE) {
 
 export function classify(title, map) {
   const t = ` ${normalize(title)} `;
-  for (const r of map.rules) {
-    if (r.tags.length && r.keys.some((k) => t.includes(` ${k} `))) return r.tags;
-  }
+  const hit = (r) => r.tags.length && r.keys.some((k) => t.includes(` ${k} `));
+  // First matching normal rule wins; "also" rules (e.g. #wildfork) add their tags on top.
+  let base = null;
+  for (const r of map.rules) if (!r.also && hit(r)) { base = r.tags; break; }
+  const extra = map.rules.filter((r) => r.also && hit(r)).flatMap((r) => r.tags);
   // Nothing is ever left untagged: unknown items can be bought anywhere.
-  return map.allowed.has('#any') ? ['#any'] : null;
+  if (!base) base = map.allowed.has('#any') ? ['#any'] : [];
+  const tags = [...new Set([...base, ...extra])];
+  return tags.length ? tags : null;
 }
 
 export function tagLine(tags) {
