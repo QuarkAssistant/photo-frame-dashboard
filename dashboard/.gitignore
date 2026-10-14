@@ -6,3 +6,6 @@ kiosk/local.properties
 .env
 data/
 server/bin/
+
+# Family faces and other private local assets
+local-assets/

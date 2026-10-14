@@ -292,3 +292,8 @@
 .layout-v2 .h-photo { grid-column: 1 / 3; }
 .layout-v2 .h-chores .h-rings { -webkit-flex-wrap: wrap; flex-wrap: wrap; }
 .layout-v2 .h-ring { margin: 0 4px 4px 0; }
+
+.layout-v2 .h-family { -webkit-justify-content: center; justify-content: center; }
+.layout-v2 .h-faces { display: -webkit-box; display: -webkit-flex; display: flex; -webkit-justify-content: space-between; justify-content: space-between; -webkit-align-items: center; align-items: center; padding: 0 2px; }
+.layout-v2 .h-face { padding: 0; background: none; border: 0; }
+.layout-v2 .h-face .avatar { width: 66px; height: 66px; min-width: 66px; min-height: 66px; font-size: 22px; box-shadow: 0 0 0 3px var(--c); }

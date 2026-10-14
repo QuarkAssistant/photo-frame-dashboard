@@ -68,6 +68,9 @@ function personWhen(p) {
 }
 
 function familyHtml() {
+  if (V2) {
+    return '<div class="h-faces">' + FAMILY.map((p) => `<button class="h-face" type="button" data-go="${p.id}" style="${pstyle(p)}" aria-label="${esc(p.name)}">${avatar(p)}</button>`).join('') + '</div>';
+  }
   return FAMILY.map((p) => {
     const sub = personWhen(p);
     const when = `<small>${esc(sub)}</small>`;

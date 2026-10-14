@@ -146,6 +146,13 @@ export function createApi({ root }) {
           return sendJson(res, 200, await store.setHomework(String(body.id || ''), body.done));
         }
       }
+      const av = /^\/avatars\/([a-z]+)\.jpg$/.exec(pathname);
+      if (av) {
+        const f = path.join(root, 'local-assets', 'avatars', `${av[1]}.jpg`);
+        if (!fs.existsSync(f)) { res.writeHead(404); return res.end(); }
+        res.writeHead(200, { 'Content-Type': 'image/jpeg', 'Cache-Control': 'max-age=86400' });
+        return fs.createReadStream(f).pipe(res);
+      }
       if (pathname.startsWith('/api/')) return sendJson(res, 404, { error: 'not found' });
 
       if (!fs.existsSync(dist)) {
