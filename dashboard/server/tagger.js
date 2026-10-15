@@ -35,6 +35,7 @@ export function loadMap(file = MAP_FILE) {
   const allowed = new Set(m.allowed);
   return {
     allowed,
+    fallback: (m.fallback || []).filter((t) => allowed.has(t)),
     rules: m.rules.map((r) => ({
       also: Boolean(r.also),
       tags: r.tags.filter((t) => allowed.has(t)),
@@ -50,8 +51,8 @@ export function classify(title, map) {
   let base = null;
   for (const r of map.rules) if (!r.also && hit(r)) { base = r.tags; break; }
   const extra = map.rules.filter((r) => r.also && hit(r)).flatMap((r) => r.tags);
-  // Nothing is ever left untagged: unknown items can be bought anywhere.
-  if (!base) base = map.allowed.has('#any') ? ['#any'] : [];
+  // Nothing is ever left untagged: unknown items get the regular-supermarket list.
+  if (!base) base = map.fallback || [];
   const tags = [...new Set([...base, ...extra])];
   return tags.length ? tags : null;
 }

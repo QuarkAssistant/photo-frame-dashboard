@@ -471,3 +471,22 @@ Local commits only.
 - `#any` also fires the Wild Fork and Binny's store nudges, so everyday staples now carry an explicit list of regular supermarkets instead: `#jewel #marianos #costco #walmart #target #intlfresh #napervillefresh` (never #wildfork / #binnys / #dollartree for food or drinks).
 - Water (plain/mineral/sparkling, seltzer), soda and ice → that list. Napkins → that list + `#dollartree`. Supersedes v1.4.1.
 - The generic fallback and the produce/pantry rules still use `#any` (open proposal: switch them to the same explicit list).
+
+## v1.5 — Evidence-based store lists, #any removed
+
+`#any` is gone from `allowed` (it also fired Wild Fork / Binny's nudges). Unmatched items use `fallback` = regular supermarkets `#jewel #marianos #costco #walmart #target #intlfresh #napervillefresh` (SUP). Conservative: a specialty store is added only with a source. Checked Oct 14, 2026.
+
+| Category | Stores | Evidence |
+|---|---|---|
+| Produce, herbs, dairy, bakery, pantry, generic/fallback | SUP | Full-line grocers; International Fresh Market has produce/bakery/meat/seafood departments (interfreshmarket.com/produce, /bakery); Naperville Fresh Market: produce, dairy, bakery, meat & seafood (napervillefreshmarket.com) |
+| Water / sparkling water / seltzer / soda | SUP + #binnys + #dollartree | Binny's sparkling-water and mixers & drinks collections (express.binnys.com); Dollar Tree "sodas, juice, water…" (dollartree.com/department/food-candy-drinks) |
+| Ice | SUP + #binnys | Binny's sells bagged ice (express.binnys.com ice bag listings) |
+| Frozen fries | SUP + #wildfork + #dollartree | Wild Fork Sides: straight/crinkle/waffle fries (wildforkfoods.com/collections/sides); Dollar Tree frozen fries (dollartree.com frozen fruits & vegetables) |
+| Juice | SUP + #dollartree | Dollar Tree drinks incl. juice |
+| Queijo coalho, pão de alho | #intlfresh #napervillefresh #wildfork | Wild Fork "Grilling Cheese" (Brazilian coalho) and "Garlic Baguette – Zinho" (wildforkfoods.com); IFM Brazilian aisle (tiosam.com article) |
+| Brazilian groceries & cuts (Toddy, picanha, fraldinha…) | #intlfresh #napervillefresh (+ #wildfork for meats) | IFM Brazilian aisle; Wild Fork meats (v1.4) |
+| Meats/seafood | first rule's stores + #wildfork | v1.4 |
+| Napkins | SUP + #dollartree | v1.4.2 |
+| Wine/beer/spirits, mixers (tonic, club soda) | #binnys | v1.2 |
+
+Not added for lack of evidence: Costco/Jewel for Brazilian-specific items; Binny's for general snacks (it has a food & snacks collection, but no current list item needs it).

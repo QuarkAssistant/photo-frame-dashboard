@@ -8,24 +8,27 @@ test('classifies Portuguese grocery names', () => {
   assert.deepEqual(classify('Toddy grande', map), ['#intlfresh', '#napervillefresh']);
   assert.deepEqual(classify('Sabonete', map), ['#target', '#walmart', '#costco', '#jewel', '#marianos', '#dollartree']);
   assert.deepEqual(classify('Creme dental', map), ['#target', '#walmart', '#costco', '#jewel', '#marianos', '#dollartree']);
-  assert.deepEqual(classify('Cebola', map), ['#any']);
-  assert.deepEqual(classify('Something unknown', map), ['#any']);
+  const SUPER = ['#jewel', '#marianos', '#costco', '#walmart', '#target', '#intlfresh', '#napervillefresh'];
+  assert.deepEqual(classify('Cebola', map), SUPER);
+  assert.deepEqual(classify('Something unknown', map), SUPER);
+  assert.ok(!map.allowed.has('#any'));
   for (const n of ['Salsinha','Milho doce','Refrigerante','Gelo','Talheres, prato e copos descartáveis','Guardanapo','Oats']) assert.ok(classify(n, map), n);
   const SUP = ['#jewel', '#marianos', '#costco', '#walmart', '#target', '#intlfresh', '#napervillefresh'];
-  for (const n of ['Água com gás pequena', 'Sparkling water', 'Refrigerante', 'Gelo']) assert.deepEqual(classify(n, map), SUP, n);
+  for (const n of ['Água com gás pequena', 'Sparkling water', 'Refrigerante']) assert.deepEqual(classify(n, map), [...SUP, '#binnys', '#dollartree'], n);
+  assert.deepEqual(classify('Gelo', map), [...SUP, '#binnys']);
+  assert.deepEqual(classify('Queijo coalho', map), ['#intlfresh', '#napervillefresh', '#wildfork']);
+  assert.deepEqual(classify('Pão de alho', map), ['#intlfresh', '#napervillefresh', '#wildfork']);
+  assert.deepEqual(classify('Batata congelada', map), [...SUP, '#wildfork', '#dollartree']);
+  assert.deepEqual(classify('Suco caixinha', map), [...SUP, '#dollartree']);
   assert.deepEqual(classify('Guardanapo', map), [...SUP, '#dollartree']);
-  for (const n of ['Água com gás pequena', 'Refrigerante', 'Gelo', 'Guardanapo']) {
-    const t = classify(n, map);
-    for (const bad of ['#any', '#wildfork', '#binnys']) assert.ok(!t.includes(bad), `${n} ${bad}`);
-  }
+  for (const n of ['Tomate', 'Salsinha', 'Milho doce', 'Guardanapo', 'Toddy grande']) assert.ok(!classify(n, map).includes('#any'), n);
   assert.deepEqual(classify('Água tônica', map), ['#binnys']);
   assert.deepEqual(classify('Club soda', map), ['#binnys']);
   assert.ok(classify('Talheres, prato e copos descartáveis', map).includes('#dollartree'));
   assert.deepEqual(classify('Picanha', map), ['#intlfresh', '#napervillefresh', '#wildfork']);
   assert.deepEqual(classify('Fraldinha', map), ['#intlfresh', '#napervillefresh', '#wildfork']);
-  assert.deepEqual(classify('Salmão', map), ['#any', '#wildfork']);
+  assert.deepEqual(classify('Salmão', map), [...SUP, '#wildfork']);
   assert.ok(classify('Ribeye steak', map).includes('#wildfork'));
-  assert.ok(!classify('Pão de alho', map).includes('#wildfork'));
   assert.ok(!classify('Tomate', map).includes('#wildfork'));
 });
 
