@@ -255,9 +255,7 @@
     },
     {
       "tags": [
-        "#costco",
-        "#walmart",
-        "#target"
+        "#any"
       ],
       "keywords": [
         "agua mineral",
@@ -266,6 +264,26 @@
         "água com gás",
         "sparkling water",
         "bottled water",
+        "agua",
+        "água",
+        "agua sem gas",
+        "água sem gás",
+        "water",
+        "seltzer",
+        "mineral water",
+        "guardanapo",
+        "guardanapos",
+        "napkins",
+        "paper napkins"
+      ]
+    },
+    {
+      "tags": [
+        "#costco",
+        "#walmart",
+        "#target"
+      ],
+      "keywords": [
         "fralda",
         "diapers",
         "racao",
@@ -295,10 +313,7 @@
     },
     {
       "tags": [
-        "#costco",
-        "#jewel",
-        "#marianos",
-        "#target"
+        "#any"
       ],
       "keywords": [
         "gelo",
@@ -328,9 +343,6 @@
         "copo",
         "copos",
         "cups",
-        "guardanapo",
-        "guardanapos",
-        "napkins",
         "canudo",
         "straws",
         "vela",
@@ -344,11 +356,7 @@
     },
     {
       "tags": [
-        "#costco",
-        "#walmart",
-        "#target",
-        "#jewel",
-        "#marianos"
+        "#any"
       ],
       "keywords": [
         "refrigerante",

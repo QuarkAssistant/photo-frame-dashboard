@@ -459,3 +459,9 @@ Local commits only.
 - Brazilian cuts (fraldinha, alcatra, maminha, costela, contrafilé, cupim, coxão) joined Picanha in the Brazilian-butcher rule, so e.g. Picanha and Fraldinha → `#intlfresh #napervillefresh #wildfork`; a meat with no other rule → `#any #wildfork`.
 - Hand-edited `stores:` lines are still never overwritten.
 - `npm test` now also uses `--test-force-exit --test-timeout=20000` so a stuck test cannot hang the run.
+
+## v1.4.1 — Everyday items → #any
+
+- Plain, mineral and sparkling water (água, água com gás/sem gás, água mineral, sparkling/bottled/mineral water, seltzer) now map to `stores: #any`. Água tônica, club soda and hard seltzer stay `#binnys` (mixers rule runs first).
+- Also `#any`: soda (refrigerante, coca, pepsi, sprite, fanta, ginger ale), ice (gelo, ice) and napkins (guardanapo, napkins). Disposable cutlery/plates/cups, straws, candles, balloons stay `#dollartree #target #walmart #costco`.
+- Existing auto-written lines are rewritten by the tagger on its next run; hand-edited lines are still left alone.

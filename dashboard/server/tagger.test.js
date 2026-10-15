@@ -11,8 +11,10 @@ test('classifies Portuguese grocery names', () => {
   assert.deepEqual(classify('Cebola', map), ['#any']);
   assert.deepEqual(classify('Something unknown', map), ['#any']);
   for (const n of ['Salsinha','Milho doce','Refrigerante','Gelo','Talheres, prato e copos descartáveis','Guardanapo','Oats']) assert.ok(classify(n, map), n);
-  assert.ok(classify('Gelo', map).includes('#costco'));
-  assert.ok(classify('Guardanapo', map).includes('#dollartree'));
+  for (const n of ['Água com gás pequena', 'Sparkling water', 'Refrigerante', 'Gelo', 'Guardanapo']) assert.deepEqual(classify(n, map), ['#any'], n);
+  assert.deepEqual(classify('Água tônica', map), ['#binnys']);
+  assert.deepEqual(classify('Club soda', map), ['#binnys']);
+  assert.ok(classify('Talheres, prato e copos descartáveis', map).includes('#dollartree'));
   assert.deepEqual(classify('Picanha', map), ['#intlfresh', '#napervillefresh', '#wildfork']);
   assert.deepEqual(classify('Fraldinha', map), ['#intlfresh', '#napervillefresh', '#wildfork']);
   assert.deepEqual(classify('Salmão', map), ['#any', '#wildfork']);
