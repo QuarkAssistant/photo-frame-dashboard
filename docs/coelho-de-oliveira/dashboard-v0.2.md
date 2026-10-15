@@ -465,3 +465,9 @@ Local commits only.
 - Plain, mineral and sparkling water (água, água com gás/sem gás, água mineral, sparkling/bottled/mineral water, seltzer) now map to `stores: #any`. Água tônica, club soda and hard seltzer stay `#binnys` (mixers rule runs first).
 - Also `#any`: soda (refrigerante, coca, pepsi, sprite, fanta, ginger ale), ice (gelo, ice) and napkins (guardanapo, napkins). Disposable cutlery/plates/cups, straws, candles, balloons stay `#dollartree #target #walmart #costco`.
 - Existing auto-written lines are rewritten by the tagger on its next run; hand-edited lines are still left alone.
+
+## v1.4.2 — Explicit supermarket list instead of #any for staples
+
+- `#any` also fires the Wild Fork and Binny's store nudges, so everyday staples now carry an explicit list of regular supermarkets instead: `#jewel #marianos #costco #walmart #target #intlfresh #napervillefresh` (never #wildfork / #binnys / #dollartree for food or drinks).
+- Water (plain/mineral/sparkling, seltzer), soda and ice → that list. Napkins → that list + `#dollartree`. Supersedes v1.4.1.
+- The generic fallback and the produce/pantry rules still use `#any` (open proposal: switch them to the same explicit list).
