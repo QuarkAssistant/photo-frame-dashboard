@@ -490,3 +490,11 @@ Local commits only.
 | Wine/beer/spirits, mixers (tonic, club soda) | #binnys | v1.2 |
 
 Not added for lack of evidence: Costco/Jewel for Brazilian-specific items; Binny's for general snacks (it has a food & snacks collection, but no current list item needs it).
+
+## v1.6 — One-off (dated) chores
+
+- Chores live in `dashboard/data/store.json` on the MacBook (git-ignored family data; never committed).
+- A one-off chore is `{ "who": "jp", "oneOff": true, "due": "YYYY-MM-DD", "title": "…", "emoji": "…", "done": false }` (no `routine`).
+- Shared helper `dashboard/chores.js`: one-offs count in every routine's Home ring (`inRoutine`), show "One-off · today" / "One-off · overdue" / "One-off · Oct 20" on the person page (`choreSubtitle`), and are listed first while open (`sortChores`), checked ones last.
+- They never expire at midnight: they stay until checked off (there is no daily reset of chores). Remove a finished one-off by deleting it from store.json.
+- Tests: `server/chores.test.js` (run via `npm test`, REMINDERS_FAKE=1).

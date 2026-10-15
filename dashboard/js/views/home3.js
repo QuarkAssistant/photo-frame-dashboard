@@ -7,6 +7,7 @@ import { avatar, compactTitle, dayParts, esc, formatRange, formatTime, onDay, ow
 import { celsius } from '../weatherui.js';
 import { sectionFor, sortBySection } from '../../sections.js';
 import { icon } from '../icons.js';
+import { inRoutine } from '../../chores.js';
 
 const pair = (f, c) => `${Math.round(f)} °F <i>/</i> ${c} °C`;
 
@@ -90,7 +91,7 @@ export function days3(slots = 4) {
 export function chores3(routine) {
   const ids = FAMILY.map((p) => p.id).concat(['any']);
   const cells = ids.map((id) => {
-    const list = state.chores.filter((c) => c.routine === routine.id && c.who === id);
+    const list = state.chores.filter((c) => inRoutine(c, routine.id) && c.who === id);
     const done = list.filter((c) => c.done).length;
     const p = id === 'any'
       ? { id: 'any', name: 'Anyone', color: '#8C8C86', rgb: '140, 140, 134', ink: '#1F3A3A' }
