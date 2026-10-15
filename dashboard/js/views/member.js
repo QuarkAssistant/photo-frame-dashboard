@@ -2,6 +2,7 @@ import { state, toggleChore, toggleHomework } from '../data.js';
 import { member, now, register } from '../app.js';
 import { ymd, addDaysYmd } from '../../time.js';
 import { avatar, dayParts, esc, eventTitle, formatRange, onDay, owner, pstyle, relDay } from '../ui.js';
+import { choreSubtitle, sortChores } from '../../chores.js';
 
 function upcoming(person) {
   const today = ymd(now());
@@ -27,13 +28,18 @@ function upcoming(person) {
 }
 
 function chores(person) {
-  const list = state.chores.filter((c) => c.who === person.id);
+  const list = sortChores(state.chores.filter((c) => c.who === person.id));
   if (!list.length) return '<div class="empty serif">No chores yet.</div>';
   return list.map((c) =>
     `<button class="ch${c.done ? ' is-done' : ''}" type="button" data-chore="${esc(c.id)}" style="${pstyle(person)}">` +
-    `<span class="ch-emoji">${c.emoji}</span><span class="ch-text"><b>${esc(c.title)}</b><small>${esc(routineName(c.routine))}</small></span>` +
+    `<span class="ch-emoji">${c.emoji}</span><span class="ch-text"><b>${esc(c.title)}</b><small>${esc(choreSubtitle(c, state.routines, todayKey()))}</small></span>` +
     `<span class="ch-box">${c.done ? '✓' : ''}</span></button>`
   ).join('');
+}
+
+function todayKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
 function routineName(id) {
