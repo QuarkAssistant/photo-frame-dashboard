@@ -1,5 +1,5 @@
 {
-  "_comment": "Grocery tagger rules. Keywords are matched accent- and case-insensitively as whole words/phrases against the item title (Portuguese and English). First matching rule wins. Unmatched items fall back to #any.",
+  "_comment": "Grocery tagger rules. Keywords are matched accent- and case-insensitively as whole words/phrases against the item title (Portuguese and English). First matching rule wins. Unmatched items get the \"fallback\" list (regular supermarkets). #any is not used: it also fires Wild Fork / Binny's nudges. _src notes the evidence for a rule (see docs v1.5).",
   "allowed": [
     "#costco",
     "#target",
@@ -14,7 +14,6 @@
     "#dicks",
     "#hmart",
     "#binnys",
-    "#any",
     "#wildfork"
   ],
   "rules": [
@@ -144,6 +143,120 @@
     },
     {
       "tags": [
+        "#intlfresh",
+        "#napervillefresh",
+        "#wildfork"
+      ],
+      "keywords": [
+        "queijo coalho",
+        "coalho",
+        "grilling cheese",
+        "pao de alho",
+        "pão de alho",
+        "garlic bread",
+        "garlic baguette"
+      ],
+      "_src": "Wild Fork sells Brazilian grilling cheese (queijo coalho) and Zinho garlic baguette (pão de alho); IFM Brazilian aisle"
+    },
+    {
+      "tags": [
+        "#jewel",
+        "#marianos",
+        "#costco",
+        "#walmart",
+        "#target",
+        "#intlfresh",
+        "#napervillefresh",
+        "#binnys",
+        "#dollartree"
+      ],
+      "keywords": [
+        "agua mineral",
+        "água mineral",
+        "agua com gas",
+        "água com gás",
+        "sparkling water",
+        "bottled water",
+        "agua",
+        "água",
+        "agua sem gas",
+        "água sem gás",
+        "water",
+        "seltzer",
+        "mineral water",
+        "refrigerante",
+        "soda",
+        "coca",
+        "coca cola",
+        "pepsi",
+        "sprite",
+        "fanta",
+        "ginger ale"
+      ],
+      "_src": "Binny's sparkling water + mixers/drinks collections; Dollar Tree sodas/water"
+    },
+    {
+      "tags": [
+        "#jewel",
+        "#marianos",
+        "#costco",
+        "#walmart",
+        "#target",
+        "#intlfresh",
+        "#napervillefresh",
+        "#binnys"
+      ],
+      "keywords": [
+        "gelo",
+        "ice",
+        "bag of ice",
+        "saco de gelo"
+      ],
+      "_src": "Binny's sells bagged ice"
+    },
+    {
+      "tags": [
+        "#jewel",
+        "#marianos",
+        "#costco",
+        "#walmart",
+        "#target",
+        "#intlfresh",
+        "#napervillefresh",
+        "#wildfork",
+        "#dollartree"
+      ],
+      "keywords": [
+        "batata congelada",
+        "frozen fries",
+        "batata frita congelada",
+        "french fries",
+        "fries"
+      ],
+      "_src": "Wild Fork sides: fries; Dollar Tree frozen fries"
+    },
+    {
+      "tags": [
+        "#jewel",
+        "#marianos",
+        "#costco",
+        "#walmart",
+        "#target",
+        "#intlfresh",
+        "#napervillefresh",
+        "#dollartree"
+      ],
+      "keywords": [
+        "suco",
+        "suco caixinha",
+        "juice",
+        "juice box",
+        "juice boxes"
+      ],
+      "_src": "Dollar Tree drinks incl. juice"
+    },
+    {
+      "tags": [
         "#hmart"
       ],
       "keywords": [
@@ -261,32 +374,6 @@
         "#walmart",
         "#target",
         "#intlfresh",
-        "#napervillefresh"
-      ],
-      "keywords": [
-        "agua mineral",
-        "água mineral",
-        "agua com gas",
-        "água com gás",
-        "sparkling water",
-        "bottled water",
-        "agua",
-        "água",
-        "agua sem gas",
-        "água sem gás",
-        "water",
-        "seltzer",
-        "mineral water"
-      ]
-    },
-    {
-      "tags": [
-        "#jewel",
-        "#marianos",
-        "#costco",
-        "#walmart",
-        "#target",
-        "#intlfresh",
         "#napervillefresh",
         "#dollartree"
       ],
@@ -333,23 +420,6 @@
     },
     {
       "tags": [
-        "#jewel",
-        "#marianos",
-        "#costco",
-        "#walmart",
-        "#target",
-        "#intlfresh",
-        "#napervillefresh"
-      ],
-      "keywords": [
-        "gelo",
-        "ice",
-        "bag of ice",
-        "saco de gelo"
-      ]
-    },
-    {
-      "tags": [
         "#dollartree",
         "#target",
         "#walmart",
@@ -391,21 +461,6 @@
         "#napervillefresh"
       ],
       "keywords": [
-        "refrigerante",
-        "soda",
-        "coca",
-        "coca cola",
-        "pepsi",
-        "sprite",
-        "fanta",
-        "ginger ale"
-      ]
-    },
-    {
-      "tags": [
-        "#any"
-      ],
-      "keywords": [
         "salsinha",
         "salsa",
         "parsley",
@@ -422,8 +477,6 @@
         "frozen corn",
         "milho",
         "corn",
-        "batata congelada",
-        "frozen fries",
         "oats",
         "aveia",
         "oatmeal",
@@ -433,7 +486,13 @@
     },
     {
       "tags": [
-        "#any"
+        "#jewel",
+        "#marianos",
+        "#costco",
+        "#walmart",
+        "#target",
+        "#intlfresh",
+        "#napervillefresh"
       ],
       "keywords": [
         "cebola",
@@ -500,8 +559,6 @@
         "presunto",
         "ham",
         "cereal",
-        "suco",
-        "juice",
         "farinha",
         "flour"
       ]
@@ -589,5 +646,14 @@
         "peru"
       ]
     }
+  ],
+  "fallback": [
+    "#jewel",
+    "#marianos",
+    "#costco",
+    "#walmart",
+    "#target",
+    "#intlfresh",
+    "#napervillefresh"
   ]
 }
