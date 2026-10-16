@@ -18,7 +18,28 @@ export const state = {
 
 const listeners = new Set();
 export function subscribe(fn) { listeners.add(fn); }
-function emit() { listeners.forEach((fn) => fn()); }
+function emit() { lastSig = signature(); listeners.forEach((fn) => fn()); }
+
+// The 20 s list poll and the 5 min full refresh used to repaint the visible view
+// every time, even when nothing changed. Only notify listeners when the data the
+// views draw from is actually different.
+const WATCHED = ['events', 'weather', 'chores', 'groceries', 'homework', 'photos', 'extras',
+  'photoSource', 'routines', 'calendarSource', 'grocerySource', 'groceryReason', 'groceryUsuals', 'tagger'];
+let lastSig = '';
+// fetchedAt changes on every successful indoor poll even when the numbers the
+// card draws are the same. Ignore it so that timestamp alone does not repaint.
+export function viewSignature(snapshot) {
+  return JSON.stringify(snapshot, (key, value) => (key === 'fetchedAt' ? undefined : value));
+}
+function signature() {
+  try { return viewSignature(WATCHED.map((k) => state[k])); } catch { return String(Math.random()); }
+}
+function emitIfChanged() {
+  const sig = signature();
+  if (sig === lastSig) return;
+  lastSig = sig;
+  listeners.forEach((fn) => fn());
+}
 
 function applySeed() {
   const seed = seedStore();
@@ -98,7 +119,7 @@ export async function refreshAll() {
     state.photos = ph.value.photos || [];
     state.photoSource = ph.value.source || 'emblem';
   }
-  emit();
+  emitIfChanged();
 }
 
 export async function refreshLists() {
@@ -114,7 +135,7 @@ export async function refreshLists() {
   }
   if (hw.status === 'fulfilled') state.homework = hw.value.homework || state.homework;
   if (tg && tg.status === 'fulfilled') state.tagger = tg.value;
-  emit();
+  emitIfChanged();
 }
 
 export async function toggleChore(id) {

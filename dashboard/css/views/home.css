@@ -245,6 +245,9 @@
 .hw-hours { display: table; width: 100%; table-layout: fixed; margin-top: 4px; }
 .hw-hr { display: table-cell; width: 20%; text-align: center; vertical-align: top; padding: 0 3px; }
 .hw-now-txt > * { display: block; }
+.hw-in { display: block; margin-top: 3px; font-size: clamp(18px, calc(var(--u) * 1.7), 26px); font-weight: 800; line-height: 1.1; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hw-in b { font-weight: 800; margin-right: 6px; }
+.hw-in .hw-pair { font-size: 1em; }
 /* v8: holidays & game days strip (table layout, old-WebView safe) */
 .h-main { grid-template-rows: minmax(0, 0.92fr) auto minmax(0, 1fr); }
 .h-days { min-width: 0; }

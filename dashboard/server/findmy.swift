@@ -5,11 +5,22 @@
 // (~/Library/Application Support/coelho-dashboard/whereabouts.json, never committed).
 //   findmy-people            write whereabouts.json
 //   findmy-people --dump     print the text it sees (debug, local only)
+//   findmy-people --selftest run the pure parsing/selection checks (no Find My needed)
+// Preferred device per person (optional, git-ignored .env):
+//   FINDMY_DEVICE=lucas=<device name as shown in Find My>;jp=<...>
+//   FINDMY_DEVICE_MAX_AGE_MIN=30   (default 30)
+//   FINDMY_DEVICE_PRIMARY=jp       (device is main location for these ids; no max age)
+// The device's row in the Devices tab is used when it is no older than the max age;
+// otherwise the People-tab location is kept. Each person records "source":
+// "people" or "device". Any Accessibility failure keeps the People result.
 import AppKit
 import ApplicationServices
 import Foundation
 
 let dump = CommandLine.arguments.contains("--dump")
+// --stats: counts and sources only (no places), safe to paste in logs.
+let stats = CommandLine.arguments.contains("--stats")
+func stat(_ m: String) { if stats { FileHandle.standardError.write(("stats: " + m + "\n").data(using: .utf8)!) } }
 // Family id -> name prefixes as they may appear in Find My (contact names).
 // Extra aliases (e.g. an Apple ID email shown instead of a contact name) come from
 // FINDMY_MAP in the git-ignored dashboard/.env: FINDMY_MAP=thiago=a@b.com;jp=João Pedro
@@ -26,6 +37,78 @@ if let env = try? String(contentsOf: envURL, encoding: .utf8) {
       if kv.count == 2, let i = family.firstIndex(where: { $0.0 == kv[0] }) { family[i].1.append(kv[1]) }
     }
   }
+}
+
+var preferredDevice: [String: String] = [:]
+var deviceMaxAgeMin = 30.0
+// FINDMY_DEVICE_PRIMARY=gilmara;...  -> that person's device is their main location (no max age).
+var primaryDevice: Set<String> = []
+if let env = try? String(contentsOf: envURL, encoding: .utf8) {
+  for line in env.split(separator: "\n") {
+    let strip = CharacterSet(charactersIn: "\"' ")
+    if line.hasPrefix("FINDMY_DEVICE=") {
+      for pair in line.dropFirst("FINDMY_DEVICE=".count).trimmingCharacters(in: strip).split(separator: ";") {
+        let kv = pair.split(separator: "=", maxSplits: 1).map { $0.trimmingCharacters(in: .whitespaces) }
+        if kv.count == 2, !kv[1].isEmpty { preferredDevice[kv[0].lowercased()] = kv[1] }
+      }
+    } else if line.hasPrefix("FINDMY_DEVICE_PRIMARY=") {
+      for id in line.dropFirst("FINDMY_DEVICE_PRIMARY=".count).trimmingCharacters(in: strip).split(whereSeparator: { $0 == ";" || $0 == "," }) {
+        primaryDevice.insert(id.trimmingCharacters(in: .whitespaces).lowercased())
+      }
+    } else if line.hasPrefix("FINDMY_DEVICE_MAX_AGE_MIN="),
+              let v = Double(line.dropFirst("FINDMY_DEVICE_MAX_AGE_MIN=".count).trimmingCharacters(in: strip)), v > 0 {
+      deviceMaxAgeMin = v
+    }
+  }
+}
+
+// Pure helpers (covered by --selftest).
+func minutesAgo(_ s: String) -> Double? {
+  let l = s.lowercased()
+  if l.contains("now") { return 0 }
+  let n = Double(l.components(separatedBy: CharacterSet.decimalDigits.inverted).joined()) ?? 1
+  if l.contains("min") { return n }
+  if l.contains("hr") || l.contains("hour") { return n * 60 }
+  if l.contains("day") || l.contains("yesterday") { return n * 1440 }
+  if l.contains("yr") || l.contains("year") { return n * 525600 }
+  return nil
+}
+let wsAll = CharacterSet.whitespaces.union(CharacterSet(charactersIn: "\u{00A0}\u{202F}"))
+func isDistance(_ t: String) -> Bool {
+  let l = t.lowercased()
+  return [" m", " mi", " km", " ft"].contains { l.hasSuffix($0) } && l.first?.isNumber == true
+}
+// Devices-tab row: "Device Name, [Nearby,] [210 m,] Place, ST · 8 hr ago".
+// Returns (place, minutes) or nil when the row has no location/time.
+func parseDeviceRow(_ raw: String, name: String) -> (String, Double)? {
+  let t = raw.replacingOccurrences(of: "\u{00A0}", with: " ")
+  // Rows can carry extra "· <battery status>" segments after the time; use the first "·".
+  guard t.lowercased().hasPrefix(name.lowercased() + ","), let dot = t.range(of: "·") else { return nil }
+  guard let mins = t[dot.upperBound...].components(separatedBy: "·").lazy
+    .compactMap({ minutesAgo($0.trimmingCharacters(in: wsAll)) }).first else { return nil }
+  let body = String(t[t.index(t.startIndex, offsetBy: name.count + 1)..<dot.lowerBound])
+  let parts = body.components(separatedBy: ",").map { $0.trimmingCharacters(in: wsAll) }
+    .filter { !$0.isEmpty && $0.lowercased() != "nearby" && !isDistance($0) }
+  guard !parts.isEmpty else { return nil }
+  return (parts.joined(separator: ", "), mins)
+}
+func useDevice(minutes: Double?, maxAge: Double) -> Bool { minutes.map { $0 <= maxAge } ?? false }
+
+if CommandLine.arguments.contains("--selftest") {
+  var bad = 0
+  func check(_ c: Bool, _ m: String) { if !c { bad += 1; print("FAIL", m) } }
+  let r1 = parseDeviceRow("Watch X, 210 m, Springfield, IL \u{00B7} 8 hr ago", name: "Watch X")
+  check(r1?.0 == "Springfield, IL" && r1?.1 == 480, "row with distance")
+  let r2 = parseDeviceRow("Watch X, Nearby, Springfield, IL \u{00B7} Now", name: "Watch X")
+  check(r2?.0 == "Springfield, IL" && r2?.1 == 0, "nearby now")
+  check(parseDeviceRow("Watch X, No location found", name: "Watch X") == nil, "no location")
+  check(parseDeviceRow("Phone Y, Springfield, IL \u{00B7} Now", name: "Watch X") == nil, "other device")
+  check(parseDeviceRow("Watch X, Springfield, IL \u{00B7} 12 min ago", name: "watch x")?.1 == 12, "case-insensitive")
+  check(useDevice(minutes: 30, maxAge: 30) && !useDevice(minutes: 31, maxAge: 30) && !useDevice(minutes: nil, maxAge: 30), "age rule")
+  check(parseDeviceRow("Phone Y, Nearby, Springfield, IL \u{00B7} 1 hr ago \u{00B7} Battery Low", name: "Phone Y")?.1 == 60, "battery suffix")
+  check(useDevice(minutes: 99999, maxAge: .infinity) && !useDevice(minutes: nil, maxAge: .infinity), "primary rule")
+  print(bad == 0 ? "selftest ok" : "selftest failed \(bad)")
+  exit(bad == 0 ? 0 : 1)
 }
 
 func fail(_ msg: String, _ code: Int32) -> Never {
@@ -72,6 +155,37 @@ func press(_ e: AXUIElement, title: String, depth: Int = 0) -> Bool {
   for c in children(e) where press(c, title: title, depth: depth + 1) { return true }
   return false
 }
+func clickCenter(_ e: AXUIElement) -> Bool {
+  var p = CGPoint.zero; var sz = CGSize.zero
+  guard let pv = attr(e, kAXPositionAttribute), let sv = attr(e, kAXSizeAttribute),
+        AXValueGetValue(pv as! AXValue, .cgPoint, &p), AXValueGetValue(sv as! AXValue, .cgSize, &sz), sz.width > 0 else { return false }
+  let c = CGPoint(x: p.x + sz.width / 2, y: p.y + sz.height / 2)
+  for t in [CGEventType.leftMouseDown, .leftMouseUp] {
+    CGEvent(mouseEventSource: nil, mouseType: t, mouseCursorPosition: c, mouseButton: .left)?.post(tap: .cghidEventTap)
+    usleep(80_000)
+  }
+  return true
+}
+func findEl(_ e: AXUIElement, _ d: Int = 0, _ f: (AXUIElement) -> Bool) -> AXUIElement? {
+  if d > 40 { return nil }
+  if f(e) { return e }
+  for c in children(e) { if let r = findEl(c, d + 1, f) { return r } }
+  return nil
+}
+func findAll(_ e: AXUIElement, _ d: Int = 0, _ f: (AXUIElement) -> Bool) -> [AXUIElement] {
+  if d > 40 { return [] }
+  var r = f(e) ? [e] : []
+  for c in children(e) { r += findAll(c, d + 1, f) }
+  return r
+}
+func tab(_ title: String) -> Bool {
+  guard let r = findEl(root, 0, { role($0) == "AXRadioButton" && text($0) == title }) else { return false }
+  // A real click: AXPress flips the radio's value without switching the content.
+  if (attr(r, kAXValueAttribute) as? NSNumber)?.intValue == 1, title != "People" || findEl(root, 0, { role($0) == "AXHeading" && text($0) == "People" }) != nil { return true }
+  if !clickCenter(r) { return false }
+  Thread.sleep(forTimeInterval: 2.5)
+  return true
+}
 // The detail sheet's own "Close" button (not the window's red close button).
 func closeDetail() {
   func find(_ e: AXUIElement, _ d: Int) -> AXUIElement? {
@@ -91,7 +205,9 @@ for w in (attr(root, kAXWindowsAttribute) as? [AXUIElement]) ?? [] {
   if let v = AXValueCreate(.cgSize, &size) { AXUIElementSetAttributeValue(w, kAXSizeAttribute as CFString, v) }
 }
 closeDetail()
-_ = press(root, title: "People")
+fm.activate()
+Thread.sleep(forTimeInterval: 1)
+if !tab("People") { _ = press(root, title: "People") }
 Thread.sleep(forTimeInterval: 2)
 
 // Rows: each person's row contains name, place, and a time ("Now", "5 min. ago").
@@ -113,16 +229,7 @@ func walk(_ e: AXUIElement, depth: Int) {
 }
 for w in (attr(root, kAXWindowsAttribute) as? [AXUIElement]) ?? [] { walk(w, depth: 0) }
 if dump { for r in rows { print(r.joined(separator: " | ")) } }
-
-func minutesAgo(_ s: String) -> Double? {
-  let l = s.lowercased()
-  if l.contains("now") { return 0 }
-  let n = Double(l.components(separatedBy: CharacterSet.decimalDigits.inverted).joined()) ?? 1
-  if l.contains("min") { return n }
-  if l.contains("hr") || l.contains("hour") { return n * 60 }
-  if l.contains("day") || l.contains("yesterday") { return n * 1440 }
-  return nil
-}
+stat("rows=\(rows.count)")
 
 let iso = ISO8601DateFormatter()
 var people: [String: [String: String]] = [:]
@@ -145,7 +252,7 @@ for r in entries {
     if let m = minutesAgo(t) { at = Date().addingTimeInterval(-m * 60); sawTime = true }
     else if place.isEmpty && !t.lowercased().hasSuffix(" mi") && !t.lowercased().hasSuffix(" km") { place = t }
   }
-  people[id] = ["place": place.isEmpty ? "Unknown" : place, "at": sawTime ? iso.string(from: at) : ""]
+  people[id] = ["place": place.isEmpty ? "Unknown" : place, "at": sawTime ? iso.string(from: at) : "", "source": "people"]
 }
 
 // Detail pass: selecting a person shows a card button
@@ -200,6 +307,74 @@ if let win = (attr(root, kAXWindowsAttribute) as? [AXUIElement])?.first {
     people[id]?["place"] = isHome ? "Home" : (label == shortTown || shortTown.isEmpty ? detail : "\(label), \(shortTown)")
     people[id]?["detail"] = isHome ? "home" : "findmy"
   }
+}
+
+stat("people-tab matched=\(people.keys.sorted()) preferred=\(preferredDevice.keys.sorted())")
+// A point over the Devices side list (left column, mid-height of the Find My window).
+func listPoint() -> CGPoint? {
+  guard let w = (attr(root, "AXWindows") as? [AXUIElement])?.first,
+        let pv = attr(w, kAXPositionAttribute), let sv = attr(w, kAXSizeAttribute) else { return nil }
+  var p = CGPoint.zero; var sz = CGSize.zero
+  AXValueGetValue(pv as! AXValue, .cgPoint, &p); AXValueGetValue(sv as! AXValue, .cgSize, &sz)
+  return CGPoint(x: p.x + 150, y: p.y + sz.height / 2)
+}
+func scrollList(_ dy: Int32) {
+  guard let pt = listPoint() else { return }
+  CGWarpMouseCursorPosition(pt)
+  CGEvent(scrollWheelEvent2Source: nil, units: .pixel, wheelCount: 1, wheel1: dy, wheel2: 0, wheel3: 0)?.post(tap: .cghidEventTap)
+}
+// Preferred-device pass (Devices tab). Never throws away the People result.
+if !preferredDevice.isEmpty {
+  fm.activate()
+  Thread.sleep(forTimeInterval: 1)
+  let onDevices = tab("Devices")
+  stat("devices-tab=\(onDevices)")
+  if onDevices {
+    for (id, name) in preferredDevice where family.contains(where: { $0.0 == id }) {
+      var row: String? = nil
+      var rowEl: AXUIElement? = nil
+      // Start from the top of the (virtualised) list: earlier passes may have left it scrolled down.
+      for _ in 0..<8 { scrollList(600); Thread.sleep(forTimeInterval: 0.2) }
+      Thread.sleep(forTimeInterval: 0.6)
+      for step in 0..<20 {
+        let cands = findAll(root, 0, { ["AXStaticText", "AXButton"].contains(role($0)) && (text($0)?.lowercased().hasPrefix(name.lowercased() + ",") ?? false) })
+        if let e = cands.first(where: { parseDeviceRow(text($0) ?? "", name: name) != nil }) ?? cands.first(where: { role($0) == "AXStaticText" }) {
+          row = text(e); rowEl = e; break
+        }
+        // Scroll the side list (virtualised): down first, then back up.
+        guard step < 19, listPoint() != nil else { break }
+        scrollList(step < 9 ? -300 : 300)
+        Thread.sleep(forTimeInterval: 0.8)
+      }
+      stat("device \(id) row=\(row != nil)")
+      let parsed = row.flatMap { parseDeviceRow($0, name: name) }
+      if dump { print("device \(id): \(parsed == nil ? "none" : "age=\(Int(parsed!.1))m")") }
+      if let (place, mins) = parsed, useDevice(minutes: mins, maxAge: primaryDevice.contains(id) ? .infinity : deviceMaxAgeMin) {
+        let short = (place.components(separatedBy: ",").first ?? place).trimmingCharacters(in: .whitespaces)
+        var entry: [String: String] = ["place": place, "at": iso.string(from: Date().addingTimeInterval(-mins * 60)), "source": "device"]
+        // Selecting the row shows a card "Name, Open Details, [dist,] <street or place>, Town, <time>".
+        if let e = rowEl, clickCenter(e) {
+          Thread.sleep(forTimeInterval: 2)
+          if let card = findEl(root, 0, { role($0) == "AXButton" && (text($0)?.lowercased().hasPrefix(name.lowercased() + ", open details") ?? false) }),
+             let ct = text(card) {
+            let f = ct.replacingOccurrences(of: "\u{00A0}", with: " ").components(separatedBy: ", ").map { $0.trimmingCharacters(in: wsAll) }
+              .dropFirst(2).filter { !isDistance($0) && $0.lowercased() != "nearby" }
+            if let label = f.first, f.count >= 3 {
+              let isHome = label.lowercased() == "home" || (!homeStreet.isEmpty && normStreet(label).hasPrefix(normStreet(homeStreet)))
+              entry["place"] = isHome ? "Home" : (label == short ? place : "\(label), \(short)")
+              entry["detail"] = isHome ? "home" : "findmy"
+            }
+          }
+        }
+        if short.lowercased() == "home" { entry["place"] = "Home"; entry["detail"] = "home" }
+        people[id] = entry
+      } else if people[id] != nil {
+        people[id]?["source"] = "people"
+        people[id]?["deviceStale"] = parsed == nil ? "unavailable" : "\(Int(parsed!.1))m"
+      }
+    }
+  }
+  stat("back-to-people=\(tab("People"))")
 }
 
 // The currently selected person sometimes drops out of the list read; carry their

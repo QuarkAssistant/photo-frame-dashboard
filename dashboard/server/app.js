@@ -8,6 +8,7 @@ import {
 } from '../night.js';
 import { calendarPayload } from './calendar.js';
 import { loadEnv } from './env.js';
+import { labelHome } from './homeplace.js';
 import { listPhotos, photoJpeg } from './photos.js';
 import { albumStatus, syncAlbum } from './album.js';
 import { extrasPayload } from './extras.js';
@@ -15,6 +16,7 @@ import { etaPayload } from './eta.js';
 import { isStale, taggerStatus } from './tagger.js';
 import { loadGroceries, saveGrocery } from './reminders.js';
 import { openStore } from './store.js';
+import { startIndoor } from './indoor.js';
 import { weatherPayload } from './weather.js';
 
 const MIME = {
@@ -104,6 +106,8 @@ function nightConfig() {
 
 export function createApi({ root }) {
   loadEnv(path.join(root, '.env'));
+  // The test runner must not poll a real device. node:test sets this.
+  if (!process.env.NODE_TEST_CONTEXT) startIndoor();
   const store = openStore(root);
   const dist = path.join(root, 'dist');
 
@@ -141,6 +145,7 @@ export function createApi({ root }) {
           for (const v of Object.values(data.people || {})) {
             if (!v.at || Number.isNaN(new Date(v.at).getTime())) v.at = data.updatedAt || new Date().toISOString();
           }
+          labelHome(data.people, process.env.HOME_ADDRESS);
           return sendJson(res, 200, { ok: true, ...data });
         }
         catch { return sendJson(res, 200, { ok: false, reason: 'no-findmy-source', people: {} }); }

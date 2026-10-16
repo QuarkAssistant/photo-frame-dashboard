@@ -57,6 +57,7 @@ export function go(name) {
   });
   const el = document.getElementById(`view-${viewName}`);
   if (views[viewName] && el) views[viewName].show(el);
+  paintClocks();
   const hash = person ? person.id : viewName;
   if (location.hash !== `#${hash}`) {
     history.replaceState(null, '', `${location.pathname}${location.search}#${hash}`);
@@ -67,6 +68,7 @@ export function rerender() {
   const el = document.getElementById(`view-${current}`);
   if (el && views[current]) views[current].show(el);
   if (saverOpen) paintSaver();
+  paintClocks();
 }
 
 function clockHtml(date) {
@@ -243,29 +245,52 @@ async function loadNightConfig() {
   } catch { /* defaults already match the usual window */ }
 }
 
+// Per-second work: night window, screensaver idle count. No DOM writes unless
+// one of those states actually changes.
 function tick() {
   const n = now();
   syncNight(n);
-  const c = clockBits(n);
-  document.querySelectorAll('[data-railclock]').forEach((el) => {
-    el.innerHTML = `<b>${c.h}:${c.m}</b><span>${c.ap}</span>`;
-  });
-  document.querySelectorAll('[data-clock]').forEach((el) => { el.innerHTML = clockHtml(n); });
   if (saverOpen && inNight(n) && !nightOff) closeSaver();
-  if (saverOpen) {
-    const time = document.querySelector('.saver-time');
-    if (time) time.innerHTML = `${c.h}:${c.m}<span>${c.ap}</span>`;
-  }
-  if (n.getMinutes() !== lastMin) {
-    lastMin = n.getMinutes();
-    if (themeFn) themeFn();
-    const view = views[current];
-    const el = document.getElementById(`view-${current}`);
-    if (view && view.tick && el) view.tick(el);
-    if (saverOpen) paintSaver();
-  }
+  if (n.getMinutes() !== lastMin) minuteTick(n);
   idle += 1;
   if (!nightOpen && !inNight(n) && !saverOpen && idle >= saverIdle()) openSaver();
+}
+
+// Clock text changes once a minute, so only touch the clock elements then, and
+// only when the text is different (rewriting them every second forced a layout).
+function setHtml(el, html) {
+  if (el.__html !== html) { el.innerHTML = html; el.__html = html; }
+}
+
+export function paintClocks(n = now()) {
+  const c = clockBits(n);
+  document.querySelectorAll('[data-railclock]').forEach((el) => setHtml(el, `<b>${c.h}:${c.m}</b><span>${c.ap}</span>`));
+  document.querySelectorAll('[data-clock]').forEach((el) => setHtml(el, clockHtml(n)));
+  if (saverOpen) {
+    const time = document.querySelector('.saver-time');
+    if (time) setHtml(time, `${c.h}:${c.m}<span>${c.ap}</span>`);
+  }
+}
+
+function minuteTick(n) {
+  lastMin = n.getMinutes();
+  paintClocks(n);
+  if (themeFn) themeFn();
+  const view = views[current];
+  const el = document.getElementById(`view-${current}`);
+  if (view && view.tick && el) view.tick(el);
+  if (saverOpen) paintSaver();
+}
+
+// Align the clock repaint to the start of each minute so it never lags the
+// real time by up to a second.
+function scheduleMinute() {
+  const ms = 60000 - (Date.now() % 60000) + 50;
+  setTimeout(() => {
+    const n = now();
+    if (n.getMinutes() !== lastMin) minuteTick(n);
+    scheduleMinute();
+  }, ms);
 }
 
 function bind() {
@@ -343,7 +368,9 @@ export async function start() {
   document.documentElement.dataset.ready = '1';
   go(location.hash.slice(1) || 'home');
   tick();
+  paintClocks();
   setInterval(tick, 1000);
+  scheduleMinute();
   setInterval(() => { refreshLists(); }, 20000);
   setInterval(() => { refreshAll(); }, 5 * 60 * 1000);
 }

@@ -77,7 +77,7 @@ Mac that stays on at home; the frame loads `http://DASHBOARD_HOST:4173` over Wi�
 
 | Endpoint | What |
 |---|---|
-| `GET /api/weather` | Open-Meteo current, hourly, 7-day |
+| `GET /api/weather` | Open-Meteo current, hourly, 7-day. `indoor` is the SenseCraft reading (`tempC`, `humidity`, `status`, `fetchedAt`) or `null` |
 | `GET /api/calendar` | iCloud CalDAV events |
 | `GET /api/grocery` / `/api/groceries` | Reminders grocery list |
 | `GET /api/photos` | Photo list (`source: folder` or `emblem`) |
@@ -88,6 +88,7 @@ Mac that stays on at home; the frame loads `http://DASHBOARD_HOST:4173` over Wi�
 ## Refresh intervals
 - Clock: every second. Grocery/chores lists: every **20 s**.
 - Calendar, weather, photos, extras: every **5 min** (server caches upstream data).
+- SenseCraft indoor reading: every **10 min** on the server. The card reads it with the weather refresh.
 - Album sync: every 30 min. The frame only needs Wi‑Fi; USB is just power.
 
 ## URL parameters (testing / screenshots)
@@ -121,6 +122,8 @@ HOME_ADDRESS=123 Main St, Your Town, ST 00000
 HOME_LAT=00.0000
 HOME_LON=-00.0000
 TOMTOM_API_KEY=your-tomtom-key
+SENSECRAFT_DEVICE_ID=your-device-id
+SENSECRAFT_API_KEY=your-api-key
 ```
 `ALBUM_URL` gives read access to the album to anyone who has it — keep it only in `.env`.
 The kiosk APK reads its URL from the git-ignored `dashboard/kiosk/local.properties`
@@ -511,3 +514,94 @@ The kiosk WebView (`dashboard/kiosk`, `MainActivity`) is tuned for smoother scro
 The WebView stays on the default layer type. `DEFAULT_URL` stays the placeholder.
 
 This was measured on the frame with gfxinfo: janky frames 93.5% to 84%, slowest 10% of frames 44 ms to 32 ms. Force GPU rendering and disabling hardware overlays made no difference, and a hardware layer made scrolling worse (96.7%).
+## Performance fixes (Oct 16, 2026)
+
+Profiling the dashboard on the PF1007L (Allwinner A33, Android 6.0.1, WebView 106) over
+USB ADB and WebView remote debugging found three causes of lag. Behavior and look are unchanged.
+
+| Cause | Measured before | Fix |
+|---|---|---|
+| `parts()` in `time.js` built a new `Intl.DateTimeFormat` (with a time zone) on every call | 31–39% of main-thread time; Calendar Month view took 7.6 s to respond to a tap, Agenda 2.9 s | One formatter per zone, reused; small per-second result cache (callers get a copy); zone validation cached in `zonedToUtc` |
+| The 20 s list poll and 5 min refresh repainted the visible view even when nothing changed | Main thread busy ~10 s of every 20 s on Home; node count kept growing | `data.js` compares a JSON signature of the watched state and only notifies views when it changed. User actions still repaint immediately |
+| The clock was rewritten every second on every page | 31–43 layouts per 20 s | Clock elements are only written when the text changes, from a timer aligned to the next minute. The 1 s tick still drives the night window and screensaver idle count, without DOM writes |
+
+Notes:
+- Views still rebuild their own markup when their data changes; the change is that unchanged polls no longer trigger a rebuild.
+- Tests run with `npm test` (`REMINDERS_FAKE=1`), never against the real Reminders list. One server test
+  (`serves mock calendar and toggles a chore when env is missing`) already fails on `main` before this change.
+- The frame only picks up new front-end code after the kiosk activity restarts (or a power cycle).
+
+## Scroll jank, calendar Previous button, weather test (Oct 16, 2026)
+
+**List scrolling (Grocery, member pages).** Measured with `dumpsys gfxinfo` during scripted swipes
+(3 up/down pairs, 600 ms swipes). Every CSS change tried left jank at roughly the same level:
+
+| Variant | Grocery janky / p90 | JP janky / p90 | Lucas janky / p90 |
+|---|---|---|---|
+| Current CSS | 96% / 48 ms | 95% / 48 ms | 96% / 53 ms |
+| `will-change: transform` on the scroll container | 96% / 53 ms | 95% / 53 ms | 93% / 48 ms |
+| Opaque background on the scroll container | 94% / 48 ms | 95% / 44 ms | 94% / 48 ms |
+| Opaque background + `will-change` | 95% / 53 ms | 93% / 46 ms | 96% / 53 ms |
+| No shadows, radii, gradients or filters anywhere | 96% / 57 ms | – | – |
+| List text made transparent | 96% / 48 ms | – | – |
+
+There are no scroll listeners in the dashboard, and the page's own frame loop stays at about 17 ms
+(60 fps) during a swipe: the page itself runs fine. As a control, a plain white full-screen list of
+text lines, injected over the dashboard, still janked (79% / 48 ms), and a 300×300 px plain scroller
+janked 96% / 53 ms. Most slow frames are reported as "slow issue draw commands", which is the WebView's
+GPU compositing on this device. So the cost is in the frame's WebView/GPU path, not in the dashboard's
+styling, and no CSS change was shipped for it. Possible next steps sit outside the web app (kiosk
+WebView settings or a newer WebView build).
+
+**Calendar "Previous" button.** Not a bug. The calendar only shows the current and the next week
+(or month), so Previous is disabled (drawn as an outlined circle) while on the current one. It works
+after Next, in both Week and Month view; the hit area is the button itself. The earlier probe
+tapped it while it was disabled.
+
+**Failing test `serves mock calendar and toggles a chore when env is missing`.** The live Open-Meteo
+forecast was moved to 7 days for the Weather page ("Next 7 days"), but the offline mock still
+returned 5 days and the test still expected 5. The mock now returns 7 days too (so the Weather page looks
+the same offline), and the test expects 7. `npm test` (fake Reminders): 27 pass, 0 fail.
+
+## v1.7 — Indoor temperature and humidity
+
+The Home weather card shows one extra line when a SenseCraft HMI sensor has a fresh reading:
+
+`Inside 74 °F / 23 °C · 47%`
+
+°F is first. Both temperatures sit on that one line, in the same `°F / °C` style as the rest of the card. The word is English. The line is left off when there is nothing fresh to show.
+
+- `server/indoor.js` polls `GET https://sensecraft-hmi-api.seeed.cc/api/v1/user/device/iot_data/{SENSECRAFT_DEVICE_ID}` every 10 minutes. The header is `API-Key: {SENSECRAFT_API_KEY}`.
+- Both values come from `dashboard/.env` (placeholders are in `.env.example`). They are not hardcoded. The example values `your-device-id` and `your-api-key` count as unset, so copying the example file does not call SenseCraft. The key is never written to the log. The device id and the key are not included in the JSON the frame receives.
+- A reading is `result.sensor.temp` (degrees Celsius), `result.sensor.humidity`, and `result.devicestatus.status`.
+- `GET /api/weather` adds `indoor`: `{ tempC, humidity, status, fetchedAt }` or `null`. `fetchedAt` is the time of the last successful read.
+- `indoor` is `null` when either env var is missing, when the request fails and no earlier read is still fresh, or when the last success is 45 minutes old or older. The card then draws no indoor line.
+- The board repaints only when the data it draws has changed (the same rule as the October 16 performance fix). A new `fetchedAt` with the same temperature and humidity does not repaint, and the weather card markup is rewritten only when that markup changed.
+- Tests (`server/indoor.test.js`) use a mocked fetch. `npm test` runs them with `REMINDERS_FAKE=1` and does not call the real device.
+
+Do not put the device id, the API key, or a home address in this repo, in screenshots, or in commits.
+
+### Whereabouts: device readings at home show "Home" (2026-10-16)
+
+- Find My device rows (`source: "device"`, e.g. a watch via `FINDMY_DEVICE`) report a street
+  ("Street Suffix, City") instead of "Home". `server/homeplace.js` now compares the place's street
+  with the street of `HOME_ADDRESS` from `.env` (abbreviations like Cir/St/Dr normalized) and, on a
+  match, sets `place: "Home"`, `detail: "home"`. Done server-side in `/api/whereabouts`; the Swift
+  helper is unchanged. Tests: `server/homeplace.test.js` (fake address only).
+- The helper is now code-signed: `npm run findmy:build` runs `scripts/build-findmy.sh`, which
+  compiles and signs with the local "Apple Development" identity (override with
+  `FINDMY_SIGN_IDENTITY`) and the fixed identifier `com.coelho.findmy-people`. macOS ties the
+  Accessibility grant to that signature, so it survives rebuilds. After the first signing,
+  re-add the binary in Accessibility once (− then +).
+
+### Whereabouts: primary device per person (2026-10-16)
+
+- New `.env` key `FINDMY_DEVICE_PRIMARY=<id>[;<id>…]`: for those people, the `FINDMY_DEVICE`
+  reading is their main location with no max age, so the People tab's "No Location Found" is
+  never shown while the device has a reading. Others keep the 30-minute fallback rule.
+- The Devices-tab lookup now scrolls over the side list (located from the window frame) to the top
+  first, then down and back up; before, devices in the first section were never found.
+- Built with `npm run findmy:build` (signed), so the Accessibility grant was kept. `--selftest`
+  covers the no-max-age rule.
+- Device rows can end with an extra "· <battery status>" segment; the parser now takes the time
+  from the first parseable segment after "·" (it used the last one and dropped such rows).
