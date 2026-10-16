@@ -8,6 +8,7 @@ import {
 } from '../night.js';
 import { calendarPayload } from './calendar.js';
 import { loadEnv } from './env.js';
+import { labelHome } from './homeplace.js';
 import { listPhotos, photoJpeg } from './photos.js';
 import { albumStatus, syncAlbum } from './album.js';
 import { extrasPayload } from './extras.js';
@@ -144,6 +145,7 @@ export function createApi({ root }) {
           for (const v of Object.values(data.people || {})) {
             if (!v.at || Number.isNaN(new Date(v.at).getTime())) v.at = data.updatedAt || new Date().toISOString();
           }
+          labelHome(data.people, process.env.HOME_ADDRESS);
           return sendJson(res, 200, { ok: true, ...data });
         }
         catch { return sendJson(res, 200, { ok: false, reason: 'no-findmy-source', people: {} }); }

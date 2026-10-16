@@ -568,3 +568,16 @@ The Home weather card shows one extra line when a SenseCraft HMI sensor has a fr
 - Tests (`server/indoor.test.js`) use a mocked fetch. `npm test` runs them with `REMINDERS_FAKE=1` and does not call the real device.
 
 Do not put the device id, the API key, or a home address in this repo, in screenshots, or in commits.
+
+### Whereabouts: device readings at home show "Home" (2026-10-16)
+
+- Find My device rows (`source: "device"`, e.g. a watch via `FINDMY_DEVICE`) report a street
+  ("Street Suffix, City") instead of "Home". `server/homeplace.js` now compares the place's street
+  with the street of `HOME_ADDRESS` from `.env` (abbreviations like Cir/St/Dr normalized) and, on a
+  match, sets `place: "Home"`, `detail: "home"`. Done server-side in `/api/whereabouts`; the Swift
+  helper is unchanged. Tests: `server/homeplace.test.js` (fake address only).
+- The helper is now code-signed: `npm run findmy:build` runs `scripts/build-findmy.sh`, which
+  compiles and signs with the local "Apple Development" identity (override with
+  `FINDMY_SIGN_IDENTITY`) and the fixed identifier `com.coelho.findmy-people`. macOS ties the
+  Accessibility grant to that signature, so it survives rebuilds. After the first signing,
+  re-add the binary in Accessibility once (− then +).

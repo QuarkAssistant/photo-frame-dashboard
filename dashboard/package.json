@@ -11,7 +11,7 @@
     "test": "REMINDERS_FAKE=1 node --test --test-force-exit --test-timeout=20000 server/*.test.js",
     "reminders:build": "mkdir -p server/bin && swiftc -O -o server/bin/reminders-grocery server/reminders.swift",
     "deploy": "vite build && wrangler deploy",
-    "findmy:build": "mkdir -p server/bin && swiftc -O -o server/bin/findmy-people server/findmy.swift"
+    "findmy:build": "sh scripts/build-findmy.sh"
   },
   "devDependencies": {
     "vite": "^8.3.1",
