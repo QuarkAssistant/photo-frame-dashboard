@@ -581,3 +581,15 @@ Do not put the device id, the API key, or a home address in this repo, in screen
   `FINDMY_SIGN_IDENTITY`) and the fixed identifier `com.coelho.findmy-people`. macOS ties the
   Accessibility grant to that signature, so it survives rebuilds. After the first signing,
   re-add the binary in Accessibility once (− then +).
+
+### Whereabouts: primary device per person (2026-10-16)
+
+- New `.env` key `FINDMY_DEVICE_PRIMARY=<id>[;<id>…]`: for those people, the `FINDMY_DEVICE`
+  reading is their main location with no max age, so the People tab's "No Location Found" is
+  never shown while the device has a reading. Others keep the 30-minute fallback rule.
+- The Devices-tab lookup now scrolls over the side list (located from the window frame) to the top
+  first, then down and back up; before, devices in the first section were never found.
+- Built with `npm run findmy:build` (signed), so the Accessibility grant was kept. `--selftest`
+  covers the no-max-age rule.
+- Device rows can end with an extra "· <battery status>" segment; the parser now takes the time
+  from the first parseable segment after "·" (it used the last one and dropped such rows).

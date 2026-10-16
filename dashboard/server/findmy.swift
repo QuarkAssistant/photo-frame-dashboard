@@ -9,6 +9,7 @@
 // Preferred device per person (optional, git-ignored .env):
 //   FINDMY_DEVICE=lucas=<device name as shown in Find My>;jp=<...>
 //   FINDMY_DEVICE_MAX_AGE_MIN=30   (default 30)
+//   FINDMY_DEVICE_PRIMARY=jp       (device is main location for these ids; no max age)
 // The device's row in the Devices tab is used when it is no older than the max age;
 // otherwise the People-tab location is kept. Each person records "source":
 // "people" or "device". Any Accessibility failure keeps the People result.
@@ -40,6 +41,8 @@ if let env = try? String(contentsOf: envURL, encoding: .utf8) {
 
 var preferredDevice: [String: String] = [:]
 var deviceMaxAgeMin = 30.0
+// FINDMY_DEVICE_PRIMARY=gilmara;...  -> that person's device is their main location (no max age).
+var primaryDevice: Set<String> = []
 if let env = try? String(contentsOf: envURL, encoding: .utf8) {
   for line in env.split(separator: "\n") {
     let strip = CharacterSet(charactersIn: "\"' ")
@@ -47,6 +50,10 @@ if let env = try? String(contentsOf: envURL, encoding: .utf8) {
       for pair in line.dropFirst("FINDMY_DEVICE=".count).trimmingCharacters(in: strip).split(separator: ";") {
         let kv = pair.split(separator: "=", maxSplits: 1).map { $0.trimmingCharacters(in: .whitespaces) }
         if kv.count == 2, !kv[1].isEmpty { preferredDevice[kv[0].lowercased()] = kv[1] }
+      }
+    } else if line.hasPrefix("FINDMY_DEVICE_PRIMARY=") {
+      for id in line.dropFirst("FINDMY_DEVICE_PRIMARY=".count).trimmingCharacters(in: strip).split(whereSeparator: { $0 == ";" || $0 == "," }) {
+        primaryDevice.insert(id.trimmingCharacters(in: .whitespaces).lowercased())
       }
     } else if line.hasPrefix("FINDMY_DEVICE_MAX_AGE_MIN="),
               let v = Double(line.dropFirst("FINDMY_DEVICE_MAX_AGE_MIN=".count).trimmingCharacters(in: strip)), v > 0 {
@@ -75,8 +82,10 @@ func isDistance(_ t: String) -> Bool {
 // Returns (place, minutes) or nil when the row has no location/time.
 func parseDeviceRow(_ raw: String, name: String) -> (String, Double)? {
   let t = raw.replacingOccurrences(of: "\u{00A0}", with: " ")
-  guard t.lowercased().hasPrefix(name.lowercased() + ","), let dot = t.range(of: "·", options: .backwards) else { return nil }
-  guard let mins = minutesAgo(String(t[dot.upperBound...]).trimmingCharacters(in: wsAll)) else { return nil }
+  // Rows can carry extra "· <battery status>" segments after the time; use the first "·".
+  guard t.lowercased().hasPrefix(name.lowercased() + ","), let dot = t.range(of: "·") else { return nil }
+  guard let mins = t[dot.upperBound...].components(separatedBy: "·").lazy
+    .compactMap({ minutesAgo($0.trimmingCharacters(in: wsAll)) }).first else { return nil }
   let body = String(t[t.index(t.startIndex, offsetBy: name.count + 1)..<dot.lowerBound])
   let parts = body.components(separatedBy: ",").map { $0.trimmingCharacters(in: wsAll) }
     .filter { !$0.isEmpty && $0.lowercased() != "nearby" && !isDistance($0) }
@@ -96,6 +105,8 @@ if CommandLine.arguments.contains("--selftest") {
   check(parseDeviceRow("Phone Y, Springfield, IL \u{00B7} Now", name: "Watch X") == nil, "other device")
   check(parseDeviceRow("Watch X, Springfield, IL \u{00B7} 12 min ago", name: "watch x")?.1 == 12, "case-insensitive")
   check(useDevice(minutes: 30, maxAge: 30) && !useDevice(minutes: 31, maxAge: 30) && !useDevice(minutes: nil, maxAge: 30), "age rule")
+  check(parseDeviceRow("Phone Y, Nearby, Springfield, IL \u{00B7} 1 hr ago \u{00B7} Battery Low", name: "Phone Y")?.1 == 60, "battery suffix")
+  check(useDevice(minutes: 99999, maxAge: .infinity) && !useDevice(minutes: nil, maxAge: .infinity), "primary rule")
   print(bad == 0 ? "selftest ok" : "selftest failed \(bad)")
   exit(bad == 0 ? 0 : 1)
 }
@@ -299,6 +310,19 @@ if let win = (attr(root, kAXWindowsAttribute) as? [AXUIElement])?.first {
 }
 
 stat("people-tab matched=\(people.keys.sorted()) preferred=\(preferredDevice.keys.sorted())")
+// A point over the Devices side list (left column, mid-height of the Find My window).
+func listPoint() -> CGPoint? {
+  guard let w = (attr(root, "AXWindows") as? [AXUIElement])?.first,
+        let pv = attr(w, kAXPositionAttribute), let sv = attr(w, kAXSizeAttribute) else { return nil }
+  var p = CGPoint.zero; var sz = CGSize.zero
+  AXValueGetValue(pv as! AXValue, .cgPoint, &p); AXValueGetValue(sv as! AXValue, .cgSize, &sz)
+  return CGPoint(x: p.x + 150, y: p.y + sz.height / 2)
+}
+func scrollList(_ dy: Int32) {
+  guard let pt = listPoint() else { return }
+  CGWarpMouseCursorPosition(pt)
+  CGEvent(scrollWheelEvent2Source: nil, units: .pixel, wheelCount: 1, wheel1: dy, wheel2: 0, wheel3: 0)?.post(tap: .cghidEventTap)
+}
 // Preferred-device pass (Devices tab). Never throws away the People result.
 if !preferredDevice.isEmpty {
   fm.activate()
@@ -309,24 +333,23 @@ if !preferredDevice.isEmpty {
     for (id, name) in preferredDevice where family.contains(where: { $0.0 == id }) {
       var row: String? = nil
       var rowEl: AXUIElement? = nil
-      for step in 0..<10 {
+      // Start from the top of the (virtualised) list: earlier passes may have left it scrolled down.
+      for _ in 0..<8 { scrollList(600); Thread.sleep(forTimeInterval: 0.2) }
+      Thread.sleep(forTimeInterval: 0.6)
+      for step in 0..<20 {
         let cands = findAll(root, 0, { ["AXStaticText", "AXButton"].contains(role($0)) && (text($0)?.lowercased().hasPrefix(name.lowercased() + ",") ?? false) })
         if let e = cands.first(where: { parseDeviceRow(text($0) ?? "", name: name) != nil }) ?? cands.first(where: { role($0) == "AXStaticText" }) {
           row = text(e); rowEl = e; break
         }
-        // Scroll the side list (virtualised) over its first visible row.
-        guard step < 9, let any = findEl(root, 0, { role($0) == "AXStaticText" && (text($0)?.contains("·") ?? false) }) else { break }
-        var p = CGPoint.zero
-        if let pv = attr(any, kAXPositionAttribute), AXValueGetValue(pv as! AXValue, .cgPoint, &p) {
-          CGWarpMouseCursorPosition(CGPoint(x: p.x + 40, y: p.y + 10))
-          CGEvent(scrollWheelEvent2Source: nil, units: .pixel, wheelCount: 1, wheel1: -300, wheel2: 0, wheel3: 0)?.post(tap: .cghidEventTap)
-          Thread.sleep(forTimeInterval: 0.8)
-        } else { break }
+        // Scroll the side list (virtualised): down first, then back up.
+        guard step < 19, listPoint() != nil else { break }
+        scrollList(step < 9 ? -300 : 300)
+        Thread.sleep(forTimeInterval: 0.8)
       }
       stat("device \(id) row=\(row != nil)")
       let parsed = row.flatMap { parseDeviceRow($0, name: name) }
       if dump { print("device \(id): \(parsed == nil ? "none" : "age=\(Int(parsed!.1))m")") }
-      if let (place, mins) = parsed, useDevice(minutes: mins, maxAge: deviceMaxAgeMin) {
+      if let (place, mins) = parsed, useDevice(minutes: mins, maxAge: primaryDevice.contains(id) ? .infinity : deviceMaxAgeMin) {
         let short = (place.components(separatedBy: ",").first ?? place).trimmingCharacters(in: .whitespaces)
         var entry: [String: String] = ["place": place, "at": iso.string(from: Date().addingTimeInterval(-mins * 60)), "source": "device"]
         // Selecting the row shows a card "Name, Open Details, [dist,] <street or place>, Town, <time>".
