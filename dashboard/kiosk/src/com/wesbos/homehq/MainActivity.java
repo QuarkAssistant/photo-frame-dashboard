@@ -148,7 +148,8 @@ public class MainActivity extends Activity {
     super.onCreate(state);
     applyDebugFlag(getIntent());
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
-        | WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        | WindowManager.LayoutParams.FLAG_FULLSCREEN
+        | WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED);
 
     web = new WebView(this);
     WebSettings s = web.getSettings();
@@ -156,6 +157,13 @@ public class MainActivity extends Activity {
     s.setDomStorageEnabled(true);
     s.setUseWideViewPort(true);
     s.setMediaPlaybackRequiresUserGesture(false);
+    s.setOffscreenPreRaster(true);
+    // Overscroll glow and fading scrollbars add draws on this WebView 106 frame.
+    // Leave the default layer type: a hardware layer was measured and made scrolling worse.
+    web.setOverScrollMode(View.OVER_SCROLL_NEVER);
+    web.setVerticalScrollBarEnabled(false);
+    web.setHorizontalScrollBarEnabled(false);
+    web.setScrollbarFadingEnabled(false);
     // Keep navigation inside the kiosk. If the main page fails (e.g. Wi-Fi not up yet
     // right after boot, or the MacBook briefly away), retry every 10s instead of
     // leaving an error page on the wall.
