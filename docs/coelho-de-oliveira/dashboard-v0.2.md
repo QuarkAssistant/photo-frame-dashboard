@@ -502,6 +502,18 @@ Not added for lack of evidence: Costco/Jewel for Brazilian-specific items; Binny
 - They never expire at midnight: they stay until checked off (there is no daily reset of chores). Remove a finished one-off by deleting it from store.json.
 - Tests: `server/chores.test.js` (run via `npm test`, REMINDERS_FAKE=1).
 
+## Kiosk app scroll tweaks
+
+The kiosk WebView (`dashboard/kiosk`, `MainActivity`) is tuned for smoother scrolling on the Android 6 / WebView 106 photo frame:
+
+- `setOverScrollMode(View.OVER_SCROLL_NEVER)`
+- vertical and horizontal scrollbars off, and `setScrollbarFadingEnabled(false)`
+- `webView.getSettings().setOffscreenPreRaster(true)`
+- `WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED` added to the window flags
+
+The WebView stays on the default layer type. `DEFAULT_URL` stays the placeholder.
+
+This was measured on the frame with gfxinfo: janky frames 93.5% to 84%, slowest 10% of frames 44 ms to 32 ms. Force GPU rendering and disabling hardware overlays made no difference, and a hardware layer made scrolling worse (96.7%).
 ## Performance fixes (Oct 16, 2026)
 
 Profiling the dashboard on the PF1007L (Allwinner A33, Android 6.0.1, WebView 106) over
