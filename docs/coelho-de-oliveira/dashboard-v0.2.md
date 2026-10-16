@@ -498,3 +498,20 @@ Not added for lack of evidence: Costco/Jewel for Brazilian-specific items; Binny
 - Shared helper `dashboard/chores.js`: one-offs count in every routine's Home ring (`inRoutine`), show "One-off · today" / "One-off · overdue" / "One-off · Oct 20" on the person page (`choreSubtitle`), and are listed first while open (`sortChores`), checked ones last.
 - They never expire at midnight: they stay until checked off (there is no daily reset of chores). Remove a finished one-off by deleting it from store.json.
 - Tests: `server/chores.test.js` (run via `npm test`, REMINDERS_FAKE=1).
+
+## Performance fixes (Oct 16, 2026)
+
+Profiling the dashboard on the PF1007L (Allwinner A33, Android 6.0.1, WebView 106) over
+USB ADB and WebView remote debugging found three causes of lag. Behavior and look are unchanged.
+
+| Cause | Measured before | Fix |
+|---|---|---|
+| `parts()` in `time.js` built a new `Intl.DateTimeFormat` (with a time zone) on every call | 31–39% of main-thread time; Calendar Month view took 7.6 s to respond to a tap, Agenda 2.9 s | One formatter per zone, reused; small per-second result cache (callers get a copy); zone validation cached in `zonedToUtc` |
+| The 20 s list poll and 5 min refresh repainted the visible view even when nothing changed | Main thread busy ~10 s of every 20 s on Home; node count kept growing | `data.js` compares a JSON signature of the watched state and only notifies views when it changed. User actions still repaint immediately |
+| The clock was rewritten every second on every page | 31–43 layouts per 20 s | Clock elements are only written when the text changes, from a timer aligned to the next minute. The 1 s tick still drives the night window and screensaver idle count, without DOM writes |
+
+Notes:
+- Views still rebuild their own markup when their data changes; the change is that unchanged polls no longer trigger a rebuild.
+- Tests run with `npm test` (`REMINDERS_FAKE=1`), never against the real Reminders list. One server test
+  (`serves mock calendar and toggles a chore when env is missing`) already fails on `main` before this change.
+- The frame only picks up new front-end code after the kiosk activity restarts (or a power cycle).
