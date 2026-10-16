@@ -26,8 +26,13 @@ function emit() { lastSig = signature(); listeners.forEach((fn) => fn()); }
 const WATCHED = ['events', 'weather', 'chores', 'groceries', 'homework', 'photos', 'extras',
   'photoSource', 'routines', 'calendarSource', 'grocerySource', 'groceryReason', 'groceryUsuals', 'tagger'];
 let lastSig = '';
+// fetchedAt changes on every successful indoor poll even when the numbers the
+// card draws are the same. Ignore it so that timestamp alone does not repaint.
+export function viewSignature(snapshot) {
+  return JSON.stringify(snapshot, (key, value) => (key === 'fetchedAt' ? undefined : value));
+}
 function signature() {
-  try { return JSON.stringify(WATCHED.map((k) => state[k])); } catch { return String(Math.random()); }
+  try { return viewSignature(WATCHED.map((k) => state[k])); } catch { return String(Math.random()); }
 }
 function emitIfChanged() {
   const sig = signature();

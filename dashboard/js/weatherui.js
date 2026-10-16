@@ -8,6 +8,19 @@ export function celsius(f, given) {
   return Number.isFinite(n) ? Math.round(n) : fToC(f);
 }
 
+// One Home-card line, or '' when there is no fresh indoor reading.
+// °F is rounded from the sensor's °C; °C and humidity are rounded for display.
+export function indoorHtml(indoor) {
+  if (!indoor || indoor.tempC == null || indoor.humidity == null) return '';
+  const tempC = Number(indoor.tempC);
+  const humidity = Number(indoor.humidity);
+  if (!Number.isFinite(tempC) || !Number.isFinite(humidity)) return '';
+  const f = Math.round(tempC * 9 / 5 + 32);
+  const c = Math.round(tempC);
+  const h = Math.round(humidity);
+  return `<span class="hw-in"><b>Inside</b> <span class="hw-pair num">${f} °F <i>/</i> ${c} °C</span> · ${h}%</span>`;
+}
+
 function wxIcon(name, size) {
   return icon(name || 'partly', size, 2);
 }
