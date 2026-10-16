@@ -1,5 +1,6 @@
 import { describeWeather, hourLabelFromHour, mockWeather } from '../mock.js';
 import { parts, ymd, zonedToUtc } from '../time.js';
+import { indoorReading } from './indoor.js';
 import { mapNws, nwsCurrent } from './nws.js';
 
 const TTL = 10 * 60 * 1000;
@@ -49,12 +50,16 @@ function dayName(iso, today) {
   return parts(zonedToUtc(y, m, d, 12, 0, 0)).weekday;
 }
 
+function withIndoor(payload, now) {
+  return { ...payload, indoor: indoorReading(now) };
+}
+
 export async function weatherPayload(now = new Date()) {
   const lat = Number(process.env.LAT) || 41.7859;
   const lon = Number(process.env.LON) || -88.1473;
   const place = process.env.WEATHER_PLACE || 'Naperville';
   if (cache && now.getTime() - cache.at < TTL && cache.lat === lat && cache.lon === lon && cache.place === place) {
-    return { ...cache.data, cached: true };
+    return withIndoor({ ...cache.data, cached: true }, now);
   }
   const url = new URL('https://api.open-meteo.com/v1/forecast');
   url.searchParams.set('latitude', String(lat));
@@ -121,10 +126,10 @@ export async function weatherPayload(now = new Date()) {
     shaped.sunset = data.daily?.sunset?.[0] ?? null;
     await applyObserved(shaped, data, lat, lon, now, currentHour);
     cache = { at: now.getTime(), lat, lon, place, data: shaped };
-    return shaped;
+    return withIndoor(shaped, now);
   } catch (err) {
     console.error('weather:', err.message);
-    if (cache) return { ...cache.data, stale: true };
-    return mockWeather(now);
+    if (cache) return withIndoor({ ...cache.data, stale: true }, now);
+    return withIndoor(mockWeather(now), now);
   }
 }

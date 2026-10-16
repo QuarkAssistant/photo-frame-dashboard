@@ -5,7 +5,7 @@ import { clockHtml, now, register, routineNow } from '../app.js';
 import {
   avatar, compactTitle, dayParts, esc, eventTitle, formatRange, formatTime, nextPersonWhen, nextUp, owner, pstyle, relDay, ring,
 } from '../ui.js';
-import { celsius } from '../weatherui.js';
+import { celsius, indoorHtml } from '../weatherui.js';
 import { createSlides } from '../slides.js';
 import { icon } from '../icons.js';
 import { chores3, days3, family3, loadWhere, shop3, weather3 } from './home3.js';
@@ -27,7 +27,8 @@ function weatherHtml() {
   return `<div class="hw-top">` +
     `<div class="hw-now"><span class="hw-icon">${icon(w.code || 'partly', 40, 2)}</span>` +
     `<div class="hw-now-txt">${wxPair(w.temp, celsius(w.temp, w.tempC), 'hw-big')}` +
-    `<span class="hw-cond"><b>${esc(w.label)}</b> · ${esc(w.place || 'Naperville')}</span></div></div>` +
+    `<span class="hw-cond"><b>${esc(w.label)}</b> · ${esc(w.place || 'Naperville')}</span>` +
+    `${indoorHtml(w.indoor)}</div></div>` +
     `<div class="hw-hl">` +
     `<span class="hw-line"><em>High</em>${icon('up', 14, 2)}${wxPair(w.hi, celsius(w.hi, w.hiC))}</span>` +
     `<span class="hw-line"><em>Low</em>${icon('down', 14, 2)}${wxPair(w.lo, celsius(w.lo, w.loC))}</span>` +
@@ -306,10 +307,20 @@ function calSlots(cal) {
   return cal._slots;
 }
 
+// Same rule as the minute clock: leave the card alone when its markup is unchanged.
+function paintWeather(el) {
+  const node = el.querySelector('.h-weather');
+  if (!node) return;
+  const html = weatherHtml();
+  if (node.__html === html) return;
+  node.__html = html;
+  node.innerHTML = html;
+}
+
 function paint3(el) {
   const clock = el.querySelector('[data-clock]');
   if (clock) clock.innerHTML = clockHtml(now());
-  el.querySelector('.h-weather').innerHTML = weatherHtml();
+  paintWeather(el);
   el.querySelector('.h-family').innerHTML = family3();
   el.querySelector('.h-hero-slot').innerHTML = heroHtml();
   el.querySelector('.h-days').innerHTML = daysHtml();
@@ -332,7 +343,7 @@ function paint(el) {
   if (V2) { paint3(el); return; }
   const clock = el.querySelector('[data-clock]');
   if (clock) clock.innerHTML = clockHtml(now());
-  el.querySelector('.h-weather').innerHTML = weatherHtml();
+  paintWeather(el);
   el.querySelector('.h-family').innerHTML = familyHtml();
   el.querySelector('.h-hero-slot').innerHTML = heroHtml();
   el.querySelector('.h-lanes').innerHTML = lanesHtml();
@@ -383,7 +394,7 @@ register('home', {
     el.querySelector('.h-hero-slot').innerHTML = heroHtml();
     el.querySelector('.h-lanes').innerHTML = lanesHtml();
     el.querySelector('.h-family').innerHTML = familyHtml();
-      if (now().getMinutes() === 0) el.querySelector('.h-weather').innerHTML = weatherHtml();
+      if (now().getMinutes() === 0) paintWeather(el);
   },
 });
 

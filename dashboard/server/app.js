@@ -15,6 +15,7 @@ import { etaPayload } from './eta.js';
 import { isStale, taggerStatus } from './tagger.js';
 import { loadGroceries, saveGrocery } from './reminders.js';
 import { openStore } from './store.js';
+import { startIndoor } from './indoor.js';
 import { weatherPayload } from './weather.js';
 
 const MIME = {
@@ -104,6 +105,8 @@ function nightConfig() {
 
 export function createApi({ root }) {
   loadEnv(path.join(root, '.env'));
+  // The test runner must not poll a real device. node:test sets this.
+  if (!process.env.NODE_TEST_CONTEXT) startIndoor();
   const store = openStore(root);
   const dist = path.join(root, 'dist');
 
