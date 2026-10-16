@@ -515,3 +515,35 @@ Notes:
 - Tests run with `npm test` (`REMINDERS_FAKE=1`), never against the real Reminders list. One server test
   (`serves mock calendar and toggles a chore when env is missing`) already fails on `main` before this change.
 - The frame only picks up new front-end code after the kiosk activity restarts (or a power cycle).
+
+## Scroll jank, calendar Previous button, weather test (Oct 16, 2026)
+
+**List scrolling (Grocery, member pages).** Measured with `dumpsys gfxinfo` during scripted swipes
+(3 up/down pairs, 600 ms swipes). Every CSS change tried left jank at roughly the same level:
+
+| Variant | Grocery janky / p90 | JP janky / p90 | Lucas janky / p90 |
+|---|---|---|---|
+| Current CSS | 96% / 48 ms | 95% / 48 ms | 96% / 53 ms |
+| `will-change: transform` on the scroll container | 96% / 53 ms | 95% / 53 ms | 93% / 48 ms |
+| Opaque background on the scroll container | 94% / 48 ms | 95% / 44 ms | 94% / 48 ms |
+| Opaque background + `will-change` | 95% / 53 ms | 93% / 46 ms | 96% / 53 ms |
+| No shadows, radii, gradients or filters anywhere | 96% / 57 ms | – | – |
+| List text made transparent | 96% / 48 ms | – | – |
+
+There are no scroll listeners in the dashboard, and the page's own frame loop stays at about 17 ms
+(60 fps) during a swipe: the page itself runs fine. As a control, a plain white full-screen list of
+text lines, injected over the dashboard, still janked (79% / 48 ms), and a 300×300 px plain scroller
+janked 96% / 53 ms. Most slow frames are reported as "slow issue draw commands", which is the WebView's
+GPU compositing on this device. So the cost is in the frame's WebView/GPU path, not in the dashboard's
+styling, and no CSS change was shipped for it. Possible next steps sit outside the web app (kiosk
+WebView settings or a newer WebView build).
+
+**Calendar "Previous" button.** Not a bug. The calendar only shows the current and the next week
+(or month), so Previous is disabled (drawn as an outlined circle) while on the current one. It works
+after Next, in both Week and Month view; the hit area is the button itself. The earlier probe
+tapped it while it was disabled.
+
+**Failing test `serves mock calendar and toggles a chore when env is missing`.** The live Open-Meteo
+forecast was moved to 7 days for the Weather page ("Next 7 days"), but the offline mock still
+returned 5 days and the test still expected 5. The mock now returns 7 days too (so the Weather page looks
+the same offline), and the test expects 7. `npm test` (fake Reminders): 27 pass, 0 fail.

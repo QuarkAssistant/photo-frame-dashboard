@@ -170,7 +170,9 @@ export function mockWeather(now = new Date()) {
   }
   const today = ymd(now);
   const days = [];
-  for (let i = 0; i < 5; i++) {
+  // Same length as the live Open-Meteo forecast (forecast_days=7) so the
+  // Weather page's "Next 7 days" strip looks the same offline.
+  for (let i = 0; i < 7; i++) {
     const day = addDaysYmd(today, i);
     const [y, m, d] = day.split('-').map(Number);
     const hi = 68 - i + (i === 2 ? -4 : 0);

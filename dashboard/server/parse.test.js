@@ -132,7 +132,8 @@ test('serves mock calendar and toggles a chore when env is missing', async () =>
   assert.ok(wx.hours.length >= 6 && wx.hours.length <= 8);
   assert.equal(wx.hours[0].label, 'Now');
   for (const hour of wx.hours.slice(1)) assert.match(hour.label, /^\d{1,2} (AM|PM)$/);
-  assert.equal(wx.days.length, 5);
+  // Live and mock weather both return a 7-day forecast (Weather page: "Next 7 days").
+  assert.equal(wx.days.length, 7);
   assert.equal(wx.chart.length, 24);
   for (const slot of wx.chart) {
     if (slot.label !== 'Now') assert.match(slot.label, /^\d{1,2} (AM|PM)$/);
