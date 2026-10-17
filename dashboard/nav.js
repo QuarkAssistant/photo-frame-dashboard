@@ -63,9 +63,22 @@ export function flashOnce(seen, key) {
   return true;
 }
 
-// ?ui=v2 opts this browser into the v2 shell. Kept off by default until Thiago
-// approves the screenshots, so the frame (no query string) stays on v1.
-export function wantsV2(search) {
-  const q = new URLSearchParams(search || '');
-  return q.get('ui') === 'v2';
+// ?ui=v2 / ?ui=v1 force a shell for this browser. Without either, the server's default
+// (DASHBOARD_UI in .env, sent as <html data-ui-default>) decides; v1 when unset.
+export function wantsV2(search, serverDefault) {
+  const ui = new URLSearchParams(search || '').get('ui');
+  if (ui === 'v2') return true;
+  if (ui === 'v1') return false;
+  return serverDefault === 'v2';
+}
+
+// DASHBOARD_UI value -> 'v2' or 'v1' (anything unknown is v1).
+export function uiDefault(value) {
+  return String(value || '').trim().toLowerCase() === 'v2' ? 'v2' : 'v1';
+}
+
+// Marks the served page with the server's default shell. Only v2 changes the page.
+export function withUiDefault(html, value) {
+  if (uiDefault(value) !== 'v2') return html;
+  return html.replace(/<html(\s|>)/i, (m, c) => `<html data-ui-default="v2"${c}`);
 }

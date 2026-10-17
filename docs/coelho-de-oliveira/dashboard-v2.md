@@ -15,8 +15,11 @@ merge → frame reload. This page covers **Phase 0: foundations**. No page was r
 - **Agent feeds:** via a synced Dropbox folder (later phase). Homework format pending.
 
 ## How to preview
-v2 is **opt-in**: add `?ui=v2` to the URL. Without it (the frame's normal URL) the dashboard is
-exactly v1. Examples:
+`?ui=v2` forces v2 and `?ui=v1` forces v1 in any browser. Without either, the server default
+decides: `DASHBOARD_UI=v2` in `dashboard/.env` makes the plain URL (the frame's) open v2; unset or
+`v1` keeps it on v1. The server adds `data-ui-default="v2"` to `<html>` when serving the page.
+The kiosk APK has its URL built in and the frame opens it at boot, so this flag is what switches
+the frame. Examples:
 
 ```
 http://DASHBOARD_HOST:<port>/?ui=v2#home
@@ -139,7 +142,13 @@ Before Phase 0 was merged, v1 was saved two ways:
 - A copy of the built `dist/` in `~/coelho-dashboard-backups/v1-2026-10-17/` on the Mac that
   serves the frame, with a README naming the commit.
 
-The frame stays on v1 unless the URL has `?ui=v2`, so dropping that flag is the first step.
+**One step back to v1 for the frame:** set `DASHBOARD_UI=v1` in `dashboard/.env` (or remove the
+line), then `launchctl kickstart -k gui/$(id -u)/com.coelho.dashboard`. The frame picks it up on
+its next page load (relaunch the kiosk with
+`adb -d shell am start -n com.wesbos.homehq/.MainActivity -d http://DASHBOARD_HOST:<port>/` or wait
+for a reboot). Any browser can still check one version with `?ui=v1` or `?ui=v2`.
+
+If the v2 code itself has to go:
 To put the old build back: stop the LaunchAgent, copy the backup `dist/` over `dashboard/dist`,
 then restart it. To rebuild from source: check out the tag (on a new branch, or revert the merge
 with a normal commit; never force-push), run `npm ci` and `npm run build` in `dashboard/`, and
