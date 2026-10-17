@@ -605,3 +605,19 @@ Do not put the device id, the API key, or a home address in this repo, in screen
   covers the no-max-age rule.
 - Device rows can end with an extra "· <battery status>" segment; the parser now takes the time
   from the first parseable segment after "·" (it used the last one and dropped such rows).
+
+### Calendar: uniform colors on soccer events (2026-10-17)
+
+- For soccer events (title has ⚽ / "soccer" / "futebol"), the server reads the iCloud event notes
+  (`DESCRIPTION`) and looks for a line such as `Uniform: White jersey / Navy shorts` (also
+  `Kit:`, `Jersey:`, `Colors:`, `Uniforme:`). Only that line is sent as `event.uniform =
+  { text, colors: [{ name, hex }] }`; the rest of the notes never leaves the server
+  (`server/uniform.js`).
+- Real notes come in two shapes: TeamSnap lines like `Uniform: Red Jersey/black shorts & socks
+  (Arrival Time: …)` and hand-written ones like `Uniforme: “Wear Orange” — laranja. …` or
+  `Kit: Wear Blue (…)`. The shown text drops any `(…)` part (it can carry names), anything after
+  a spaced dash, quotes and a leading "Wear", so the sheet reads e.g. "Red Jersey/black shorts &
+  socks" or "Orange" (English only).
+- The event sheet shows an olive "UNIFORM" tag, up to four round color swatches and the text.
+  Events without uniform info show nothing new. Sizes use `clamp()` like the rest of the sheet.
+- Tests in `server/uniform.test.js` use made-up fixtures.

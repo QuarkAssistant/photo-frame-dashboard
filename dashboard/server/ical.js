@@ -1,3 +1,4 @@
+import { parseUniform } from './uniform.js';
 import { assignEvent, displayTitle, TIMEZONE } from '../family.js';
 import { addDaysYmd, ymd, zonedToUtc } from '../time.js';
 
@@ -139,6 +140,10 @@ export function eventsFromIcs(ics, windowStart, windowEnd) {
       everyone: who.everyone,
       people: who.people,
     };
+    if (/⚽|soccer|futebol/i.test(summary)) {
+      const uniform = parseUniform(prop(node, 'DESCRIPTION')?.value);
+      if (uniform) ev.uniform = uniform;
+    }
     if (!windowStart || overlaps(ev, windowStart, windowEnd)) events.push(ev);
   }
   events.sort((a, b) => String(a.start).localeCompare(String(b.start)));
