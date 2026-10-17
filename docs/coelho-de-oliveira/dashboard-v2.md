@@ -132,3 +132,15 @@ New Home and night view (Phase 1); Weather and Calendar redesign, Coming up cont
 person pages, routines, homework (Phase 3); Media, Photos viewer, The Long Drift content
 (Phase 4); Ring bridge, live view and doorbell pop-up (Phase 5); feeds and the Settings health
 panel (Phase 6).
+
+## Rolling back to v1
+Before Phase 0 was merged, v1 was saved two ways:
+- Git tag `v1-backup-2026-10-17` (the last v1-only commit on `main`).
+- A copy of the built `dist/` in `~/coelho-dashboard-backups/v1-2026-10-17/` on the Mac that
+  serves the frame, with a README naming the commit.
+
+The frame stays on v1 unless the URL has `?ui=v2`, so dropping that flag is the first step.
+To put the old build back: stop the LaunchAgent, copy the backup `dist/` over `dashboard/dist`,
+then restart it. To rebuild from source: check out the tag (on a new branch, or revert the merge
+with a normal commit; never force-push), run `npm ci` and `npm run build` in `dashboard/`, and
+restart the LaunchAgent.
