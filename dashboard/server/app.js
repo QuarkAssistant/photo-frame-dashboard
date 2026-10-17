@@ -7,6 +7,7 @@ import {
   clockLabel, DEFAULT_NIGHT_END, DEFAULT_NIGHT_START, parseClockMinutes,
 } from '../night.js';
 import { calendarPayload } from './calendar.js';
+import { parseFamilyBirthdays } from './familybirthdays.js';
 import { loadEnv } from './env.js';
 import { labelHome, labelHomeEvents } from './homeplace.js';
 import { listPhotos, photoJpeg } from './photos.js';
@@ -151,7 +152,7 @@ export function createApi({ root }) {
         if (to.trim().toLowerCase() === 'home') return sendJson(res, 200, { ok: false, reason: 'home' });
         return sendJson(res, 200, await etaPayload(to, url.searchParams.get('start')));
       }
-      if (pathname === '/api/extras' && req.method === 'GET') return sendJson(res, 200, await extrasPayload());
+      if (pathname === '/api/extras' && req.method === 'GET') return sendJson(res, 200, { ...(await extrasPayload()), familyBirthdays: parseFamilyBirthdays(process.env.FAMILY_BIRTHDAYS) });
       if (pathname === '/api/photos/sync') return sendJson(res, 200, req.method === 'POST' ? await syncAlbum() : albumStatus);
       if (pathname === '/api/photos' && req.method === 'GET') return sendJson(res, 200, listPhotos());
       if (pathname.startsWith('/api/photos/') && req.method === 'GET') {
