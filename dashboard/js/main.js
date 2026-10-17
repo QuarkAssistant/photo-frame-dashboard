@@ -9,5 +9,6 @@ import './views/photos.js';
 import './views/weather.js';
 import './views/settings.js';
 import './views/v2pages.js';
+import './views/calendarv2.js';
 
 start();

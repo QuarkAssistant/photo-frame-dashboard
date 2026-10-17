@@ -205,6 +205,41 @@ Not matched yet (Phase 1 follow-ups): night Home keeps the day layout (mockup 02
 card, Bedtime routine, Family board and Night mode cards need routines and a board source);
 no seasonal leaf art next to the date; no small badges on JP's and Lucas's photos.
 
+## Phase 2: Calendar (2026-10-17)
+
+Matches proposal mockup 04 (Week) and 05 (Coming up). Files: `js/views/calendarv2.js` (registers
+`calendar` and `coming-up` only with the v2 shell; v1 keeps `js/views/calendar.js`),
+`js/calv2data.js` (pure helpers), `css/v2/calendar.css`, tests in `server/calv2.test.js`.
+
+- **Header:** the range ("Oct 18 – 24", "October 2026", "Next 14 days") and a segmented control:
+  Agenda, Week (default), Month, Coming up. Round prev/next buttons for Week (2 weeks back,
+  4 ahead) and Month (1 back, 1 ahead), and a "Today" pill whenever you've moved away.
+  `?cal=agenda|week|month` opens a mode for screenshots.
+- **Filters:** Everyone, Kids (JP + Lucas), Parents (Thiago + Gilmara), with a subtitle. Kids and
+  Parents also keep family-wide events and holidays; Flamengo games show under Everyone and
+  Parents.
+- **Week:** 7 Sunday-first columns; today's column is tinted with a teal pill on its label. Cards
+  are tinted with a left bar in the owner's colour (Thiago red, Gilmara coral, JP blue, Lucas
+  green, Family teal, Parents brown, holidays gold, Flamengo black) and show the full AM/PM time
+  or "All day", the title and the person. Past events are dimmed. Four slots per day; more turns
+  the last slot into "+N more", which opens the whole day in a sheet.
+- **Titles:** shown as the calendar writes them (v1's "Name — " owner prefix stripped). The
+  narrow Week and Month cards also drop the team prefix v1 Home drops ("U14 Boys Academy -
+  Team Training" → "Team Training"); Agenda, Coming up and the popup keep the full title.
+- **Holidays and Flamengo** come from `/api/extras` (the next 3 holidays and next 2 games), so
+  past weeks don't show them.
+- **Popup:** the existing event sheet, restyled for v2 (Nunito, person-colour bar, uniform tag
+  and colour swatches for soccer events). `?sheet=uniform` still opens the next soccer popup.
+- **Agenda and Month:** v2 versions of the v1 views (14-day list; month grid with up to 3 chips
+  a day, 2 in 6-week months, then "+N more").
+- **Coming up:** today's remaining events (first one teal), tomorrow's first events, four
+  countdown tiles and a "Later" list, all from `comingUp()`: family birthdays
+  (`FAMILY_BIRTHDAYS`), holidays in English, Flamengo games, and calendar trips, outings,
+  tournaments and birthday events. There is no trips feed, so the mockup's Travel day card and
+  flight details are not built.
+- **DOM (measured on real data):** Week 89 elements inside the view (331 for the whole
+  document), Agenda 199, Month 209, Coming up 133.
+
 ## Rolling back to v1
 Before Phase 0 was merged, v1 was saved two ways:
 - Git tag `v1-backup-2026-10-17` (the last v1-only commit on `main`).
