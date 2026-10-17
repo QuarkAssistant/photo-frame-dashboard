@@ -3,7 +3,7 @@
 // groceries). When a feed has nothing, the card shows nothing rather than a sample.
 import { isMidnightPlaceholder } from '../events.js';
 import { addDaysYmd, parts, weekdayIndex, ymd } from '../time.js';
-import { compactTitle, eventTitle, formatRange, formatTime, nextUp } from './ui.js';
+import { eventTitle, formatRange, formatTime, nextUp } from './ui.js';
 
 const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August',
@@ -63,10 +63,10 @@ export function englishTitle(title) {
 
 const BIRTHDAY = /birthday|anivers/i;
 
-// Title as v2 Home shows it: the calendar's own title (owner prefix stripped, as in v1),
-// with Brazilian holidays in English. No renaming.
+// Title as v2 Home shows it: the calendar's full title (only the owner prefix stripped, as in
+// v1), with Brazilian holidays in English. No renaming or shortening.
 export function homeTitle(e) {
-  return englishTitle(compactTitle(eventTitle(e)));
+  return englishTitle(eventTitle(e));
 }
 
 // Live event: how far along it is and when it ends ("Ends 6:00 PM", "3 hr 10 min left").
@@ -138,7 +138,7 @@ export function comingUp(events, extras, now, limit = 3) {
   const out = [];
   const seen = new Set();
   for (const e of events || []) {
-    const kind = calendarKind(englishTitle(compactTitle(eventTitle(e))));
+    const kind = calendarKind(englishTitle(eventTitle(e)));
     const title = homeTitle(e);
     if (!kind) continue;
     const startDay = e.allDay ? e.start : ymd(new Date(e.start));

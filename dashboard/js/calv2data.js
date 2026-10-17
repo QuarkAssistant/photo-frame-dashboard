@@ -2,7 +2,7 @@
 // Real feeds only: family calendar events, /api/extras holidays and Flamengo fixtures.
 import { FAMILY } from '../family.js';
 import { addDaysYmd, weekdayIndex, ymd } from '../time.js';
-import { compactTitle, dayParts, eventTitle, formatTime, onDay } from './ui.js';
+import { dayParts, eventTitle, formatTime, onDay } from './ui.js';
 import { holidayName } from './homev2data.js';
 
 const MON = (iso) => dayParts(iso).month.slice(0, 3);
@@ -87,6 +87,17 @@ export function dayItems(events, extras, day, filter) {
     .sort(order);
 }
 
+// Today only: happening now, then upcoming, then ended, so a live event is never pushed
+// under "+N more" by ones that are over. Chronological (all-day first) inside each group.
+export function todayOrder(list, now) {
+  const group = (e) => {
+    if (isPast(e, now)) return 2;
+    if (e.allDay || new Date(e.start) <= now) return 0;
+    return 1;
+  };
+  return list.map((e, i) => [group(e), i, e]).sort((a, b) => a[0] - b[0] || a[1] - b[1]).map((x) => x[2]);
+}
+
 // A fixed number of card slots per column; overflow becomes "+N more" in the last slot.
 export function slots(list, max) {
   if (list.length <= max) return { shown: list, more: 0 };
@@ -101,11 +112,6 @@ export function cardTime(e) {
 }
 export function cardTitle(e) {
   return e.kind ? e.title : eventTitle(e);
-}
-// Narrow week/month cards drop only the team prefix v1 Home already drops
-// ("U14 Boys Academy - Team Training" → "Team Training"); the popup shows the full title.
-export function shortTitle(e) {
-  return e.kind ? e.title : compactTitle(eventTitle(e));
 }
 
 export function isPast(e, now) {

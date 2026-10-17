@@ -10,6 +10,7 @@ import { reportFrame } from './frameinfo.js';
 import { refreshAll, refreshLists, state, subscribe } from './data.js';
 import { icon } from './icons.js';
 import { createSlides } from './slides.js';
+import { kitHtml } from './uniformkit.js';
 import {
   avatar, clockBits, dayParts, esc, eventTitle, formatRange, formatTime, nextUp, onDay, owner, pstyle, relDay,
 } from './ui.js';
@@ -187,9 +188,8 @@ export function openEvent(id) {
 function uniformLine(ev) {
   const u = ev.uniform;
   if (!u || !u.text) return '';
-  const sw = (u.colors || []).filter((c) => /^#[0-9a-f]{6}$/i.test(c.hex))
-    .map((c) => `<span class="uni-sw" style="background:${c.hex}" title="${esc(c.name)}"></span>`).join('');
-  return `<p class="sheet-uni"><span class="uni-k">Uniform</span>${sw ? `<span class="uni-sws">${sw}</span>` : ''}<span class="uni-t">${esc(u.text)}</span></p>`;
+  const kit = kitHtml(u, UI_V2 ? 40 : 34);
+  return `<p class="sheet-uni"><span class="uni-k">Uniform</span>${kit ? `<span class="uni-kit">${kit}</span>` : ''}<span class="uni-t">${esc(u.text)}</span></p>`;
 }
 
 function closeSheet() {

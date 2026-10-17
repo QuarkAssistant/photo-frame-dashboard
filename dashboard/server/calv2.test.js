@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { displayTitle } from '../family.js';
 import {
-  cardTime, cardTitle, category, dayItems, extraItems, inFilter, isPast, monthGrid, shortDay, shortTitle, slots, weekLabel, weekStart,
+  cardTime, cardTitle, category, dayItems, extraItems, inFilter, isPast, monthGrid, shortDay, slots, todayOrder, weekLabel, weekStart,
 } from '../js/calv2data.js';
 
 const ev = (id, title, start, end, extra = {}) => ({
@@ -61,10 +61,9 @@ test('fixed card slots turn overflow into +N more', () => {
   assert.deepEqual(slots([1, 2, 3, 4, 5], 4), { shown: [1, 2, 3], more: 2 });
 });
 
-test('titles stay exactly as written; narrow cards drop only the team prefix', () => {
+test('titles stay exactly as written (only the owner prefix is stripped)', () => {
   const e = ev('a', '⚽️ JP — U14 Boys Academy - Team Training', '2026-10-20T21:30:00Z', '2026-10-20T23:00:00Z');
   assert.equal(cardTitle(e), 'U14 Boys Academy - Team Training');
-  assert.equal(shortTitle(e), 'Team Training');
   assert.equal(cardTitle(ev('b', 'Lucas — 12th Birthday Party', '', '')), '12th Birthday Party');
   assert.equal(cardTime(e), '4:30 PM');
   assert.equal(cardTime({ allDay: true }), 'All day');
@@ -84,4 +83,18 @@ test('month grid covers whole weeks', () => {
   assert.equal(oct.weeks[0][0], '2026-09-27');
   assert.equal(monthGrid('2026-10-17', -2).weeks.length, 6); // August 2026 starts on a Saturday
   assert.equal(monthGrid('2026-10-17', 1).label, 'November 2026');
+});
+
+test("today's column puts live first, then upcoming, then ended", () => {
+  const list = [
+    ev('ended1', 'JP — Morning game', '2026-10-17T13:00:00Z', '2026-10-17T14:00:00Z'),
+    ev('ended2', 'JP — Late morning', '2026-10-17T15:30:00Z', '2026-10-17T17:00:00Z'),
+    ev('live', 'JP — Party', '2026-10-17T19:00:00Z', '2026-10-17T23:00:00Z'),
+    ev('next', 'JP — Dinner', '2026-10-17T23:30:00Z', '2026-10-18T01:00:00Z'),
+    ev('later', 'JP — Movie', '2026-10-18T02:00:00Z', '2026-10-18T04:00:00Z'),
+  ];
+  const ad = { ...ev('ad', 'Picture day', '2026-10-17', '2026-10-18'), allDay: true };
+  assert.deepEqual(todayOrder([ad, ...list], NOW).map((e) => e.id), ['ad', 'live', 'next', 'later', 'ended1', 'ended2']);
+  const { shown, more } = slots(todayOrder(list, NOW), 4);
+  assert.deepEqual([shown.map((e) => e.id), more], [['live', 'next', 'later'], 2]);
 });
