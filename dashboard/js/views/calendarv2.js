@@ -6,7 +6,7 @@ import { addDaysYmd, ymd } from '../../time.js';
 import { state } from '../data.js';
 import { currentRoute, go, now, register, UI_V2 } from '../app.js';
 import {
-  cardTime, cardTitle, category, CAT, dayItems, FILTERS, isPast, monthGrid, shortDay, slots, todayOrder, weekLabel, weekStart,
+  cardTime, cardTitle, cardTitleHtml, category, CAT, dayItems, FILTERS, isPast, monthGrid, shortDay, slots, todayOrder, weekLabel, weekStart,
 } from '../calv2data.js';
 import { comingUp, daysUntil, heroDetails } from '../homev2data.js';
 import { ui } from '../v2icons.js';
@@ -36,7 +36,7 @@ function card(e, n, cls = 'cv2-ev') {
   const tag = e.kind ? 'div' : 'button';
   const attrs = e.kind ? '' : ` type="button" data-ev="${esc(e.id)}"`;
   return `<${tag} class="${cls}${isPast(e, n) ? ' is-past' : ''}"${attrs} style="--k:${c.color};--k-rgb:${c.rgb}">` +
-    `<span class="cv2-t">${esc(cardTime(e))}</span><b>${esc(cardTitle(e))}</b><span class="cv2-w">${esc(c.label)}</span></${tag}>`;
+    `<span class="cv2-t">${esc(cardTime(e))}</span><b>${cardTitleHtml(cardTitle(e), esc)}</b><span class="cv2-w">${esc(c.label)}</span></${tag}>`;
 }
 
 function head(n) {

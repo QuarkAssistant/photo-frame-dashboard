@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { displayTitle } from '../family.js';
 import {
-  cardTime, cardTitle, category, dayItems, extraItems, inFilter, isPast, monthGrid, shortDay, slots, todayOrder, weekLabel, weekStart,
+  cardTime, cardTitle, cardTitleHtml, category, dayItems, extraItems, inFilter, isPast, monthGrid, shortDay, slots, todayOrder, weekLabel, weekStart,
 } from '../js/calv2data.js';
 
 const ev = (id, title, start, end, extra = {}) => ({
@@ -97,4 +97,12 @@ test("today's column puts live first, then upcoming, then ended", () => {
   assert.deepEqual(todayOrder([ad, ...list], NOW).map((e) => e.id), ['ad', 'live', 'next', 'later', 'ended1', 'ended2']);
   const { shown, more } = slots(todayOrder(list, NOW), 4);
   assert.deepEqual([shown.map((e) => e.id), more], [['live', 'next', 'later'], 2]);
+});
+
+test('long single words on week cards get an ellipsis wrapper, short ones stay plain', () => {
+  const esc = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+  assert.equal(cardTitleHtml('Informational Meeting', esc), '<span class="cv2-lw">Informational</span> Meeting');
+  assert.equal(cardTitleHtml('Team Training', esc), 'Team Training');
+  assert.equal(cardTitleHtml('Strength and Conditioning', esc), 'Strength and <span class="cv2-lw">Conditioning</span>');
+  assert.equal(cardTitleHtml('Q&A <night>', esc), 'Q&amp;A &lt;night>');
 });

@@ -114,6 +114,13 @@ export function cardTitle(e) {
   return e.kind ? e.title : eventTitle(e);
 }
 
+// Week-card title HTML: escaped, with long single words (10+ letters) in an inline-block that
+// ellipsizes if the word is still wider than the card, instead of clipping it.
+export function cardTitleHtml(text, esc) {
+  return String(text || '').split(/(\s+)/)
+    .map((w) => (/\S{10,}/.test(w) ? `<span class="cv2-lw">${esc(w)}</span>` : esc(w))).join('');
+}
+
 export function isPast(e, now) {
   const end = e.allDay ? `${e.end}` : e.end;
   return e.allDay ? end <= ymd(now) : new Date(end) <= now;
