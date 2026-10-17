@@ -3,6 +3,7 @@
 // groceries). When a feed has nothing, the card shows nothing rather than a sample.
 import { isMidnightPlaceholder } from '../events.js';
 import { addDaysYmd, parts, weekdayIndex, ymd } from '../time.js';
+import { FAMILY } from '../family.js';
 import { compactTitle, eventTitle, formatRange, formatTime, nextUp } from './ui.js';
 
 const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -61,6 +62,50 @@ export function englishTitle(title) {
   return BR_HOLIDAYS_EN[t] || t;
 }
 
+const BIRTHDAY = /birthday|anivers/i;
+
+// "Lucas's birthday" for a birthday event, from a name the event itself gives: a possessive
+// in the title ("Sam’s 12th Birthday"), a family member named in the title, or the one
+// family member the event belongs to. Otherwise null (the caller keeps the title).
+export function birthdayName(e) {
+  if (!e) return null;
+  const shown = eventTitle(e);
+  if (!BIRTHDAY.test(shown) && !BIRTHDAY.test(String(e.title || ''))) return null;
+  const poss = /(?:^|[\s(])(\p{Lu}[\p{L}-]+)[’']s\b/u.exec(shown);
+  if (poss) return poss[1];
+  const named = FAMILY.find((p) => new RegExp(`(^|[^\\p{L}])${p.name}([^\\p{L}]|$)`, 'u').test(shown));
+  if (named) return named.name;
+  if (!e.everyone && Array.isArray(e.people) && e.people.length === 1) {
+    const p = FAMILY.find((m) => m.id === e.people[0]);
+    if (p) return p.name;
+  }
+  return null;
+}
+
+// Title as v2 Home shows it: birthdays as "<Name>'s birthday", Brazilian holidays in English.
+export function homeTitle(e) {
+  const name = birthdayName(e);
+  if (name) return `${name}'s birthday`;
+  return englishTitle(compactTitle(eventTitle(e)));
+}
+
+// Live event: how far along it is and when it ends ("Ends 6:00 PM", "3 hr 10 min left").
+export function liveProgress(e, now) {
+  if (!e || e.allDay) return null;
+  const a = new Date(e.start).getTime();
+  const b = new Date(e.end).getTime();
+  const t = now.getTime();
+  if (!(b > a) || t < a || t >= b) return null;
+  const mins = Math.ceil((b - t) / 60000);
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  let left;
+  if (mins <= 1) left = 'Ending now';
+  else if (h === 0) left = `${m} min left`;
+  else left = `${h} hr${m ? ` ${m} min` : ''} left`;
+  return { pct: Math.round(((t - a) / (b - a)) * 100), ends: `Ends ${formatTime(new Date(b))}`, left };
+}
+
 // Whole calendar days from today to the given day (both America/Chicago).
 export function daysUntil(dayIso, now) {
   const a = ymd(now);
@@ -94,7 +139,6 @@ export function countdownLabel(item, now) {
   return `${n} days`;
 }
 
-const BIRTHDAY = /birthday|anivers/i;
 const TRIP = /\btrip\b|vacation|viagem|flight/i;
 const GAME = /\bcup\b|tournament|showcase|championship|\bfinals?\b/i;
 
@@ -113,8 +157,8 @@ export function comingUp(events, extras, now, limit = 3) {
   const out = [];
   const seen = new Set();
   for (const e of events || []) {
-    const title = englishTitle(compactTitle(eventTitle(e)));
-    const kind = calendarKind(title);
+    const kind = calendarKind(englishTitle(compactTitle(eventTitle(e))));
+    const title = homeTitle(e);
     if (!kind) continue;
     const startDay = e.allDay ? e.start : ymd(new Date(e.start));
     if (e.allDay ? e.end <= today : new Date(e.start).getTime() <= t) continue;

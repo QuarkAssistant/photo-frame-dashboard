@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { displayTitle } from '../family.js';
 import {
-  comingUp, countdownLabel, daysUntil, englishTitle, fullDate, heroBig, heroDetails, holidayName, leaveBy,
+  birthdayName, comingUp, countdownLabel, homeTitle, liveProgress, daysUntil, englishTitle, fullDate, heroBig, heroDetails, holidayName, leaveBy,
   nextAndThen, rainLine, weatherContext,
 } from '../js/homev2data.js';
 
@@ -103,4 +103,25 @@ test('v2 Home CSS stays inside WebView 106 limits', async () => {
   assert.doesNotMatch(css, /#[0-9a-f]{8}\b|#[0-9a-f]{4}\b/i);
   assert.doesNotMatch(css, /\{[^}]*\{/); // no nesting
   assert.doesNotMatch(css, /Instrument Serif|Archivo/);
+});
+
+test('birthdays read "<Name>\'s birthday" only from names the event gives', () => {
+  assert.equal(homeTitle(ev('a', 'Lucas — 12th Birthday Party', '2026-10-24T19:00:00Z', '2026-10-24T23:00:00Z', { people: ['lucas'] })), "Lucas's birthday");
+  assert.equal(homeTitle(ev('b', 'Lucas — Sam’s 12th Birthday Celebration', '2026-10-24T19:00:00Z', '2026-10-24T23:00:00Z', { people: ['lucas'] })), "Sam's birthday");
+  assert.equal(homeTitle(ev('c', 'JP birthday dinner', '2026-10-24T19:00:00Z', '2026-10-24T23:00:00Z', { people: ['thiago', 'jp'], everyone: true })), "JP's birthday");
+  assert.equal(birthdayName(ev('d', 'Birthday party', '2026-10-24T19:00:00Z', '2026-10-24T23:00:00Z', { people: ['thiago', 'jp'], everyone: true })), null);
+  assert.equal(homeTitle(ev('d', 'Birthday party', '2026-10-24T19:00:00Z', '2026-10-24T23:00:00Z', { people: ['thiago', 'jp'], everyone: true })), 'Birthday party');
+  assert.equal(birthdayName(ev('e', 'Team Training', '2026-10-24T19:00:00Z', '2026-10-24T23:00:00Z')), null);
+  const list = comingUp([ev('f', 'Lucas — 12th Birthday Party', '2026-10-24T19:00:00Z', '2026-10-24T23:00:00Z', { people: ['lucas'] })], {}, NOW);
+  assert.equal(list[0].title, "Lucas's birthday");
+});
+
+test('live event shows when it ends and how long is left', () => {
+  const e = ev('x', 'Party', '2026-10-17T19:00:00Z', '2026-10-17T23:00:00Z');
+  assert.deepEqual(liveProgress(e, new Date('2026-10-17T19:50:00Z')), { pct: 21, ends: 'Ends 6:00 PM', left: '3 hr 10 min left' });
+  assert.equal(liveProgress(e, new Date('2026-10-17T22:15:00Z')).left, '45 min left');
+  assert.equal(liveProgress(e, new Date('2026-10-17T22:00:00Z')).left, '1 hr left');
+  assert.equal(liveProgress(e, new Date('2026-10-17T22:59:30Z')).left, 'Ending now');
+  assert.equal(liveProgress(e, new Date('2026-10-17T18:00:00Z')), null);
+  assert.equal(liveProgress({ ...e, allDay: true }, NOW), null);
 });

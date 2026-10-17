@@ -48,21 +48,16 @@ html.ui-v2 body, html.ui-v2 .stage, html.ui-v2.theme-dark body { background: var
 .hv2-wx-ctx { top: 19.5vh; font-size: clamp(17px, 1.797vw, 29px); font-weight: 800; color: var(--v2-acc); }
 .hv2-wx-in span, .hv2-wx-ctx span { margin-left: 0.625vw; overflow: hidden; text-overflow: ellipsis; }
 
-/* People */
-.hv2-people { position: absolute; left: 66.875vw; top: 2vh; width: 25.625vw; height: 25vh; }
-.hv2-p { position: absolute; display: block; width: 12.188vw; height: 8.75vh; text-align: left; white-space: nowrap; }
-.hv2-p:nth-child(1) { left: 0; top: 0; }
-.hv2-p:nth-child(2) { left: 12.188vw; top: 0; width: 13.438vw; }
-.hv2-p:nth-child(3) { left: 0; top: 10.5vh; }
-.hv2-p:nth-child(4) { left: 12.188vw; top: 10.5vh; width: 13.438vw; }
-.hv2-p .hv2-av { position: absolute; left: 0; top: 0; }
-.hv2-p b { position: absolute; left: 5.312vw; right: 0; top: 0; font-size: clamp(18px, 1.875vw, 30px); line-height: 3.5vh; overflow: hidden; text-overflow: ellipsis; }
-.hv2-p span:last-child { position: absolute; left: 5.312vw; right: 0; top: 3.5vh; font-size: clamp(16px, 1.719vw, 28px); font-weight: 700; line-height: 3.25vh; color: var(--v2-sec); overflow: hidden; text-overflow: ellipsis; }
-.hv2-av { display: block; width: 4.375vw; height: 4.375vw; border-radius: 50%; text-align: center; line-height: 4.375vw; font-size: clamp(18px, 1.875vw, 30px); font-weight: 900; box-shadow: 0 0 0 3px var(--v2-bg); }
-.hv2-av.is-wide { font-size: clamp(14px, 1.484vw, 24px); }
-.hv2-av.is-sm { display: inline-block; width: 2.656vw; height: 2.656vw; line-height: 2.656vw; font-size: clamp(11px, 1.172vw, 19px); box-shadow: none; vertical-align: middle; }
-.hv2-findmy { position: absolute; left: 0.156vw; top: 20.75vh; display: flex; align-items: center; font-size: clamp(16px, 1.719vw, 28px); font-weight: 700; color: var(--v2-sec); white-space: nowrap; }
-.hv2-findmy span { margin-left: 0.469vw; }
+/* People: four compact rows, real photo in a ring of the person's color */
+.hv2-people { position: absolute; left: 66.406vw; top: 1.75vh; width: 26.094vw; height: 25.25vh; }
+.hv2-p { display: block; position: relative; width: 100%; height: 6.25vh; text-align: left; white-space: nowrap; }
+.hv2-ph { position: absolute; left: 0.234vw; top: 0.375vh; display: block; width: 3.438vw; height: 3.438vw; border-radius: 50%; overflow: hidden;
+  text-align: center; line-height: 3.438vw; font-size: clamp(14px, 1.406vw, 22px); font-weight: 900; }
+.hv2-ph i { position: absolute; top: 0; right: 0; bottom: 0; left: 0; border-radius: 50%; -webkit-background-size: cover; background-size: cover; background-position: center; }
+.hv2-p b { position: absolute; left: 4.688vw; right: 0; top: 0.25vh; font-size: clamp(16px, 1.641vw, 26px); line-height: 3vh; overflow: hidden; text-overflow: ellipsis; }
+.hv2-p span:last-child { position: absolute; left: 4.688vw; right: 0; top: 3.25vh; font-size: clamp(13px, 1.328vw, 21px); font-weight: 700; line-height: 2.5vh; color: var(--v2-sec); overflow: hidden; text-overflow: ellipsis; }
+.hv2-av { display: inline-block; width: 2.656vw; height: 2.656vw; border-radius: 50%; text-align: center; line-height: 2.656vw; font-size: clamp(11px, 1.172vw, 19px); font-weight: 900; vertical-align: middle; }
+.hv2-av.is-wide { font-size: clamp(10px, 1.016vw, 16px); }
 
 /* Next Up (teal by day) */
 .hv2-hero-slot { position: absolute; left: 1.875vw; top: 28.5vh; width: 60.312vw; height: 41vh; }
@@ -82,6 +77,12 @@ html.ui-v2 body, html.ui-v2 .stage, html.ui-v2.theme-dark body { background: var
 .hv2-leave b { margin-left: 0.781vw; font-size: clamp(22px, 2.266vw, 36px); }
 .hv2-leave span { margin-left: 0.938vw; font-size: clamp(17px, 1.797vw, 29px); font-weight: 700; }
 .hv2-leave.is-now, .hv2-leave.is-late { background: #F78872; }
+.hv2-live { margin-top: 2.25vh; width: 43.75vw; }
+.hv2-live-t { display: flex; align-items: baseline; white-space: nowrap; }
+.hv2-live-t b { font-size: clamp(22px, 2.266vw, 36px); }
+.hv2-live-t span { margin-left: 1.094vw; font-size: clamp(19px, 1.953vw, 31px); font-weight: 700; color: #CFE5E0; }
+.hv2-bar { position: relative; height: 1.75vh; margin-top: 1.5vh; border-radius: 7px; background: rgba(251, 246, 236, 0.22); overflow: hidden; }
+.hv2-bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 7px; background: var(--v2-sun); }
 .hv2-then { position: absolute; left: 2.344vw; right: 2.344vw; bottom: 0; height: 7.25vh; display: flex; align-items: center; border-top: 1.5px solid rgba(251, 246, 236, 0.22); font-size: clamp(20px, 2.031vw, 32px); font-weight: 700; white-space: nowrap; }
 .hv2-then-k { flex: none; width: 7.188vw; font-weight: 800; color: #CFE5E0; }
 .hv2-then b { flex: none; margin-right: 2.031vw; }
@@ -139,4 +140,7 @@ html.theme-dark .hv2-then { border-top-color: var(--v2-edge); }
 html.theme-dark .hv2-then i { box-shadow: none; }
 html.theme-dark .hv2-leave { background: var(--v2-acc); color: #16332F; }
 html.theme-dark .hv2-ring-bg { stroke: var(--v2-edge); }
+html.theme-dark .hv2-live-t span { color: var(--v2-sec); }
+html.theme-dark .hv2-bar { background: var(--v2-edge); }
+html.theme-dark .hv2-bar i { background: var(--v2-acc); }
 html.theme-dark .hv2-photo { background: #0E1918; }
