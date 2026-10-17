@@ -8,7 +8,7 @@ import {
 } from '../night.js';
 import { calendarPayload } from './calendar.js';
 import { loadEnv } from './env.js';
-import { labelHome } from './homeplace.js';
+import { labelHome, labelHomeEvents } from './homeplace.js';
 import { listPhotos, photoJpeg } from './photos.js';
 import { albumStatus, syncAlbum } from './album.js';
 import { extrasPayload } from './extras.js';
@@ -139,10 +139,18 @@ export function createApi({ root }) {
       }
       if (pathname === '/api/frame-health' && req.method === 'GET') return sendJson(res, 200, healthPayload());
       if (pathname === '/api/config' && req.method === 'GET') return sendJson(res, 200, nightConfig());
-      if (pathname === '/api/calendar' && req.method === 'GET') return sendJson(res, 200, await calendarPayload());
+      if (pathname === '/api/calendar' && req.method === 'GET') {
+        const cal = await calendarPayload();
+        return sendJson(res, 200, { ...cal, events: labelHomeEvents(cal.events, process.env.HOME_ADDRESS) });
+      }
       if (pathname === '/api/weather' && req.method === 'GET') return sendJson(res, 200, await weatherPayload());
       if (pathname === '/api/grocery/tagger' && req.method === 'GET') return sendJson(res, 200, { ...taggerStatus, stale: isStale(taggerStatus) });
-      if (pathname === '/api/eta' && req.method === 'GET') return sendJson(res, 200, await etaPayload(url.searchParams.get('to'), url.searchParams.get('start')));
+      if (pathname === '/api/eta' && req.method === 'GET') {
+        const to = String(url.searchParams.get('to') || '');
+        // Home events (location relabelled to "Home") need no drive.
+        if (to.trim().toLowerCase() === 'home') return sendJson(res, 200, { ok: false, reason: 'home' });
+        return sendJson(res, 200, await etaPayload(to, url.searchParams.get('start')));
+      }
       if (pathname === '/api/extras' && req.method === 'GET') return sendJson(res, 200, await extrasPayload());
       if (pathname === '/api/photos/sync') return sendJson(res, 200, req.method === 'POST' ? await syncAlbum() : albumStatus);
       if (pathname === '/api/photos' && req.method === 'GET') return sendJson(res, 200, listPhotos());

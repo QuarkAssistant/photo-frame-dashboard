@@ -6,12 +6,12 @@ import { inRoutine } from '../../chores.js';
 import { sectionFor, sortBySection } from '../../sections.js';
 import { state } from '../data.js';
 import { now, register, routineNow, UI_V2 } from '../app.js';
-import { clockBits, esc, eventTitle, owner } from '../ui.js';
+import { clockBits, esc, owner } from '../ui.js';
 import { celsius } from '../weatherui.js';
 import { createSlides } from '../slides.js';
 import { ui, weatherArt } from '../v2icons.js';
 import {
-  comingUp, dayTime, englishTitle, fullDate, heroBig, heroDetails, INITIALS, leaveBy, nextAndThen, weatherContext,
+  comingUp, dayTime, fullDate, heroBig, heroDetails, homeTitle, INITIALS, leaveBy, liveProgress, nextAndThen, weatherContext,
 } from '../homev2data.js';
 
 const isDark = () => document.documentElement.classList.contains('theme-dark');
@@ -65,14 +65,23 @@ function ago(iso) {
   const h = Math.round(m / 60);
   return h < 24 ? `${h} hr ago` : `${Math.round(h / 24)} d ago`;
 }
+// Real profile photos (same files v1 uses) in a ring of the person's color, with that
+// person's own Find My place and update age.
+function photoCircle(p) {
+  const init = INITIALS[p.id] || p.initial || '';
+  const pic = p.photo ? `<i style="background-image:url('${esc(p.photo)}')"></i>` : '';
+  return `<span class="hv2-ph" style="background:${pcolor(p)};box-shadow:0 0 0 3px ${pcolor(p)};color:${p.ink || '#fff'}">${esc(init)}${pic}</span>`;
+}
 function peopleHtml() {
-  const cells = FAMILY.map((p) => {
+  return FAMILY.map((p) => {
     const loc = where.ok && where.people && where.people[p.id];
-    const status = loc && loc.place ? loc.place : 'Location off';
-    return `<button class="hv2-p" type="button" data-go="${p.id}">${circle(p)}<b>${esc(p.name)}</b><span>${esc(status)}</span></button>`;
+    let status = 'Location off';
+    if (loc && loc.place) {
+      const age = loc.at ? ago(loc.at) : '';
+      status = age ? `${loc.place} · Updated ${age}` : loc.place;
+    }
+    return `<button class="hv2-p" type="button" data-go="${p.id}">${photoCircle(p)}<b>${esc(p.name)}</b><span>${esc(status)}</span></button>`;
   }).join('');
-  const upd = where.ok && where.updatedAt ? `Find My · ${ago(where.updatedAt)}` : 'Find My not connected';
-  return `${cells}<div class="hv2-findmy">${ui('pin', 22)}<span>${esc(upd)}</span></div>`;
 }
 
 // ---- Next Up -----------------------------------------------------------------
@@ -99,8 +108,13 @@ function heroHtml(repaint) {
   const e = up.event;
   const p = owner(e);
   const big = heroBig(up, n);
-  const title = englishTitle(eventTitle(e));
-  const leave = up.phase === 'soon' ? leaveBy(e, etaFor(e, repaint), n) : null;
+  const title = homeTitle(e);
+  const leave = up.phase === 'soon' && !e.atHome ? leaveBy(e, etaFor(e, repaint), n) : null;
+  const live = up.phase === 'now' ? liveProgress(e, n) : null;
+  const liveHtml = live
+    ? `<div class="hv2-live"><div class="hv2-live-t"><b>${esc(live.ends)}</b><span>${esc(live.left)}</span></div>` +
+      `<div class="hv2-bar"><i style="width:${Math.max(2, Math.min(100, live.pct))}%"></i></div></div>`
+    : '';
   const leaveHtml = leave
     ? `<div class="hv2-leave is-${leave.state}">${ui('car', 32, 2.4)}<b>${esc(leave.text)}</b><span>${esc(leave.drive)}</span></div>`
     : '';
@@ -109,7 +123,7 @@ function heroHtml(repaint) {
     const tp = owner(then);
     const who = then.everyone ? 'Everyone' : tp.name;
     thenHtml = `<div class="hv2-then"><span class="hv2-then-k">Then</span><b>${esc(dayTime(then.start, n).replace(/^Today /, ''))}</b>` +
-      `<i style="background:${pcolor(tp)}"></i><span class="hv2-then-n">${esc(who)} · ${esc(englishTitle(eventTitle(then)))}</span></div>`;
+      `<i style="background:${pcolor(tp)}"></i><span class="hv2-then-n">${esc(who)} · ${esc(homeTitle(then))}</span></div>`;
   }
   const who = e.everyone ? 'Everyone' : p.name;
   const size = title.length > 24 ? ' is-xlong' : title.length > 15 ? ' is-long' : '';
@@ -117,7 +131,7 @@ function heroHtml(repaint) {
     `<div class="hv2-hero-top"><div class="hv2-hero-l"><div class="hv2-hero-who"><span class="hv2-lbl">Next up</span>${circle(p, ' is-sm')}<b>${esc(who)}</b></div>` +
     `<div class="hv2-hero-title${size}">${esc(title)}</div></div>` +
     `<div class="hv2-hero-big">${esc(big.text)}${big.unit ? `<span>${esc(big.unit)}</span>` : ''}</div></div>` +
-    `<div class="hv2-hero-det">${esc(heroDetails(e, n))}</div>${leaveHtml}${thenHtml}</div></button>`;
+    `<div class="hv2-hero-det">${esc(heroDetails(e, n))}</div>${leaveHtml}${liveHtml}${thenHtml}</div></button>`;
 }
 
 // ---- Bottom row --------------------------------------------------------------

@@ -18,3 +18,29 @@ export function labelHome(people, address) {
   }
   return people;
 }
+
+// Loose match of a calendar location against HOME_ADDRESS: same street number and the
+// same street name (abbreviations folded, e.g. "Cir" = "Circle"). Any line or comma part
+// of the location can hold the street ("Home\n12 Example Cir, Springfield").
+function numberAndStreet(text) {
+  const w = words(text);
+  if (!w.length || !/^\d+[a-z]?$/.test(w[0])) return null;
+  const street = w.slice(1).join(' ');
+  return street ? { num: w[0], street } : null;
+}
+export function isHomeAddress(location, address) {
+  const home = numberAndStreet(String(address || '').split(',')[0]);
+  if (!home || !location) return false;
+  return String(location).split(/[\n,]/).some((part) => {
+    const p = numberAndStreet(part);
+    if (!p || p.num !== home.num) return false;
+    // "12 Example Circle" vs "12 Example Cir Unit 3": the home street name must lead.
+    return p.street === home.street || p.street.startsWith(`${home.street} `)
+      || home.street.startsWith(`${p.street} `);
+  });
+}
+
+// Home events say "Home" on the dashboard; the street address never leaves the server.
+export function labelHomeEvents(events, address) {
+  return (events || []).map((e) => (e && isHomeAddress(e.location, address) ? { ...e, location: 'Home', atHome: true } : e));
+}

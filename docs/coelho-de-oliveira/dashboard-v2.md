@@ -174,13 +174,28 @@ Files: `js/views/homev2.js` (view), `js/homev2data.js` (pure data shaping, teste
 - Tapping a card opens its page (Weather, a person, Photos, Chores, Coming up, Grocery). Home
   never toggles a chore or a grocery item.
 
+### Phase 1 fixes (2026-10-17, approved by Thiago)
+- **People:** the real profile photos again (the same `/avatars/<id>.jpg` files v1 uses), each
+  in a 3 px ring of the person's color. Four compact rows; under each name that person's own
+  Find My place and update age ("Home · Updated 4 min ago"). The shared "Find My · N min ago"
+  line is gone. With no Find My reading the row says "Location off".
+- **Next Up while live:** "Ends 6:00 PM · 3 hr 10 min left" and a progress bar of the event's
+  own start and end (`liveProgress`). Nothing is shown for all-day events.
+- **Home address:** `/api/calendar` relabels any event whose location loosely matches
+  `HOME_ADDRESS` from `.env` (same street number and street name, abbreviations folded) to
+  `location: "Home"` with `atHome: true`, so the street address never reaches the page.
+  `/api/eta` answers `ok: false` for "Home", so home events get no Leave-by pill.
+- **Birthdays:** a birthday event reads "<Name>'s birthday" in Next Up, Then and Coming up when
+  the event names the person: a possessive in the title ("Sam’s 12th Birthday"), a family
+  member named in the title, or the one family member it belongs to. Otherwise the title stays.
+
 Tests: `server/homev2.test.js` (date line, holiday names, countdown labels, Coming up mix and
 order, Next Up / Then / big number / details, Leave by, rain and context lines, and a CSS check
 for WebView 106 limits).
 
 Not matched yet (Phase 1 follow-ups): night Home keeps the day layout (mockup 02's Tomorrow
 card, Bedtime routine, Family board and Night mode cards need routines and a board source);
-no seasonal leaf art next to the date; no small badges on JP's and Lucas's circles.
+no seasonal leaf art next to the date; no small badges on JP's and Lucas's photos.
 
 ## Rolling back to v1
 Before Phase 0 was merged, v1 was saved two ways:
