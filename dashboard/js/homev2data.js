@@ -3,7 +3,6 @@
 // groceries). When a feed has nothing, the card shows nothing rather than a sample.
 import { isMidnightPlaceholder } from '../events.js';
 import { addDaysYmd, parts, weekdayIndex, ymd } from '../time.js';
-import { FAMILY } from '../family.js';
 import { compactTitle, eventTitle, formatRange, formatTime, nextUp } from './ui.js';
 
 const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -64,28 +63,9 @@ export function englishTitle(title) {
 
 const BIRTHDAY = /birthday|anivers/i;
 
-// "Lucas's birthday" for a birthday event, from a name the event itself gives: a possessive
-// in the title ("Sam’s 12th Birthday"), a family member named in the title, or the one
-// family member the event belongs to. Otherwise null (the caller keeps the title).
-export function birthdayName(e) {
-  if (!e) return null;
-  const shown = eventTitle(e);
-  if (!BIRTHDAY.test(shown) && !BIRTHDAY.test(String(e.title || ''))) return null;
-  const poss = /(?:^|[\s(])(\p{Lu}[\p{L}-]+)[’']s\b/u.exec(shown);
-  if (poss) return poss[1];
-  const named = FAMILY.find((p) => new RegExp(`(^|[^\\p{L}])${p.name}([^\\p{L}]|$)`, 'u').test(shown));
-  if (named) return named.name;
-  if (!e.everyone && Array.isArray(e.people) && e.people.length === 1) {
-    const p = FAMILY.find((m) => m.id === e.people[0]);
-    if (p) return p.name;
-  }
-  return null;
-}
-
-// Title as v2 Home shows it: birthdays as "<Name>'s birthday", Brazilian holidays in English.
+// Title as v2 Home shows it: the calendar's own title (owner prefix stripped, as in v1),
+// with Brazilian holidays in English. No renaming.
 export function homeTitle(e) {
-  const name = birthdayName(e);
-  if (name) return `${name}'s birthday`;
   return englishTitle(compactTitle(eventTitle(e)));
 }
 

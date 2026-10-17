@@ -70,7 +70,7 @@ function ago(iso) {
 function photoCircle(p) {
   const init = INITIALS[p.id] || p.initial || '';
   const pic = p.photo ? `<i style="background-image:url('${esc(p.photo)}')"></i>` : '';
-  return `<span class="hv2-ph" style="background:${pcolor(p)};box-shadow:0 0 0 3px ${pcolor(p)};color:${p.ink || '#fff'}">${esc(init)}${pic}</span>`;
+  return `<span class="hv2-ph" style="background:${pcolor(p)};box-shadow:0 0 0 var(--hv2-ring) ${pcolor(p)};color:${p.ink || '#fff'}">${esc(init)}${pic}</span>`;
 }
 function peopleHtml() {
   return FAMILY.map((p) => {
