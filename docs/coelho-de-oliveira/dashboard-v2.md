@@ -185,10 +185,10 @@ Files: `js/views/homev2.js` (view), `js/homev2data.js` (pure data shaping, teste
   `HOME_ADDRESS` from `.env` (same street number and street name, abbreviations folded) to
   `location: "Home"` with `atHome: true`, so the street address never reaches the page.
   `/api/eta` answers `ok: false` for "Home", so home events get no Leave-by pill.
-- **Birthdays:** a birthday event reads "<Name>'s birthday" in Next Up, Then and Coming up only
-  when the shown title itself says whose birthday it is: a possessive ("Sam’s 12th Birthday") or
-  a name next to the word ("Birthday – Lucas", "JP birthday dinner"). The "Lucas — " owner
-  prefix only says who is attending, so it never supplies the name. Otherwise the title stays.
+- **Titles as written:** calendar titles show exactly as the calendar gives them (only v1's
+  "Name — " owner prefix is stripped, and Brazilian holidays get English names). Birthdays are
+  not renamed; an earlier "<Name>'s birthday" rule was removed because the owner prefix only
+  says who is attending.
 - **Spacing:** people photo rings are `clamp(3px, 0.28vw, 4px)` (about 3.6 px at 1280 wide), and
   the live progress bar sits higher so it has room above the Then row.
 

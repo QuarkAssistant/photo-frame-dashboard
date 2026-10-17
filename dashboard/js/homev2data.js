@@ -3,7 +3,6 @@
 // groceries). When a feed has nothing, the card shows nothing rather than a sample.
 import { isMidnightPlaceholder } from '../events.js';
 import { addDaysYmd, parts, weekdayIndex, ymd } from '../time.js';
-import { FAMILY } from '../family.js';
 import { compactTitle, eventTitle, formatRange, formatTime, nextUp } from './ui.js';
 
 const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -64,29 +63,9 @@ export function englishTitle(title) {
 
 const BIRTHDAY = /birthday|anivers/i;
 
-// "<Name>'s birthday" only when the shown title itself says whose birthday it is: a possessive
-// ("Sam’s 12th Birthday", "Lucas's birthday") or a name next to the word ("Birthday – Lucas",
-// "JP birthday dinner" for a family member). The owner/attendee prefix ("Lucas — ...") only
-// says who is going, so it never supplies the name. Otherwise null (the title is kept).
-const NAME = '\\p{Lu}[\\p{L}-]*';
-export function birthdayName(e) {
-  if (!e) return null;
-  // "Birthday – Lucas" splits at the dash like an owner prefix, so read it from the raw title.
-  const raw = String(e.title || '').trim();
-  const shown = /^(?:birthday|aniversário|aniversario)\s*[-–—:]/i.test(raw) ? raw : eventTitle(e);
-  if (!BIRTHDAY.test(shown)) return null;
-  const poss = new RegExp(`(?:^|[\\s(])(${NAME})[’']s?\\s+(?:\\S+\\s+){0,2}?(?:birthday|b-?day|anivers)`, 'iu').exec(shown);
-  if (poss && /^\p{Lu}/u.test(poss[1])) return poss[1];
-  const after = new RegExp(`(?:birthday|aniversário|aniversario)\\s*(?:[-–—:]|of|do|da|de)\\s*(${NAME})`, 'iu').exec(shown);
-  if (after && /^\p{Lu}/u.test(after[1])) return after[1];
-  const before = FAMILY.find((p) => new RegExp(`(?:^|[^\\p{L}])${p.name}\\s+(?:birthday|anivers)`, 'iu').test(shown));
-  return before ? before.name : null;
-}
-
-// Title as v2 Home shows it: birthdays as "<Name>'s birthday", Brazilian holidays in English.
+// Title as v2 Home shows it: the calendar's own title (owner prefix stripped, as in v1),
+// with Brazilian holidays in English. No renaming.
 export function homeTitle(e) {
-  const name = birthdayName(e);
-  if (name) return `${name}'s birthday`;
   return englishTitle(compactTitle(eventTitle(e)));
 }
 
