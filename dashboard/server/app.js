@@ -19,6 +19,8 @@ import { loadGroceries, saveGrocery } from './reminders.js';
 import { openStore } from './store.js';
 import { startIndoor } from './indoor.js';
 import { weatherPayload } from './weather.js';
+import { weatherDetail } from './weatherv2.js';
+import { radarInfo, radarTile } from './radar.js';
 import { isFrameReport, sanitizeFrameReport } from '../frameinfo.js';
 import { healthPayload } from './framehealth.js';
 import { withUiDefault } from '../nav.js';
@@ -145,6 +147,15 @@ export function createApi({ root }) {
         return sendJson(res, 200, { ...cal, events: labelHomeEvents(cal.events, process.env.HOME_ADDRESS) });
       }
       if (pathname === '/api/weather' && req.method === 'GET') return sendJson(res, 200, await weatherPayload());
+      if (pathname === '/api/weather/detail' && req.method === 'GET') return sendJson(res, 200, await weatherDetail());
+      if (pathname === '/api/radar' && req.method === 'GET') return sendJson(res, 200, await radarInfo());
+      if (pathname.startsWith('/api/radar/') && req.method === 'GET') {
+        const t = await radarTile(pathname);
+        if (!t) return sendJson(res, 404, { error: 'not found' });
+        res.writeHead(200, { 'Content-Type': t.type, 'Cache-Control': 'private, max-age=600' });
+        res.end(t.buf);
+        return;
+      }
       if (pathname === '/api/grocery/tagger' && req.method === 'GET') return sendJson(res, 200, { ...taggerStatus, stale: isStale(taggerStatus) });
       if (pathname === '/api/eta' && req.method === 'GET') {
         const to = String(url.searchParams.get('to') || '');

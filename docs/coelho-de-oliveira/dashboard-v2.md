@@ -252,6 +252,54 @@ Matches proposal mockup 04 (Week) and 05 (Coming up). Files: `js/views/calendarv
 - **DOM (measured on real data):** Week 89 elements inside the view (331 for the whole
   document), Agenda 199, Month 209, Coming up 133.
 
+## Phase 3: Weather (2026-10-17)
+
+The v2 Weather page follows proposal mockup 03. v1 keeps `views/weather.js`; the v2 view
+(`js/views/weatherv2.js`) only registers when the v2 shell is on. Home's Inside reading is
+unchanged.
+
+### Data (real only, keyless)
+
+| Card | Source |
+| --- | --- |
+| Now: temperature, condition | `/api/weather` (Open-Meteo + NWS observation), the same numbers as Home |
+| Feels, UV, wind, gusts, direction, sunrise/sunset, day length, 24 h, 7 days | Open-Meteo forecast (`api.open-meteo.com`) |
+| Air (US AQI) | Open-Meteo air quality (`air-quality-api.open-meteo.com`) |
+| Moon | Calculated on the frame (`js/moon.js`, Meeus/SunCalc formulas); tested against the April 2024 new, first-quarter, full and last-quarter moons |
+| Radar | RainViewer latest past frame (512 px zoom-7 tiles, its free limit) over Esri World Light Gray Canvas (zoom 8), credited "Esri · RainViewer" on the card |
+
+`GET /api/weather/detail` shapes the forecast (`server/weatherv2.js`) and caches it for
+12 minutes. If Open-Meteo fails, it serves the last good data with `stale: true` and the page
+shows "Offline · showing <time> forecast". A card with no reading (e.g. no AQI) says so;
+nothing is filled in. `GET /api/radar` returns the latest frame and the map centre;
+`/api/radar/base/…` and `/api/radar/rain/…` proxy the tiles (base cached 7 days, rain 10
+minutes, last good tile on failure), so the frame only talks to the LAN. The home marker is
+a plain hexagon at the centre with no text.
+
+### Rules
+
+- Rain pill ("Showers 5–9 PM") only when an hour in the next 24 has a rain chance of 40 % or
+  more; the first run of such hours is shown. The radar card says "Rain arriving ~5 PM",
+  "Rain now" or "No rain in the next 24 h" from the same hourly chances.
+- What to wear uses the coldest "feels like" in the next 12 hours: under 32 °F winter coat +
+  hat, under 45 warm coat, under 58 jacket, under 68 light layer, else t-shirt. Snow (≥ 40 %)
+  adds boots; otherwise a rain chance of 50 % or more adds umbrella.
+- Wind peak is the strongest hourly wind in the next 24 hours.
+- Moon names: New and Full at ≤ 2 % / ≥ 98 % lit, quarters at 47–53 %, crescent / gibbous in
+  between; lit on the right while waxing (northern hemisphere).
+
+### Charts
+
+- 24 h: monotone smooth line (no overshoot) with a soft gradient fill, a labeled dot every
+  3 hours, night bands from the hourly `is_day`, rounded rain bars with the peak labeled.
+- AQI and UV: gradient bars with a ring marker (AQI bands are equal width).
+- Daylight: arc with the sun's real position between sunrise and sunset and a soft glow
+  (layered circles; SVG filters are slow on WebView 106).
+- 7 days: range bars on one shared week scale; each bar shows its slice of a single
+  cool-to-warm gradient. The scale is printed ("37° – 70°F this week").
+
+The page is about 270 DOM nodes and refreshes every 10 minutes while shown.
+
 ## Rolling back to v1
 Before Phase 0 was merged, v1 was saved two ways:
 - Git tag `v1-backup-2026-10-17` (the last v1-only commit on `main`).
