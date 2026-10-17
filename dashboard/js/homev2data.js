@@ -64,22 +64,23 @@ export function englishTitle(title) {
 
 const BIRTHDAY = /birthday|anivers/i;
 
-// "Lucas's birthday" for a birthday event, from a name the event itself gives: a possessive
-// in the title ("Sam’s 12th Birthday"), a family member named in the title, or the one
-// family member the event belongs to. Otherwise null (the caller keeps the title).
+// "<Name>'s birthday" only when the shown title itself says whose birthday it is: a possessive
+// ("Sam’s 12th Birthday", "Lucas's birthday") or a name next to the word ("Birthday – Lucas",
+// "JP birthday dinner" for a family member). The owner/attendee prefix ("Lucas — ...") only
+// says who is going, so it never supplies the name. Otherwise null (the title is kept).
+const NAME = '\\p{Lu}[\\p{L}-]*';
 export function birthdayName(e) {
   if (!e) return null;
-  const shown = eventTitle(e);
-  if (!BIRTHDAY.test(shown) && !BIRTHDAY.test(String(e.title || ''))) return null;
-  const poss = /(?:^|[\s(])(\p{Lu}[\p{L}-]+)[’']s\b/u.exec(shown);
-  if (poss) return poss[1];
-  const named = FAMILY.find((p) => new RegExp(`(^|[^\\p{L}])${p.name}([^\\p{L}]|$)`, 'u').test(shown));
-  if (named) return named.name;
-  if (!e.everyone && Array.isArray(e.people) && e.people.length === 1) {
-    const p = FAMILY.find((m) => m.id === e.people[0]);
-    if (p) return p.name;
-  }
-  return null;
+  // "Birthday – Lucas" splits at the dash like an owner prefix, so read it from the raw title.
+  const raw = String(e.title || '').trim();
+  const shown = /^(?:birthday|aniversário|aniversario)\s*[-–—:]/i.test(raw) ? raw : eventTitle(e);
+  if (!BIRTHDAY.test(shown)) return null;
+  const poss = new RegExp(`(?:^|[\\s(])(${NAME})[’']s?\\s+(?:\\S+\\s+){0,2}?(?:birthday|b-?day|anivers)`, 'iu').exec(shown);
+  if (poss && /^\p{Lu}/u.test(poss[1])) return poss[1];
+  const after = new RegExp(`(?:birthday|aniversário|aniversario)\\s*(?:[-–—:]|of|do|da|de)\\s*(${NAME})`, 'iu').exec(shown);
+  if (after && /^\p{Lu}/u.test(after[1])) return after[1];
+  const before = FAMILY.find((p) => new RegExp(`(?:^|[^\\p{L}])${p.name}\\s+(?:birthday|anivers)`, 'iu').test(shown));
+  return before ? before.name : null;
 }
 
 // Title as v2 Home shows it: birthdays as "<Name>'s birthday", Brazilian holidays in English.

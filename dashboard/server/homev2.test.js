@@ -105,15 +105,28 @@ test('v2 Home CSS stays inside WebView 106 limits', async () => {
   assert.doesNotMatch(css, /Instrument Serif|Archivo/);
 });
 
-test('birthdays read "<Name>\'s birthday" only from names the event gives', () => {
-  assert.equal(homeTitle(ev('a', 'Lucas — 12th Birthday Party', '2026-10-24T19:00:00Z', '2026-10-24T23:00:00Z', { people: ['lucas'] })), "Lucas's birthday");
-  assert.equal(homeTitle(ev('b', 'Lucas — Sam’s 12th Birthday Celebration', '2026-10-24T19:00:00Z', '2026-10-24T23:00:00Z', { people: ['lucas'] })), "Sam's birthday");
-  assert.equal(homeTitle(ev('c', 'JP birthday dinner', '2026-10-24T19:00:00Z', '2026-10-24T23:00:00Z', { people: ['thiago', 'jp'], everyone: true })), "JP's birthday");
-  assert.equal(birthdayName(ev('d', 'Birthday party', '2026-10-24T19:00:00Z', '2026-10-24T23:00:00Z', { people: ['thiago', 'jp'], everyone: true })), null);
-  assert.equal(homeTitle(ev('d', 'Birthday party', '2026-10-24T19:00:00Z', '2026-10-24T23:00:00Z', { people: ['thiago', 'jp'], everyone: true })), 'Birthday party');
-  assert.equal(birthdayName(ev('e', 'Team Training', '2026-10-24T19:00:00Z', '2026-10-24T23:00:00Z')), null);
-  const list = comingUp([ev('f', 'Lucas — 12th Birthday Party', '2026-10-24T19:00:00Z', '2026-10-24T23:00:00Z', { people: ['lucas'] })], {}, NOW);
-  assert.equal(list[0].title, "Lucas's birthday");
+test('birthday names come only from the title itself, never the attendee prefix', () => {
+  const at = (title, people = ['lucas']) => ev('x', title, '2026-10-24T19:00:00Z', '2026-10-24T23:00:00Z', { people });
+  // "Lucas — ..." only means Lucas is going: keep the shown title.
+  assert.equal(homeTitle(at('Lucas — 12th Birthday Party')), '12th Birthday Party');
+  assert.equal(birthdayName(at('Lucas — 12th Birthday Party')), null);
+  assert.equal(homeTitle(at('Lucas — Birthday party at the park')), 'Birthday party at the park');
+  assert.equal(homeTitle(at('Lucas — Surprise Birthday Party')), 'Surprise Birthday Party');
+  // Possessive in the title.
+  assert.equal(homeTitle(at('Lucas — Sam’s 12th Birthday Celebration')), "Sam's birthday");
+  assert.equal(homeTitle(at("Maya's surprise birthday")), "Maya's birthday");
+  assert.equal(homeTitle(at('Chris’ 40th birthday')), "Chris's birthday");
+  assert.equal(homeTitle(at("Lucas's birthday")), "Lucas's birthday");
+  // A title that says whose birthday it is.
+  assert.equal(homeTitle(at('Birthday – Lucas')), "Lucas's birthday");
+  assert.equal(homeTitle(at('Birthday: Robin')), "Robin's birthday");
+  assert.equal(homeTitle(at('JP birthday dinner', ['thiago', 'jp'])), "JP's birthday");
+  // Not a birthday, or a possessive that isn't the birthday person.
+  assert.equal(birthdayName(at('Team Training')), null);
+  assert.equal(homeTitle(at("Birthday party at Dave's")), "Birthday party at Dave's");
+  const list = comingUp([ev('f', 'Lucas — Sam’s 12th Birthday Celebration', '2026-10-24T19:00:00Z', '2026-10-24T23:00:00Z', { people: ['lucas'] }),
+    ev('g', 'Lucas — 12th Birthday Party', '2026-10-25T19:00:00Z', '2026-10-25T23:00:00Z', { people: ['lucas'] })], {}, NOW);
+  assert.deepEqual(list.map((x) => x.title), ["Sam's birthday", '12th Birthday Party']);
 });
 
 test('live event shows when it ends and how long is left', () => {

@@ -51,7 +51,7 @@ html.ui-v2 body, html.ui-v2 .stage, html.ui-v2.theme-dark body { background: var
 /* People: four compact rows, real photo in a ring of the person's color */
 .hv2-people { position: absolute; left: 66.406vw; top: 1.75vh; width: 26.094vw; height: 25.25vh; }
 .hv2-p { display: block; position: relative; width: 100%; height: 6.25vh; text-align: left; white-space: nowrap; }
-.hv2-ph { position: absolute; left: 0.234vw; top: 0.375vh; display: block; width: 3.438vw; height: 3.438vw; border-radius: 50%; overflow: hidden;
+.hv2-ph { --hv2-ring: clamp(3px, 0.28vw, 4px); position: absolute; left: 0.312vw; top: 0.375vh; display: block; width: 3.438vw; height: 3.438vw; border-radius: 50%; overflow: hidden;
   text-align: center; line-height: 3.438vw; font-size: clamp(14px, 1.406vw, 22px); font-weight: 900; }
 .hv2-ph i { position: absolute; top: 0; right: 0; bottom: 0; left: 0; border-radius: 50%; -webkit-background-size: cover; background-size: cover; background-position: center; }
 .hv2-p b { position: absolute; left: 4.688vw; right: 0; top: 0.25vh; font-size: clamp(16px, 1.641vw, 26px); line-height: 3vh; overflow: hidden; text-overflow: ellipsis; }
@@ -77,11 +77,11 @@ html.ui-v2 body, html.ui-v2 .stage, html.ui-v2.theme-dark body { background: var
 .hv2-leave b { margin-left: 0.781vw; font-size: clamp(22px, 2.266vw, 36px); }
 .hv2-leave span { margin-left: 0.938vw; font-size: clamp(17px, 1.797vw, 29px); font-weight: 700; }
 .hv2-leave.is-now, .hv2-leave.is-late { background: #F78872; }
-.hv2-live { margin-top: 2.25vh; width: 43.75vw; }
+.hv2-live { margin-top: 1.25vh; width: 43.75vw; }
 .hv2-live-t { display: flex; align-items: baseline; white-space: nowrap; }
 .hv2-live-t b { font-size: clamp(22px, 2.266vw, 36px); }
 .hv2-live-t span { margin-left: 1.094vw; font-size: clamp(19px, 1.953vw, 31px); font-weight: 700; color: #CFE5E0; }
-.hv2-bar { position: relative; height: 1.75vh; margin-top: 1.5vh; border-radius: 7px; background: rgba(251, 246, 236, 0.22); overflow: hidden; }
+.hv2-bar { position: relative; height: 1.75vh; margin-top: 1vh; border-radius: 7px; background: rgba(251, 246, 236, 0.22); overflow: hidden; }
 .hv2-bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 7px; background: var(--v2-sun); }
 .hv2-then { position: absolute; left: 2.344vw; right: 2.344vw; bottom: 0; height: 7.25vh; display: flex; align-items: center; border-top: 1.5px solid rgba(251, 246, 236, 0.22); font-size: clamp(20px, 2.031vw, 32px); font-weight: 700; white-space: nowrap; }
 .hv2-then-k { flex: none; width: 7.188vw; font-weight: 800; color: #CFE5E0; }
