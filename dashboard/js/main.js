@@ -1,5 +1,6 @@
 import { start } from './app.js';
 import './views/home.js';
+import './views/homev2.js';
 import './views/calendar.js';
 import './views/chores.js';
 import './views/grocery.js';

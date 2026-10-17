@@ -136,6 +136,52 @@ person pages, routines, homework (Phase 3); Media, Photos viewer, The Long Drift
 (Phase 4); Ring bridge, live view and doorbell pop-up (Phase 5); feeds and the Settings health
 panel (Phase 6).
 
+## Phase 1: Home (2026-10-17)
+Phase 0 only changed the rail, so v2 still looked like v1. Phase 1 rebuilds Home to match
+proposal mockup 01 (Garden Morning) and gives it mockup 02's Olive Grove palette at night.
+v1's Home (`js/views/home.js`) is untouched; the new one only registers when the v2 shell is on.
+
+Files: `js/views/homev2.js` (view), `js/homev2data.js` (pure data shaping, tested),
+`js/v2icons.js` (stroke icons and the filled weather illustrations, no SVG filters),
+`css/v2/home.css` (all v2 Home styles, plus the v2-wide font switch).
+
+- **Type:** self-hosted Nunito 700–900 for every v2 page. The v1 serif and condensed faces
+  are switched off under `html.ui-v2`. Sizes are `clamp(75 %, px / 12.8 vw, 125 %)`; boxes use
+  vw (horizontal) and vh (vertical), so at 1280 × 800 every value is the mockup's px.
+- **Clock:** 156 px, AM/PM beside it, full date line ("Saturday, October 17").
+- **Weather card:** illustration, °F / °C on one line, condition, H / L (°F / °C), Inside line
+  from the indoor sensor, then one context line: rain (first hour in the next 12 with a 40 %+
+  chance, "Rain likely from 6 PM · 60%"), else Sunset by day, else tomorrow's high at night.
+- **People:** colored initial circles (Thiago red, Gilmara coral, JP blue, Lucas green) with
+  the Find My place as the status line and "Find My · N min ago" under them.
+- **Next Up:** teal card (card color with amber at night). Person chip, title (smaller type for
+  long titles instead of cutting), big time, minute countdown inside the hour, or Now. Details
+  line (day, full AM/PM range, first part of the location). Leave-by pill only when `/api/eta`
+  returns a real drive time. Then row: the next timed event after it.
+- **Photo:** rounded card, real album photos, cover crop, date and place caption.
+- **Bottom row:** chore rings in person colors with X/Y for the current routine (the "Anyone"
+  chores are not shown on Home); Coming up; Grocery count with the first items.
+- **Coming up:** the next three of: birthdays, trips and tournaments found in the family
+  calendar, US and Brazil holidays (date.nager.at) and Flamengo games (ESPN). No trips feed
+  exists yet, so trips only show when they are on the calendar. Right side: weekday + full time
+  within a week ("Sun 4:30 PM", never cut), else "N days". Names are cut with an ellipsis
+  before the time ever is.
+- **Holidays in English:** `BR_HOLIDAYS_EN` maps Brazilian names (Dia de Finados → All Souls'
+  Day, Proclamação da República → Republic Proclamation Day, …). Unknown names stay as they are.
+- **Night:** the same layout in Olive Grove, on the existing switch (`html.theme-dark`: the
+  Settings choice of light, dark or auto by sunset/sunrise). `?theme=dark` forces it.
+- **Calendar grid** is no longer on Home; it stays on the Calendar page.
+- Tapping a card opens its page (Weather, a person, Photos, Chores, Coming up, Grocery). Home
+  never toggles a chore or a grocery item.
+
+Tests: `server/homev2.test.js` (date line, holiday names, countdown labels, Coming up mix and
+order, Next Up / Then / big number / details, Leave by, rain and context lines, and a CSS check
+for WebView 106 limits).
+
+Not matched yet (Phase 1 follow-ups): night Home keeps the day layout (mockup 02's Tomorrow
+card, Bedtime routine, Family board and Night mode cards need routines and a board source);
+no seasonal leaf art next to the date; no small badges on JP's and Lucas's circles.
+
 ## Rolling back to v1
 Before Phase 0 was merged, v1 was saved two ways:
 - Git tag `v1-backup-2026-10-17` (the last v1-only commit on `main`).
