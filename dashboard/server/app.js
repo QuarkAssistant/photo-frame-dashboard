@@ -20,6 +20,7 @@ import { startIndoor } from './indoor.js';
 import { weatherPayload } from './weather.js';
 import { isFrameReport, sanitizeFrameReport } from '../frameinfo.js';
 import { healthPayload } from './framehealth.js';
+import { withUiDefault } from '../nav.js';
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -207,6 +208,10 @@ export function createApi({ root }) {
         else return send(res, 404, 'not found', { 'Content-Type': 'text/plain' });
       }
       if (!fs.existsSync(file)) return send(res, 404, 'not found', { 'Content-Type': 'text/plain' });
+      if (path.extname(file).toLowerCase() === '.html') {
+        const html = withUiDefault(fs.readFileSync(file, 'utf8'), process.env.DASHBOARD_UI);
+        return send(res, 200, html, { 'Content-Type': MIME['.html'], 'Cache-Control': 'no-cache' });
+      }
       sendFile(res, file);
     } catch (err) {
       console.error(err);

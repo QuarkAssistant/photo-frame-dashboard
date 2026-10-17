@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { flashOnce, NAV_V2, routeFor, shouldIdleHome, wantsV2 } from '../nav.js';
+import { flashOnce, NAV_V2, routeFor, shouldIdleHome, uiDefault, wantsV2, withUiDefault } from '../nav.js';
 
 test('rail has the nine approved items in order', () => {
   assert.deepEqual(NAV_V2.map((n) => n.label),
@@ -59,4 +59,23 @@ test('v2 shell is opt-in with ?ui=v2', () => {
   assert.equal(wantsV2(''), false);
   assert.equal(wantsV2('?layout=v1'), false);
   assert.equal(wantsV2('?ui=v2&now=2026-10-20T15:12:00-05:00'), true);
+});
+
+test('server default picks the shell; ?ui= overrides it', () => {
+  assert.equal(wantsV2('', 'v2'), true);
+  assert.equal(wantsV2('?ui=v1', 'v2'), false);
+  assert.equal(wantsV2('?ui=v2', null), true);
+  assert.equal(wantsV2('', null), false);
+  assert.equal(wantsV2('', 'v1'), false);
+});
+
+test('DASHBOARD_UI marks the page only for v2', () => {
+  const page = '<!doctype html>\n<html lang="en">\n<head></head></html>';
+  assert.equal(uiDefault(' V2 '), 'v2');
+  assert.equal(uiDefault(undefined), 'v1');
+  assert.equal(uiDefault('v3'), 'v1');
+  assert.equal(withUiDefault(page, 'v2'), '<!doctype html>\n<html data-ui-default="v2" lang="en">\n<head></head></html>');
+  assert.equal(withUiDefault(page, ''), page);
+  assert.equal(withUiDefault(page, 'v1'), page);
+  assert.equal(withUiDefault('<html>x</html>', 'v2'), '<html data-ui-default="v2">x</html>');
 });

@@ -29,8 +29,8 @@ function saverIdle() {
 function pageParams0() { return new URLSearchParams(location.search); }
 // New layout is default; ?layout=v1 restores the original Home.
 if (pageParams0().get('layout') !== 'v1') document.documentElement.className += ' layout-v2';
-// v2 shell (9-item rail, new routes, design tokens): opt-in with ?ui=v2 for now.
-export const UI_V2 = wantsV2(location.search);
+// v2 shell (9-item rail, new routes, design tokens): ?ui=v2 / ?ui=v1, else the server default.
+export const UI_V2 = wantsV2(location.search, document.documentElement.getAttribute('data-ui-default'));
 if (UI_V2) document.documentElement.className += ' ui-v2';
 let saverOpen = false;
 let lastPerson = null;
