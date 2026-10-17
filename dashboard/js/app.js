@@ -112,11 +112,20 @@ export function openEvent(id) {
     `<h2 class="serif sheet-h">${esc(eventTitle(ev))}</h2>` +
     `<p class="sheet-p">${esc(when)}</p>` +
     (ev.location ? `<p class="sheet-loc">${esc(ev.location)}</p>` : '') +
+    uniformLine(ev) +
     `</div></div>`;
   layer.classList.add('is-open');
   layer.querySelectorAll('[data-close]').forEach((el) => {
     el.addEventListener('click', closeSheet);
   });
+}
+
+function uniformLine(ev) {
+  const u = ev.uniform;
+  if (!u || !u.text) return '';
+  const sw = (u.colors || []).filter((c) => /^#[0-9a-f]{6}$/i.test(c.hex))
+    .map((c) => `<span class="uni-sw" style="background:${c.hex}" title="${esc(c.name)}"></span>`).join('');
+  return `<p class="sheet-uni"><span class="uni-k">Uniform</span>${sw ? `<span class="uni-sws">${sw}</span>` : ''}<span class="uni-t">${esc(u.text)}</span></p>`;
 }
 
 function closeSheet() {

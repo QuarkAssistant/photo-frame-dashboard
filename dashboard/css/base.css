@@ -230,6 +230,22 @@ button.card:active, .h-hero:active, .h-photo:active { transform: scale(0.985); }
 .sheet-h { font-size: clamp(36px, calc(var(--u) * 3.4), 56px); line-height: 0.95; margin: 8px 0 12px; }
 .sheet-p, .sheet-loc { font-size: var(--fs-m); color: var(--ink-2); }
 .sheet-loc { margin-top: 8px; }
+.sheet-uni {
+  display: flex; align-items: center; flex-wrap: wrap;
+  gap: clamp(6px, calc(var(--u) * 0.6), 10px);
+  margin-top: clamp(8px, calc(var(--u) * 0.8), 14px);
+  font-size: var(--fs-m); color: var(--ink-2);
+}
+.uni-k {
+  font-size: var(--fs-label); font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--cream); background: var(--olive);
+  padding: 2px clamp(6px, calc(var(--u) * 0.6), 10px); border-radius: 999px;
+}
+.uni-sws { display: inline-flex; gap: clamp(4px, calc(var(--u) * 0.4), 6px); }
+.uni-sw {
+  width: clamp(16px, calc(var(--u) * 1.5), 24px); height: clamp(16px, calc(var(--u) * 1.5), 24px);
+  border-radius: 50%; border: 2px solid var(--line); box-shadow: 0 0 0 1px rgba(var(--ink-rgb), .25);
+}
 
 .saver {
   position: absolute;
