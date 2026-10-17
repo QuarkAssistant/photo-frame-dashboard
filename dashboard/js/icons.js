@@ -21,6 +21,16 @@ export const ICONS = {
   snow: '<path d="M7.2 13.6h9.4a3.5 3.5 0 0 0 .4-7 5.2 5.2 0 0 0-10 1.5 3 3 0 0 0 .2 5.5z"/><path d="M8.6 16.2v2.2M7.5 17.3h2.2M12 16.2v2.2M10.9 17.3h2.2M15.4 16.2v2.2M14.3 17.3h2.2"/>',
   storm: '<path d="M7.2 13.4h9.4a3.5 3.5 0 0 0 .4-7 5.2 5.2 0 0 0-10 1.5 3 3 0 0 0 .2 5.5z"/><path d="M12.4 13.2l-2.1 3.5h2.2L10.4 20"/>',
   fog: '<path d="M4 8h16M4 12h16M6 16h12M8 20h8"/>',
+  // v2 rail and placeholders (same 24 px grid, stroke only).
+  people: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20C3 15.5 6 14 9 14S15 15.5 15.5 20"/><circle cx="17" cy="9" r="2.6"/><path d="M16 14.2C19 14 21.3 16 21.5 19.5"/>',
+  weatherNav: '<circle cx="9" cy="9" r="3.5"/><path d="M9 2.5V3.5M3 9H2M4.6 4.6L5.3 5.3M15.5 4.6 14.8 5.3"/><path d="M8 19H18A3.5 3.5 0 0 0 17.5 12 5 5 0 0 0 8.5 13.5 3 3 0 0 0 8 19Z"/>',
+  media: '<rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 9.2V14.8L15 12Z"/>',
+  camera: '<path d="M3.5 8.5H7L8.6 6H15.4L17 8.5H20.5V18.5H3.5Z"/><circle cx="12" cy="13.2" r="3.4"/>',
+  back: '<path d="M14.5 5 7.5 12 14.5 19"/>',
+  lock: '<rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8 10.5V7.5A4 4 0 0 1 16 7.5V10.5"/>',
+  film: '<rect x="3.5" y="4" width="17" height="16" rx="2.5"/><path d="M7.5 4V20M16.5 4V20M3.5 9H7.5M3.5 15H7.5M16.5 9H20.5M16.5 15H20.5"/>',
+  bell: '<path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 1.5h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/>',
+  plane: '<path d="M10.5 13.5 3 11l1.5-1.5 7.5 1L16.5 6a2 2 0 0 1 3 3L15 13.5l1 7.5-1.5 1.5-2.5-7.5L9 18v2.5L7.5 22l-1-3.5L3 17.5 4.5 16H7z"/>',
 };
 
 export function icon(name, size, stroke) {

@@ -1,0 +1,184 @@
+/* v2 shell (Phase 0): 9-item rail, Back button, placeholder pages, toast.
+   Motion: fades only. Nothing loops. No blur, no backdrop-filter. */
+html.ui-v2 .stage { grid-template-columns: var(--v2-rail) minmax(0, 1fr); }
+
+/* Rail */
+.rail--v2 {
+  display: block;
+  background: var(--v2-bg);
+  border-right: 1.5px solid var(--v2-edge);
+  font-family: var(--v2-font);
+  overflow: hidden;
+}
+.r2-top { height: 22px; }
+.r2-item {
+  position: relative;
+  display: block;
+  width: 100%;
+  /* 84 px on the 800 px frame; shrinks evenly if a viewport is ever shorter. */
+  height: min(var(--v2-rail-item), calc((100vh - 22px) / 9));
+  padding-top: min(13px, calc((100vh - 22px) / 9 - 71px));
+  text-align: center;
+  color: var(--v2-sec);
+  font-size: var(--v2-fs-label);
+  font-weight: 800;
+  font-stretch: normal;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.r2-item .i { width: 30px; height: 30px; margin: 0 auto 5px; }
+.r2-item span { display: block; line-height: 1.1; white-space: nowrap; }
+.r2-pip { display: none; position: absolute; left: 0; top: 14px; width: 6px; height: 56px; border-radius: 0 6px 6px 0; background: var(--v2-acc); }
+.rail--v2 .r2-item.is-active { background: var(--v2-rail-on); color: var(--v2-acc); }
+.rail--v2 .r2-item.is-active .r2-pip { display: block; }
+.rail--v2 .r2-item:active, .rail--v2 .r2-item.is-holding { background: var(--v2-rail-on); }
+.rail--v2 .r2-item.is-active:active { background: var(--v2-rail-on); }
+html.ui-v2.theme-dark .rail--v2 { background: var(--v2-bg); }
+
+/* Toast (Settings hint). One fade in, one fade out. */
+.v2-toast {
+  position: absolute;
+  left: 50%;
+  bottom: 28px;
+  -webkit-transform: translateX(-50%);
+  transform: translateX(-50%);
+  padding: 14px 26px;
+  border-radius: 32px;
+  background: var(--v2-ink, #1F2A2E);
+  color: var(--v2-bg, #FBF6EC);
+  font-family: var(--v2-font);
+  font-size: var(--v2-fs-second);
+  font-weight: 800;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  z-index: 40;
+}
+.v2-toast.is-on { opacity: 1; }
+
+/* Back: top left, 60 px tall. */
+.v2-back {
+  display: -webkit-inline-flex;
+  display: inline-flex;
+  -webkit-align-items: center;
+  align-items: center;
+  flex: none;
+  height: var(--v2-back);
+  padding: 0 22px 0 12px;
+  margin-right: 18px;
+  border-radius: 30px;
+  background: var(--v2-card);
+  border: 2px solid var(--v2-edge);
+  color: var(--v2-ink);
+  font-family: var(--v2-font);
+  font-size: var(--v2-fs-second);
+  font-weight: 900;
+  white-space: nowrap;
+}
+.v2-back .i { margin-right: 6px; }
+.v2-back:active { background: var(--v2-rail-on); }
+.photos .v2-back { position: absolute; top: 20px; left: 20px; z-index: 3; }
+.m-head .v2-back { margin-right: 4px; }
+
+/* Calendar header: "Coming up" chip (v2 only). */
+.v2-chip {
+  display: -webkit-inline-flex;
+  display: inline-flex;
+  -webkit-align-items: center;
+  align-items: center;
+  height: 52px;
+  padding: 0 20px 0 14px;
+  border-radius: 26px;
+  background: var(--v2-acc);
+  color: var(--v2-acc-ink);
+  font-family: var(--v2-font);
+  font-size: var(--v2-fs-second);
+  font-weight: 900;
+  white-space: nowrap;
+}
+.v2-chip .i { margin-right: 8px; }
+
+/* Placeholder pages */
+html.ui-v2 .v2-view { padding: 0; background: var(--v2-bg); }
+.v2-page {
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  padding: 22px 28px 28px;
+  background: var(--v2-bg);
+  color: var(--v2-ink);
+  font-family: var(--v2-font);
+  font-weight: 800;
+}
+.v2-head { display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; height: 64px; margin-bottom: 26px; }
+.v2-head h1 { font-size: var(--v2-fs-heading); font-weight: 900; letter-spacing: -0.01em; line-height: 1; }
+.v2-head-i { color: var(--v2-acc); margin-right: 14px; }
+.v2-head-i .i { width: 40px; height: 40px; }
+.v2-sub { margin-left: 18px; font-size: var(--v2-fs-second); font-weight: 700; color: var(--v2-sec); }
+.v2-sec { color: var(--v2-sec); font-weight: 700; }
+.v2-card {
+  position: relative;
+  display: block;
+  background: var(--v2-card);
+  border: 1.5px solid var(--v2-edge);
+  border-radius: var(--v2-radius);
+  box-shadow: var(--v2-shadow);
+  overflow: hidden;
+  text-align: left;
+}
+button.v2-card:active { background: var(--v2-rail-on); }
+.v2-tag {
+  display: inline-block;
+  margin-top: 16px;
+  padding: 6px 16px;
+  border-radius: 18px;
+  background: #FCEBC9;
+  color: #7A4E0B;
+  font-size: var(--v2-fs-label);
+  font-weight: 900;
+}
+
+/* Family: four person cards */
+.v2-grid4 { display: -webkit-flex; display: flex; height: 560px; }
+.v2-person { -webkit-flex: 1 1 0; flex: 1 1 0; margin-right: var(--v2-gutter); padding: 40px 24px 24px; text-align: center; }
+.v2-person:last-child { margin-right: 0; }
+.v2-person .avatar { width: 150px; height: 150px; min-width: 150px; min-height: 150px; margin: 22px auto 26px; font-size: 54px; font-family: var(--v2-font); font-weight: 900; }
+.v2-person b { display: block; font-size: var(--v2-fs-heading); font-weight: 900; }
+.v2-person .v2-sec { display: block; margin-top: 10px; font-size: var(--v2-fs-second); }
+.v2-pbar { position: absolute; left: 0; right: 0; top: 0; height: 12px; background: var(--v2-family); }
+.v2-p-thiago .v2-pbar { background: var(--v2-thiago); }
+.v2-p-gilmara .v2-pbar { background: var(--v2-gilmara); }
+.v2-p-jp .v2-pbar { background: var(--v2-jp); }
+.v2-p-lucas .v2-pbar { background: var(--v2-lucas); }
+.v2-person.is-last { border-color: var(--v2-acc); border-width: 3px; }
+
+/* Media: two tiles */
+.v2-grid2 { display: -webkit-flex; display: flex; height: 560px; }
+.v2-tile { -webkit-flex: 1 1 0; flex: 1 1 0; margin-right: var(--v2-gutter); padding: 48px 40px; }
+.v2-tile:last-child { margin-right: 0; }
+.v2-tile-i { display: block; color: var(--v2-acc); margin-bottom: 30px; }
+.v2-tile-i .i { width: 64px; height: 64px; }
+.v2-tile b { display: block; font-size: var(--v2-fs-title); font-weight: 900; line-height: 1.05; }
+.v2-tile .v2-sec { display: block; margin-top: 12px; font-size: var(--v2-fs-body); }
+
+/* Note card used by Cameras, The Long Drift and Coming up */
+.v2-note { max-width: 860px; padding: 40px 44px; }
+.v2-note b { display: block; font-size: var(--v2-fs-title); font-weight: 900; margin-bottom: 18px; }
+.v2-note p { font-size: var(--v2-fs-body); font-weight: 700; line-height: 1.35; margin-bottom: 14px; }
+.v2-list li { display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; min-height: 64px; font-size: var(--v2-fs-body); font-weight: 700; }
+.v2-list .i { width: 28px; height: 28px; margin-right: 18px; color: var(--v2-acc); }
+.v2-btn {
+  display: -webkit-inline-flex;
+  display: inline-flex;
+  -webkit-align-items: center;
+  align-items: center;
+  height: var(--v2-tap);
+  margin-top: 14px;
+  padding: 0 28px 0 22px;
+  border-radius: 32px;
+  background: var(--v2-acc);
+  color: var(--v2-acc-ink);
+  font-size: var(--v2-fs-second);
+  font-weight: 900;
+}
+.v2-btn .i { margin-right: 10px; }

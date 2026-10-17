@@ -3,6 +3,11 @@ import { member, now, register } from '../app.js';
 import { ymd, addDaysYmd } from '../../time.js';
 import { avatar, dayParts, esc, eventTitle, formatRange, onDay, owner, pstyle, relDay } from '../ui.js';
 import { choreSubtitle, sortChores } from '../../chores.js';
+import { icon } from '../icons.js';
+
+const v2Back = () => (document.documentElement.classList.contains('ui-v2')
+  ? `<button class="v2-back" type="button" data-go="family">${icon('back', 30, 2.6)}<span>Family</span></button>`
+  : '');
 
 function upcoming(person) {
   const today = ymd(now());
@@ -63,7 +68,7 @@ register('member', {
     if (!person) return;
     const dp = dayParts(ymd(now()));
     el.innerHTML = `<div class="member" style="${pstyle(person)}">` +
-      `<header class="m-head">${avatar(person)}<div><div class="label">Coelho de Oliveira</div>` +
+      `<header class="m-head">${v2Back()}${avatar(person)}<div><div class="label">Coelho de Oliveira</div>` +
       `<h1 class="serif">${esc(person.name)}</h1></div>` +
       `<div class="m-date serif">${esc(dp.weekday)} ${esc(dp.month)} ${esc(dp.day)}</div></header>` +
       `<section class="m-events card"><div class="label">Upcoming</div><div class="m-list">${upcoming(person)}</div></section>` +

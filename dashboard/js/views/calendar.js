@@ -140,6 +140,9 @@ register('calendar', {
         `<header class="cal-head"><h1 class="serif">Calendar</h1><span class="cal-range"></span>` +
         `<div class="cal-nav"><button type="button" data-week="-1" aria-label="Previous week">${icon('left', 26)}</button>` +
         `<button type="button" data-week="1" aria-label="Next week">${icon('right', 26)}</button></div>` +
+        (document.documentElement.classList.contains('ui-v2')
+          ? `<button class="v2-chip" type="button" data-go="coming-up">${icon('plane', 24, 2.4)}<span>Coming up</span></button>`
+          : '') +
         `<div class="seg"><button type="button" data-cal="agenda">Agenda</button><button type="button" data-cal="week">Week</button><button type="button" data-cal="month">Month</button></div>` +
         `</header><div class="cal-body"></div><div class="cal-legend"></div></div>`;
       el.addEventListener('click', (e) => {

@@ -9,6 +9,10 @@ import { celsius, indoorHtml } from '../weatherui.js';
 import { createSlides } from '../slides.js';
 import { icon } from '../icons.js';
 import { chores3, days3, family3, loadWhere, shop3, weather3 } from './home3.js';
+import { flashOnce } from '../../nav.js';
+
+// "Leave now" / "Running late" flash once when they switch on, then stay still.
+const flashed = new Set();
 
 
 function wxPair(f, c, cls = '') {
@@ -168,6 +172,8 @@ function leaveHtml(e, phase) {
   else if (left > 0) { txt = `Leave in ${Math.ceil(left)} min`; if (left <= 15) cls += ' lv--soon'; }
   else if (now().getTime() <= start - eta.minutes * 60000) { cls += ' lv--now'; txt = 'Leave now'; }
   else { cls += ' lv--late'; txt = `Running late · ${Math.ceil((now().getTime() + eta.minutes * 60000 - start) / 60000)} min`; }
+  const urgent = /lv--(now|late)/.exec(cls);
+  if (urgent && flashOnce(flashed, `${e.id}:${urgent[1]}`)) cls += ' lv--flash';
   return `<div class="lv-row"><span class="${cls}"><i class="lv-dot"></i>${txt}</span>${drive}</div>`;
 }
 

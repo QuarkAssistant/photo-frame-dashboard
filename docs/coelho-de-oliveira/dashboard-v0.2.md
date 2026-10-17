@@ -14,6 +14,9 @@
 - **v0.4.2** — Hide store tags on the dashboard; Quick add from real list history.
 - **v0.5** — Photo date/place captions on the Home slideshow and screensaver.
 - **v0.5.1** — Next Up shows the event date (time line + label above the big time).
+- **v2 Phase 0** — Foundations behind `?ui=v2`: design tokens, 9-item rail and routes,
+  placeholders, no looping animation, WebView check, frame health probe, screenshot harness.
+  See [dashboard-v2.md](dashboard-v2.md).
 
 ![Home (redacted)](img/home-redacted.png)
 ![Weather page (redacted)](img/weather-redacted.png)
@@ -95,6 +98,8 @@ Mac that stays on at home; the frame loads `http://DASHBOARD_HOST:4173` over Wi�
 - `?night=off` — disable night mode. `?now=2026-10-12T14:00:00-05:00` — fake the time.
 - `?saver=5` — open the screensaver after 5 s idle instead of 300.
 - `#home`, `#weather`, `#calendar`, … — open a view directly.
+- `?ui=v2` — the v2 shell (see [dashboard-v2.md](dashboard-v2.md)). `?sheet=uniform` — open the
+  next event sheet with a uniform line (screenshots).
 
 ## Old-WebView CSS rules
 The frame's WebView is old. In new UI code:
