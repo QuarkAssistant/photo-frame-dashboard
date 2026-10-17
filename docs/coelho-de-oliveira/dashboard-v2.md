@@ -223,13 +223,20 @@ Matches proposal mockup 04 (Week) and 05 (Coming up). Files: `js/views/calendarv
   green, Family teal, Parents brown, holidays gold, Flamengo black) and show the full AM/PM time
   or "All day", the title and the person. Past events are dimmed. Four slots per day; more turns
   the last slot into "+N more", which opens the whole day in a sheet.
-- **Titles:** shown as the calendar writes them (v1's "Name — " owner prefix stripped). The
-  narrow Week and Month cards also drop the team prefix v1 Home drops ("U14 Boys Academy -
-  Team Training" → "Team Training"); Agenda, Coming up and the popup keep the full title.
+- **Titles:** full calendar titles everywhere in v2 (Week, Month, Agenda, Coming up, popup and
+  Home's Next Up / Then / Coming up), even when a card cuts them off. Only v1's "Name — " owner
+  prefix is stripped; the team prefix ("U14 Boys Academy - ") is kept. Long words wrap only between
+  words (CSS `hyphens: auto` with `lang="en"` adds a hyphen where the WebView supports it).
+- **Today's column and cell:** happening now first, then upcoming, then ended (dimmed), so a live
+  event never hides under "+N more". Other days stay chronological (`todayOrder`).
 - **Holidays and Flamengo** come from `/api/extras` (the next 3 holidays and next 2 games), so
   past weeks don't show them.
-- **Popup:** the existing event sheet, restyled for v2 (Nunito, person-colour bar, uniform tag
-  and colour swatches for soccer events). `?sheet=uniform` still opens the next soccer popup.
+- **Popup:** the existing event sheet, restyled for v2 (Nunito, person-colour bar). Soccer events
+  keep the UNIFORM tag and text, and show uniform icons instead of colour dots (`js/uniformkit.js`,
+  shared with v1): a jersey filled with the jersey colour, plus shorts and socks when the text names
+  them ("Red Jersey / Black shorts & socks" → red jersey, black shorts, black socks). With one
+  colour and no garment words, just the jersey. Each icon has a thin dark outline over a light halo,
+  so white and black kits read on cream and at night. `?sheet=uniform` still opens the next soccer popup.
 - **Agenda and Month:** v2 versions of the v1 views (14-day list; month grid with up to 3 chips
   a day, 2 in 6-week months, then "+N more").
 - **Coming up:** today's remaining events (first one teal), tomorrow's first events, four

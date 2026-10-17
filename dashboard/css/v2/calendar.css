@@ -47,7 +47,7 @@ html.ui-v2 #view-calendar { padding: 0; background: var(--v2-bg); }
   background: rgba(var(--k-rgb), 0.14); box-shadow: inset 0.391vw 0 0 var(--k); color: var(--v2-ink); }
 .cv2-ev .cv2-t, .cv2-ev b, .cv2-ev .cv2-w { position: absolute; left: 1.094vw; right: 0.625vw; overflow: hidden; }
 .cv2-ev .cv2-t { top: 1vh; font-size: clamp(14px, 1.406vw, 22px); font-weight: 800; color: var(--v2-sec); white-space: nowrap; }
-.cv2-ev b { top: 3.75vh; font-size: clamp(15px, 1.562vw, 25px); line-height: 3vh; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow-wrap: break-word; -webkit-hyphens: auto; hyphens: auto; }
+.cv2-ev b { top: 3.75vh; font-size: clamp(15px, 1.562vw, 25px); line-height: 3vh; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; word-break: normal; overflow-wrap: normal; -webkit-hyphens: auto; hyphens: auto; }
 .cv2-ev .cv2-w { bottom: 1vh; font-size: clamp(13px, 1.328vw, 21px); font-weight: 800; color: var(--v2-sec); white-space: nowrap; text-overflow: ellipsis; }
 .cv2-ev.is-past, .cv2-ag.is-past, .cv2-mev.is-past { opacity: 0.5; }
 .cv2-more { display: block; width: 100%; height: 5.5vh; margin-top: 1.25vh; border-radius: 14px; border: 1.5px dashed var(--v2-edge); background: var(--v2-card); color: var(--v2-acc) !important; font-size: clamp(14px, 1.484vw, 24px); font-weight: 900; }
@@ -134,7 +134,9 @@ html.ui-v2 .sheet-p { font-size: clamp(20px, 2.031vw, 32px); font-weight: 800; c
 html.ui-v2 .sheet-loc { margin-top: 1vh; font-size: clamp(17px, 1.797vw, 29px); font-weight: 700; color: var(--v2-sec); }
 html.ui-v2 .sheet-uni { margin-top: 2.5vh; padding: 1.75vh 1.25vw; border-radius: 18px; background: var(--v2-bg); font-size: clamp(17px, 1.797vw, 29px); font-weight: 800; color: var(--v2-ink); }
 html.ui-v2 .uni-k { padding: 0.5vh 0.938vw; border-radius: 999px; background: var(--v2-acc); color: var(--v2-acc-ink); font-size: clamp(13px, 1.328vw, 21px); font-weight: 900; letter-spacing: 0.1em; }
-html.ui-v2 .uni-sw { width: 2.344vw; height: 2.344vw; border: 2.5px solid #FFFFFF; box-shadow: 0 0 0 1.5px rgba(31, 42, 46, 0.3); }
+html.ui-v2 .uni-kit { gap: 0.469vw; }
+html.ui-v2 .uni-ico { width: 3.125vw; height: 3.125vw; }
+html.ui-v2 .uni-shorts, html.ui-v2 .uni-socks { width: 2.656vw; height: 2.656vw; }
 .cv2-x { width: 2.188vw; height: 2.188vw; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; }
 .cv2-daysheet .cv2-dlist { max-height: 58.75vh; overflow-y: auto; }
 .cv2-drow { height: 11.5vh !important; }
@@ -146,5 +148,4 @@ html.theme-dark .cv2-ev, html.theme-dark .cv2-ag, html.theme-dark .cv2-mev { bac
 html.theme-dark .cv2-nu.is-first .cv2-nu-d { color: var(--v2-acc-ink); }
 html.theme-dark .cv2-today { color: var(--v2-bg) !important; }
 html.ui-v2.theme-dark .sheet-x { background: rgba(246, 239, 223, 0.1); }
-html.ui-v2.theme-dark .uni-sw { border-color: var(--v2-card); box-shadow: 0 0 0 1.5px rgba(246, 239, 223, 0.4); }
 html.theme-dark .cv2-legend i { box-shadow: 0 0 0 1.5px rgba(246, 239, 223, 0.35); }

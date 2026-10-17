@@ -241,6 +241,9 @@ button.card:active, .h-hero:active, .h-photo:active { transform: scale(0.985); }
   color: var(--cream); background: var(--olive);
   padding: 2px clamp(6px, calc(var(--u) * 0.6), 10px); border-radius: 999px;
 }
+.uni-kit { display: inline-flex; align-items: flex-end; gap: clamp(4px, calc(var(--u) * 0.4), 8px); }
+.uni-g { display: inline-flex; }
+.uni-ico { display: block; }
 .uni-sws { display: inline-flex; gap: clamp(4px, calc(var(--u) * 0.4), 6px); }
 .uni-sw {
   width: clamp(16px, calc(var(--u) * 1.5), 24px); height: clamp(16px, calc(var(--u) * 1.5), 24px);

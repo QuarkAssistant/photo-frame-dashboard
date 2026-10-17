@@ -6,7 +6,7 @@ import { addDaysYmd, ymd } from '../../time.js';
 import { state } from '../data.js';
 import { currentRoute, go, now, register, UI_V2 } from '../app.js';
 import {
-  cardTime, cardTitle, category, shortTitle, CAT, dayItems, FILTERS, isPast, monthGrid, shortDay, slots, weekLabel, weekStart,
+  cardTime, cardTitle, category, CAT, dayItems, FILTERS, isPast, monthGrid, shortDay, slots, todayOrder, weekLabel, weekStart,
 } from '../calv2data.js';
 import { comingUp, daysUntil, heroDetails } from '../homev2data.js';
 import { ui } from '../v2icons.js';
@@ -36,7 +36,7 @@ function card(e, n, cls = 'cv2-ev') {
   const tag = e.kind ? 'div' : 'button';
   const attrs = e.kind ? '' : ` type="button" data-ev="${esc(e.id)}"`;
   return `<${tag} class="${cls}${isPast(e, n) ? ' is-past' : ''}"${attrs} style="--k:${c.color};--k-rgb:${c.rgb}">` +
-    `<span class="cv2-t">${esc(cardTime(e))}</span><b>${esc(shortTitle(e))}</b><span class="cv2-w">${esc(c.label)}</span></${tag}>`;
+    `<span class="cv2-t">${esc(cardTime(e))}</span><b>${esc(cardTitle(e))}</b><span class="cv2-w">${esc(c.label)}</span></${tag}>`;
 }
 
 function head(n) {
@@ -72,7 +72,8 @@ function week(n) {
   for (let i = 0; i < 7; i++) {
     const day = addDaysYmd(start, i);
     const dp = dayParts(day);
-    const { shown, more } = slots(dayItems(state.events, state.extras, day, filter), WEEK_SLOTS);
+    const items = dayItems(state.events, state.extras, day, filter);
+    const { shown, more } = slots(day === today ? todayOrder(items, n) : items, WEEK_SLOTS);
     cols += `<div class="cv2-col${day === today ? ' is-today' : ''}">` +
       `<div class="cv2-dh"><span>${esc(dp.weekday.slice(0, 3))} ${Number(day.slice(8))}</span></div>` +
       shown.map((e) => card(e, n)).join('') +
@@ -107,14 +108,15 @@ function month(n) {
   const g = monthGrid(today, monthShift);
   const headRow = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => `<span>${d}</span>`).join('');
   const rows = g.weeks.map((wk) => `<div class="cv2-mrow">${wk.map((day) => {
-    const list = dayItems(state.events, state.extras, day, filter);
+    const items = dayItems(state.events, state.extras, day, filter);
+    const list = day === today ? todayOrder(items, n) : items;
     const { shown, more } = slots(list, g.weeks.length > 5 ? 2 : 3);
     const out = day < g.first || day > g.last;
     const chips = shown.map((e) => {
       const c = category(e);
       const t = e.allDay || e.timeTBD ? '' : `<i>${esc(formatTime(e.start).replace(':00', ''))}</i> `;
       const tag = e.kind ? 'div' : 'button';
-      return `<${tag} class="cv2-mev${isPast(e, n) ? ' is-past' : ''}"${e.kind ? '' : ` type="button" data-ev="${esc(e.id)}"`} style="--k:${c.color};--k-rgb:${c.rgb}">${t}${esc(shortTitle(e))}</${tag}>`;
+      return `<${tag} class="cv2-mev${isPast(e, n) ? ' is-past' : ''}"${e.kind ? '' : ` type="button" data-ev="${esc(e.id)}"`} style="--k:${c.color};--k-rgb:${c.rgb}">${t}${esc(cardTitle(e))}</${tag}>`;
     }).join('');
     return `<div class="cv2-mc${out ? ' is-out' : ''}${day === today ? ' is-today' : ''}"><span class="cv2-md">${Number(day.slice(8))}</span>${chips}` +
       (more ? `<button class="cv2-mmore" type="button" data-cvday="${day}">+${more} more</button>` : '') + '</div>';
