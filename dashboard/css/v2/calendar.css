@@ -45,10 +45,11 @@ html.ui-v2 #view-calendar { padding: 0; background: var(--v2-bg); }
 .cv2-col.is-today .cv2-dh span { background: var(--v2-acc); color: var(--v2-acc-ink); }
 .cv2-ev { position: relative; display: block; width: 100%; height: 14vh; margin-top: 1.25vh; overflow: hidden; text-align: left; border-radius: 14px;
   background: rgba(var(--k-rgb), 0.14); box-shadow: inset 0.391vw 0 0 var(--k); color: var(--v2-ink); }
-.cv2-ev .cv2-t, .cv2-ev b, .cv2-ev .cv2-w { position: absolute; left: 1.094vw; right: 0.625vw; overflow: hidden; }
-.cv2-ev .cv2-t { top: 1vh; font-size: clamp(14px, 1.406vw, 22px); font-weight: 800; color: var(--v2-sec); white-space: nowrap; }
-.cv2-ev b { top: 3.75vh; font-size: clamp(15px, 1.562vw, 25px); line-height: 3vh; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; word-break: normal; overflow-wrap: normal; -webkit-hyphens: auto; hyphens: auto; }
-.cv2-ev .cv2-w { bottom: 1vh; font-size: clamp(13px, 1.328vw, 21px); font-weight: 800; color: var(--v2-sec); white-space: nowrap; text-overflow: ellipsis; }
+.cv2-ev .cv2-t, .cv2-ev b, .cv2-ev .cv2-w { position: absolute; left: 1.016vw; right: 0.391vw; overflow: hidden; }
+.cv2-ev .cv2-t { top: 1.125vh; font-size: clamp(12px, 1.289vw, 21px); font-weight: 800; color: var(--v2-sec); white-space: nowrap; }
+.cv2-ev b { top: 3.875vh; font-size: clamp(14px, 1.406vw, 22px); line-height: 2.875vh; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; word-break: normal; overflow-wrap: normal; -webkit-hyphens: auto; hyphens: auto; }
+.cv2-ev .cv2-w { bottom: 1.125vh; font-size: clamp(12px, 1.211vw, 19px); font-weight: 800; color: var(--v2-sec); white-space: nowrap; text-overflow: ellipsis; }
+.cv2-lw { display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: top; }
 .cv2-ev.is-past, .cv2-ag.is-past, .cv2-mev.is-past { opacity: 0.5; }
 .cv2-more { display: block; width: 100%; height: 5.5vh; margin-top: 1.25vh; border-radius: 14px; border: 1.5px dashed var(--v2-edge); background: var(--v2-card); color: var(--v2-acc) !important; font-size: clamp(14px, 1.484vw, 24px); font-weight: 900; }
 
@@ -68,9 +69,9 @@ html.ui-v2 #view-calendar { padding: 0; background: var(--v2-bg); }
 .cv2-md { display: inline-block; min-width: 2.344vw; height: 3vh; padding: 0 0.469vw; border-radius: 999px; font-size: clamp(14px, 1.406vw, 22px); font-weight: 900; line-height: 3vh; text-align: center; }
 .cv2-mc.is-today .cv2-md { background: var(--v2-acc); color: var(--v2-acc-ink); }
 .cv2-mev { display: block; width: 100%; height: 2.875vh; margin-top: 0.375vh; padding: 0 0.391vw 0 0.625vw; border-radius: 6px; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  background: rgba(var(--k-rgb), 0.14); box-shadow: inset 0.312vw 0 0 var(--k); font-size: clamp(11px, 1.172vw, 19px); font-weight: 800; line-height: 2.875vh; color: var(--v2-ink); }
+  background: rgba(var(--k-rgb), 0.14); box-shadow: inset 0.312vw 0 0 var(--k); font-size: clamp(10px, 1.094vw, 18px); font-weight: 800; line-height: 2.875vh; color: var(--v2-ink); }
 .cv2-mev i { font-style: normal; font-weight: 900; }
-.cv2-month.g6 .cv2-mev { height: 2.375vh; line-height: 2.375vh; margin-top: 0.25vh; font-size: clamp(10px, 1.094vw, 18px); }
+.cv2-month.g6 .cv2-mev { height: 2.375vh; line-height: 2.375vh; margin-top: 0.25vh; font-size: clamp(10px, 1.016vw, 16px); }
 .cv2-mmore { display: block; height: 2.5vh; margin-top: 0.25vh; font-size: clamp(11px, 1.172vw, 19px); font-weight: 900; color: var(--v2-acc) !important; }
 
 /* Agenda */

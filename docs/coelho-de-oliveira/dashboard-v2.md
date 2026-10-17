@@ -227,6 +227,11 @@ Matches proposal mockup 04 (Week) and 05 (Coming up). Files: `js/views/calendarv
   Home's Next Up / Then / Coming up), even when a card cuts them off. Only v1's "Name — " owner
   prefix is stripped; the team prefix ("U14 Boys Academy - ") is kept. Long words wrap only between
   words (CSS `hyphens: auto` with `lang="en"` adds a hyphen where the WebView supports it).
+  The frame's WebView 106 doesn't hyphenate, so Week card text is sized to fit: title 18 px,
+  time 16.5 px, person 15.5 px at 1280 wide (Month chips 14 px). The longest real single words in
+  the current and next week ("Informational", "Contemporary", "Conditioning") fit the 129 px card
+  text width; any word of 10+ letters is wrapped so it ellipsizes instead of clipping if it ever
+  doesn't fit.
 - **Today's column and cell:** happening now first, then upcoming, then ended (dimmed), so a live
   event never hides under "+N more". Other days stay chronological (`todayOrder`).
 - **Holidays and Flamengo** come from `/api/extras` (the next 3 holidays and next 2 games), so
