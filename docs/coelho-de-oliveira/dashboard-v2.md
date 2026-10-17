@@ -191,6 +191,11 @@ Files: `js/views/homev2.js` (view), `js/homev2data.js` (pure data shaping, teste
   says who is attending.
 - **Spacing:** people photo rings are `clamp(3px, 0.28vw, 4px)` (about 3.6 px at 1280 wide), and
   the live progress bar sits higher so it has room above the Then row.
+- **Family birthdays (Coming up only):** `FAMILY_BIRTHDAYS` in the local `.env` (never committed),
+  `<name or id>=<YYYY-MM-DD or MM-DD>` separated by commas, family members only. `/api/extras`
+  passes `{ id, name, month, day }` (no year), and Coming up mixes each person's next birthday in by
+  date as "<Name>'s birthday" with the cake icon and "Today" / "Tomorrow" / "N days". No age is
+  shown. Calendar titles are never renamed.
 
 Tests: `server/homev2.test.js` (date line, holiday names, countdown labels, Coming up mix and
 order, Next Up / Then / big number / details, Leave by, rain and context lines, and a CSS check

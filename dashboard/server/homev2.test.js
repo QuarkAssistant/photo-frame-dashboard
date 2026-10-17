@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { displayTitle } from '../family.js';
+import { parseFamilyBirthdays } from './familybirthdays.js';
 import {
-  comingUp, countdownLabel, homeTitle, liveProgress, daysUntil, englishTitle, fullDate, heroBig, heroDetails, holidayName, leaveBy,
+  comingUp, countdownLabel, nextBirthday, homeTitle, liveProgress, daysUntil, englishTitle, fullDate, heroBig, heroDetails, holidayName, leaveBy,
   nextAndThen, rainLine, weatherContext,
 } from '../js/homev2data.js';
 
@@ -124,4 +125,46 @@ test('live event shows when it ends and how long is left', () => {
   assert.equal(liveProgress(e, new Date('2026-10-17T22:59:30Z')).left, 'Ending now');
   assert.equal(liveProgress(e, new Date('2026-10-17T18:00:00Z')), null);
   assert.equal(liveProgress({ ...e, allDay: true }, NOW), null);
+});
+
+test('family birthdays parse from the env string, family only, year dropped', () => {
+  // Made-up dates; names must be family members to be accepted.
+  assert.deepEqual(parseFamilyBirthdays('Thiago=1990-03-05, jp=11-30; Robin=2001-01-01;Lucas=bad; Gilmara=02-29'), [
+    { id: 'thiago', name: 'Thiago', month: 3, day: 5 },
+    { id: 'jp', name: 'JP', month: 11, day: 30 },
+    { id: 'gilmara', name: 'Gilmara', month: 2, day: 29 },
+  ]);
+  assert.deepEqual(parseFamilyBirthdays(''), []);
+  assert.deepEqual(parseFamilyBirthdays(undefined), []);
+});
+
+test('next birthday date wraps the year and handles Feb 29', () => {
+  assert.equal(nextBirthday({ month: 10, day: 17 }, '2026-10-17'), '2026-10-17');
+  assert.equal(nextBirthday({ month: 10, day: 16 }, '2026-10-17'), '2027-10-16');
+  assert.equal(nextBirthday({ month: 2, day: 29 }, '2026-10-17'), '2027-02-28');
+  assert.equal(nextBirthday({ month: 2, day: 29 }, '2027-10-17'), '2028-02-29');
+  assert.equal(nextBirthday({ month: 13, day: 1 }, '2026-10-17'), null);
+});
+
+test('family birthdays mix into Coming up by date with a days countdown and no age', () => {
+  const events = [ev('t', 'Lucas — Zoo Field Trip', '2026-10-23T13:00:00Z', '2026-10-23T20:00:00Z')];
+  const extras = {
+    holidays: [{ date: '2026-11-02', local: 'Finados', name: "All Souls' Day", country: 'BR' }],
+    fixtures: [],
+    familyBirthdays: [
+      { id: 'jp', name: 'JP', month: 10, day: 17 },
+      { id: 'thiago', name: 'Thiago', month: 10, day: 18 },
+      { id: 'gilmara', name: 'Gilmara', month: 10, day: 21 },
+      { id: 'lucas', name: 'Lucas', month: 9, day: 1 },
+    ],
+  };
+  const list = comingUp(events, extras, NOW, 6);
+  assert.deepEqual(list.map((i) => [i.kind, i.title, i.when]), [
+    ['birthday', "JP's birthday", 'Today'],
+    ['birthday', "Thiago's birthday", 'Tomorrow'],
+    ['birthday', "Gilmara's birthday", '4 days'],
+    ['outing', 'Zoo Field Trip', 'Fri 8:00 AM'],
+    ['holiday', "All Souls' Day", '16 days'],
+    ['birthday', "Lucas's birthday", '319 days'],
+  ]);
 });

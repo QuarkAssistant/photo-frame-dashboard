@@ -108,6 +108,7 @@ export function dayTime(iso, now) {
 export function countdownLabel(item, now) {
   const day = item.allDay ? item.start : ymd(new Date(item.start));
   const n = daysUntil(day, now);
+  if (item.daysOnly) return n <= 0 ? 'Today' : n === 1 ? 'Tomorrow' : `${n} days`;
   if (!item.allDay && !item.timeTBD && n < 7) {
     // Short weekday keeps the name readable; the time itself is never cut.
     const t = formatTime(item.start);
@@ -148,6 +149,10 @@ export function comingUp(events, extras, now, limit = 3) {
     seen.add(key);
     out.push({ kind, title, start: e.start, allDay: Boolean(e.allDay), people: e.people || [], everyone: e.everyone });
   }
+  for (const b of (extras && extras.familyBirthdays) || []) {
+    const date = nextBirthday(b, today);
+    if (date) out.push({ kind: 'birthday', title: `${b.name}'s birthday`, start: date, allDay: true, daysOnly: true, people: [b.id] });
+  }
   for (const h of (extras && extras.holidays) || []) {
     if (!h.date || h.date < today) continue;
     out.push({ kind: 'holiday', title: holidayName(h), start: h.date, allDay: true, country: h.country });
@@ -160,6 +165,19 @@ export function comingUp(events, extras, now, limit = 3) {
   const sortKey = (i) => (i.allDay ? `${i.start}T00:00` : new Date(i.start).toISOString());
   out.sort((a, b) => sortKey(a).localeCompare(sortKey(b)));
   return out.slice(0, limit).map((i) => ({ ...i, when: countdownLabel(i, now) }));
+}
+
+// Next date (YYYY-MM-DD, today included) of a { month, day } family birthday from /api/extras.
+// Feb 29 falls on Feb 28 in other years.
+export function nextBirthday(b, today) {
+  if (!b || !(b.month >= 1 && b.month <= 12) || !(b.day >= 1 && b.day <= 31)) return null;
+  const pad = (v) => String(v).padStart(2, '0');
+  const on = (y) => {
+    const last = new Date(Date.UTC(y, b.month, 0)).getUTCDate();
+    return `${y}-${pad(b.month)}-${pad(Math.min(b.day, last))}`;
+  };
+  const y = Number(today.slice(0, 4));
+  return on(y) >= today ? on(y) : on(y + 1);
 }
 
 // Next Up plus the one event after it ("Then").
