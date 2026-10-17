@@ -6,7 +6,7 @@ import { mapNws, nwsCurrent } from './nws.js';
 const TTL = 10 * 60 * 1000;
 let cache = null;
 
-function wmoIcon(code, hour) {
+export function wmoIcon(code, hour) {
   const n = Number(code);
   const night = hour >= 20 || hour < 6;
   if (n === 0) return night ? 'moon' : 'sun';
