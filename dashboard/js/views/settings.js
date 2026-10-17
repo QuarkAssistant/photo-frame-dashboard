@@ -8,6 +8,7 @@ import { register } from '../app.js';
 import { state } from '../data.js';
 import { esc, formatTime } from '../ui.js';
 import { icon } from '../icons.js';
+import { parseUserAgent, webviewLabel } from '../../frameinfo.js';
 
 const KEY_BRIGHT = 'coelho.brightness';
 const KEY_SAVER = 'coelho.saverSeconds';
@@ -79,8 +80,11 @@ function wifiInfo() {
 }
 
 let ping = null;
+let health = null;
 function measure(el) {
   const t0 = Date.now();
+  fetch('/api/frame-health', { cache: 'no-store' }).then((r) => r.json())
+    .then((h) => { health = h && h.ok ? h : null; }).catch(() => { health = null; });
   fetch(`/api/config?ping=${t0}`, { cache: 'no-store' })
     .then((r) => { ping = { ok: r.ok, ms: Date.now() - t0, at: new Date() }; })
     .catch(() => { ping = { ok: false, ms: 0, at: new Date() }; })
@@ -89,6 +93,13 @@ function measure(el) {
 
 function row(label, value, sub = '') {
   return `<div class="st-row"><span class="st-l">${label}</span><span class="st-v">${value}${sub ? `<small>${sub}</small>` : ''}</span></div>`;
+}
+
+function healthLine(h) {
+  const bits = [];
+  if (h.pssMB != null) bits.push(`Memory ${Math.round(h.pssMB)} MB`);
+  if (h.cpuCores != null) bits.push(`CPU ${h.cpuCores} of 4 cores`);
+  return bits.join(' · ') || 'No reading';
 }
 
 function needs(text = 'Needs kiosk update') { return `<span class="st-need">${text}</span>`; }
@@ -128,6 +139,8 @@ function paint(el) {
     `<section class="st-card"><h2>Frame</h2>` +
     row('Screen', `${window.screen.width} × ${window.screen.height}`) +
     row('System', esc(ua ? ua[0] : 'Browser'), b ? 'Kiosk bridge connected' : 'Kiosk bridge not installed') +
+    row('Web engine', esc(webviewLabel(navigator.userAgent)), parseUserAgent(navigator.userAgent).ok ? 'Supported (106 or newer)' : 'Older than 106: some layouts may break') +
+    (health && health.latest ? row('Frame health', esc(healthLine(health.latest)), `Checked ${esc(formatTime(health.latest.at))}`) : '') +
     row('Photos in rotation', esc(String((state.photos || []).length))) +
     row('Last checked', ping ? esc(formatTime(ping.at)) : '—') +
     `<div class="st-actions"><button type="button" class="st-btn" data-frame="reload">Reload dashboard</button>` +

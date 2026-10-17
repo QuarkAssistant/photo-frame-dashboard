@@ -30,7 +30,11 @@ register('photos', {
         `<button class="ph-nav" type="button" data-photo="-1" aria-label="Previous">${icon('left', 36)}</button>` +
         `<div class="ph-stage"></div>` +
         `<button class="ph-nav" type="button" data-photo="1" aria-label="Next">${icon('right', 36)}</button>` +
-        `<div class="ph-cap"></div></div>`;
+        `<div class="ph-cap"></div>` +
+        (document.documentElement.classList.contains('ui-v2')
+          ? `<button class="v2-back" type="button" data-go="media">${icon('back', 30, 2.6)}<span>Media</span></button>`
+          : '') +
+        `</div>`;
       el.addEventListener('click', (e) => {
         const b = e.target.closest('[data-photo]');
         if (!b) return;

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Frame health probe every 5 minutes (read-only ADB). Copy to ~/Library/LaunchAgents/,
+     fix the paths, set FRAME_ADB in dashboard/.env, then launchctl load it. -->
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.coelho.frame-health</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/opt/homebrew/bin/node</string>
+    <string>/Users/YOU/coelho-dashboard/dashboard/scripts/frame-health.mjs</string>
+  </array>
+  <key>EnvironmentVariables</key>
+  <dict><key>PATH</key><string>/opt/homebrew/bin:/usr/bin:/bin</string></dict>
+  <key>StartInterval</key><integer>300</integer>
+  <key>StandardOutPath</key><string>/Users/YOU/Library/Logs/coelho-frame-health.log</string>
+  <key>StandardErrorPath</key><string>/Users/YOU/Library/Logs/coelho-frame-health.log</string>
+</dict>
+</plist>

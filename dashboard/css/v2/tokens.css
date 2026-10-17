@@ -1,0 +1,75 @@
+/* v2 design tokens (Phase 0). Garden Morning by day, Olive Grove at night.
+   Scoped to html.ui-v2 so v1 pages are untouched until each page is rebuilt.
+   Type sizes are clamp(75 %, px / 12.8 vw, 125 %): identical to the px value at the
+   frame's 1280 px width, fluid elsewhere. WebView 106 supports clamp() and var().
+   No 4/8-digit hex (the frame's WebView rejects it); rgba() instead. */
+@font-face {
+  font-family: Nunito;
+  src: url('/fonts/Nunito-v2.woff2') format('woff2'), url('/fonts/Nunito-v2.woff') format('woff');
+  font-weight: 700 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+html.ui-v2 {
+  /* Garden Morning */
+  --v2-bg: #FBF6EC;
+  --v2-card: #FFFFFF;
+  --v2-edge: #EADFC8;
+  --v2-ink: #1F2A2E;
+  --v2-sec: #5C6B6E;
+  --v2-acc: #1F6F6B;          /* teal */
+  --v2-acc-ink: #FBF6EC;
+  --v2-forest: #16332F;
+  --v2-olive: #7A8A3C;
+  --v2-sun: #F2B544;          /* fill only, never text */
+  --v2-rail-on: #F1F6F4;
+  --v2-shadow: 0 2px 0 rgba(0, 0, 0, 0.02), 0 6px 16px rgba(60, 45, 20, 0.06);
+
+  /* Person colours: identity, not text. The name is always written next to it. */
+  --v2-thiago: #AB2320;
+  --v2-gilmara: #F78872;
+  --v2-jp: #3D78BC;
+  --v2-lucas: #8EAD74;
+  --v2-family: #1F6F6B;
+
+  /* Type scale (px at 1280 wide). Nunito 700–900 only. */
+  --v2-font: Nunito, Archivo, Roboto, system-ui, sans-serif;
+  --v2-fs-clock: clamp(117px, 12.188vw, 195px);   /* 156 */
+  --v2-fs-hero: clamp(84px, 8.75vw, 140px);       /* 112 */
+  --v2-fs-title: clamp(41px, 4.219vw, 68px);      /* 54 */
+  --v2-fs-heading: clamp(33px, 3.438vw, 55px);    /* 44 */
+  --v2-fs-body: clamp(21px, 2.188vw, 35px);       /* 28 */
+  --v2-fs-second: clamp(17px, 1.719vw, 28px);     /* 22 */
+  --v2-fs-label: clamp(14px, 1.406vw, 23px);      /* 18 */
+
+  /* Layout: 4 px grid, 16–20 px gutters, 26 px cards, 96 px rail, 64 px+ targets. */
+  --v2-s1: 4px;
+  --v2-s2: 8px;
+  --v2-s3: 12px;
+  --v2-s4: 16px;
+  --v2-s5: 20px;
+  --v2-s6: 24px;
+  --v2-gutter: clamp(16px, 1.563vw, 20px);
+  --v2-radius: 26px;
+  --v2-rail: 96px;
+  --v2-rail-item: 84px;
+  --v2-tap: 64px;
+  --v2-back: 60px;
+  --rail: var(--v2-rail);
+}
+
+/* Olive Grove (night / dark theme) */
+html.ui-v2.theme-dark {
+  --v2-bg: #16332F;
+  --v2-card: #1F4540;
+  --v2-edge: #2C5A53;
+  --v2-ink: #F6EFDF;
+  --v2-sec: #B9C7B4;
+  --v2-acc: #E8B04A;          /* amber */
+  --v2-acc-ink: #16332F;
+  --v2-sun: #E8B04A;
+  --v2-rail-on: #24504A;
+  --v2-shadow: none;
+  --v2-family: #E8B04A;
+}

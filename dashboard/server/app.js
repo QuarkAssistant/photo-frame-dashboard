@@ -18,6 +18,8 @@ import { loadGroceries, saveGrocery } from './reminders.js';
 import { openStore } from './store.js';
 import { startIndoor } from './indoor.js';
 import { weatherPayload } from './weather.js';
+import { isFrameReport, sanitizeFrameReport } from '../frameinfo.js';
+import { healthPayload } from './framehealth.js';
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -110,12 +112,31 @@ export function createApi({ root }) {
   if (!process.env.NODE_TEST_CONTEXT) startIndoor();
   const store = openStore(root);
   const dist = path.join(root, 'dist');
+  const frameInfoFile = path.join(root, 'data', 'frame-info.json');
+  let frameInfo = null;
+  try { frameInfo = JSON.parse(fs.readFileSync(frameInfoFile, 'utf8')); } catch { frameInfo = null; }
 
   return async function handle(req, res) {
     const url = new URL(req.url || '/', 'http://localhost');
     const pathname = url.pathname;
     try {
       if (pathname === '/api/health') return sendJson(res, 200, { ok: true, brand: BRAND });
+      if (pathname === '/api/frame-info') {
+        if (req.method === 'POST') {
+          const report = sanitizeFrameReport(await readBody(req));
+          if (isFrameReport(report)) {
+            frameInfo = report;
+            try {
+              fs.mkdirSync(path.dirname(frameInfoFile), { recursive: true });
+              fs.writeFileSync(`${frameInfoFile}.tmp`, JSON.stringify(report, null, 2));
+              fs.renameSync(`${frameInfoFile}.tmp`, frameInfoFile);
+            } catch { /* in-memory copy still answers GET */ }
+          }
+          return sendJson(res, 200, { ok: true, stored: isFrameReport(report) });
+        }
+        if (req.method === 'GET') return sendJson(res, 200, frameInfo ? { ok: true, ...frameInfo } : { ok: false, reason: 'no-report-yet' });
+      }
+      if (pathname === '/api/frame-health' && req.method === 'GET') return sendJson(res, 200, healthPayload());
       if (pathname === '/api/config' && req.method === 'GET') return sendJson(res, 200, nightConfig());
       if (pathname === '/api/calendar' && req.method === 'GET') return sendJson(res, 200, await calendarPayload());
       if (pathname === '/api/weather' && req.method === 'GET') return sendJson(res, 200, await weatherPayload());

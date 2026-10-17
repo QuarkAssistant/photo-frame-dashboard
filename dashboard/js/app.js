@@ -5,6 +5,8 @@ import {
   nightAnchor, parseClockMinutes,
 } from '../night.js';
 import { parts, ymd } from '../time.js';
+import { NAV_V2, routeFor, SETTINGS_HOLD_MS, shouldIdleHome, wantsV2 } from '../nav.js';
+import { reportFrame } from './frameinfo.js';
 import { refreshAll, refreshLists, state, subscribe } from './data.js';
 import { icon } from './icons.js';
 import { createSlides } from './slides.js';
@@ -27,7 +29,12 @@ function saverIdle() {
 function pageParams0() { return new URLSearchParams(location.search); }
 // New layout is default; ?layout=v1 restores the original Home.
 if (pageParams0().get('layout') !== 'v1') document.documentElement.className += ' layout-v2';
+// v2 shell (9-item rail, new routes, design tokens): opt-in with ?ui=v2 for now.
+export const UI_V2 = wantsV2(location.search);
+if (UI_V2) document.documentElement.className += ' ui-v2';
 let saverOpen = false;
+let lastPerson = null;
+export function lastPersonViewed() { return lastPerson; }
 let themeFn = null;
 let nightOpen = false;
 let nightSlot = null;
@@ -44,21 +51,28 @@ export function now() { return nowOverride == null ? new Date() : new Date(nowOv
 export function member() { return memberId ? FAMILY.find((p) => p.id === memberId) : null; }
 export { icon, state };
 
+let route = routeFor('home');
+export function currentRoute() { return route; }
+
 export function go(name) {
-  const person = FAMILY.find((p) => p.id === name);
-  const viewName = person ? 'member' : (views[name] ? name : 'home');
+  const r = routeFor(name);
+  const person = r.person ? FAMILY.find((p) => p.id === r.person) : null;
+  const viewName = person ? 'member' : (views[r.view] ? r.view : 'home');
+  route = viewName === r.view ? r : routeFor('home');
   memberId = person ? person.id : null;
   current = viewName;
+  if (person) lastPerson = person.id;
   document.querySelectorAll('.view').forEach((v) => {
     v.classList.toggle('is-active', v.dataset.view === viewName);
   });
   document.querySelectorAll('.rail-item').forEach((b) => {
-    b.classList.toggle('is-active', b.dataset.go === (person ? person.id : viewName));
+    const on = UI_V2 ? b.dataset.nav === route.section : b.dataset.go === (person ? person.id : viewName);
+    b.classList.toggle('is-active', on);
   });
   const el = document.getElementById(`view-${viewName}`);
   if (views[viewName] && el) views[viewName].show(el);
   paintClocks();
-  const hash = person ? person.id : viewName;
+  const hash = person ? person.id : route.name;
   if (location.hash !== `#${hash}`) {
     history.replaceState(null, '', `${location.pathname}${location.search}#${hash}`);
   }
@@ -78,7 +92,57 @@ function clockHtml(date) {
     `<div class="h-date"><b>${esc(dp.weekday)}</b> <i>${esc(dp.month)} ${esc(dp.day)}</i></div>`;
 }
 
+// v2 rail: nine items, 84 px each, 18 px labels. Settings needs a 2 s hold.
+function railV2() {
+  document.getElementById('rail').className = 'rail rail--v2';
+  document.getElementById('rail').innerHTML = '<div class="r2-top"></div>' + NAV_V2.map((n) => {
+    const act = n.hold ? `data-hold="${n.id}"` : `data-go="${n.id}"`;
+    return `<button class="rail-item r2-item" type="button" data-nav="${n.id}" ${act}>` +
+      `<i class="r2-pip"></i>${icon(n.icon, 30, 2.4)}<span>${esc(n.label)}</span></button>`;
+  }).join('');
+}
+
+let toastTimer = null;
+export function toast(text) {
+  let el = document.getElementById('v2Toast');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'v2Toast';
+    el.className = 'v2-toast';
+    document.getElementById('stage').appendChild(el);
+  }
+  el.textContent = text;
+  el.classList.add('is-on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('is-on'), 2200);
+}
+
+function bindHold() {
+  let timer = null;
+  let btn = null;
+  const cancel = (tap) => {
+    if (!btn) return;
+    clearTimeout(timer);
+    btn.classList.remove('is-holding');
+    if (tap) toast('Hold for 2 seconds to open Settings');
+    btn = null;
+  };
+  const railEl = document.getElementById('rail');
+  railEl.addEventListener('pointerdown', (e) => {
+    const b = e.target.closest('[data-hold]');
+    if (!b) return;
+    btn = b;
+    b.classList.add('is-holding');
+    timer = setTimeout(() => { const id = b.dataset.hold; cancel(false); go(id); }, SETTINGS_HOLD_MS);
+  });
+  railEl.addEventListener('pointerup', () => cancel(true));
+  railEl.addEventListener('pointercancel', () => cancel(false));
+  railEl.addEventListener('pointerleave', () => cancel(false));
+  railEl.addEventListener('contextmenu', (e) => { if (e.target.closest('[data-hold]')) e.preventDefault(); });
+}
+
 function rail() {
+  if (UI_V2) { railV2(); bindHold(); return; }
   const item = (goTo, ic, label) =>
     `<button class="rail-item" type="button" data-go="${goTo}">${icon(ic, 22)}<span>${label}</span></button>`;
   const people = FAMILY.map((p) =>
@@ -262,6 +326,7 @@ function tick() {
   if (saverOpen && inNight(n) && !nightOff) closeSaver();
   if (n.getMinutes() !== lastMin) minuteTick(n);
   idle += 1;
+  if (UI_V2 && !nightOpen && !saverOpen && shouldIdleHome(current, idle)) { closeSheet(); go('home'); }
   if (!nightOpen && !inNight(n) && !saverOpen && idle >= saverIdle()) openSaver();
 }
 
@@ -361,6 +426,19 @@ export function eventsToday(pid) {
 
 export { clockHtml, formatTime, owner };
 
+// Screenshot harness: ?sheet=<event id> opens that event's sheet; ?sheet=uniform opens
+// the next event that has a uniform line (proves the soccer popup without a tap).
+function openSheetParam() {
+  const want = pageParams.get('sheet');
+  if (!want) return;
+  const t = now();
+  const ev = want === 'uniform'
+    ? state.events.filter((e) => e.uniform && e.uniform.text && new Date(e.end) > t)
+      .sort((a, b) => String(a.start).localeCompare(String(b.start)))[0]
+    : state.events.find((e) => e.id === want);
+  if (ev) openEvent(ev.id);
+}
+
 export async function start() {
   rail();
   import('./views/settings.js').then((m) => { m.applyBrightness(); m.applyTheme(); themeFn = m.applyTheme; }).catch(() => {});
@@ -375,7 +453,10 @@ export async function start() {
   });
   await refreshAll();
   document.documentElement.dataset.ready = '1';
+  reportFrame();
+  setInterval(reportFrame, 60 * 60 * 1000);
   go(location.hash.slice(1) || 'home');
+  openSheetParam();
   tick();
   paintClocks();
   setInterval(tick, 1000);
